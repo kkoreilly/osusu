@@ -11,10 +11,6 @@ import (
 // It is executed in 2 different environments: A client (the web browser) and a
 // server.
 func main() {
-	// The first thing to do is to associate the hello component with a path.
-	//
-	// This is done by calling the Route() function,  which tells go-app what
-	// component to display for a given path, on both client and server-side.
 	app.Route("/", &start{})
 	app.Route("/signin", &signIn{})
 	app.Route("/signup", &signUp{})

@@ -16,6 +16,7 @@ func (s *signIn) Render() app.UI {
 		app.Form().ID("sign-in-page-form").OnSubmit(s.OnSubmit).Body(
 			app.Input().ID("sign-in-page-username").Class("sign-in-page-input").Name("username").Type("text").Placeholder("Username"),
 			app.Input().ID("sign-in-page-password").Class("sign-in-page-input").Name("password").Type("password").Placeholder("Password"),
+			app.A().ID("sign-in-page-cancel").Class("blue-action-button").Href("/").Text("Cancel"),
 			app.Input().ID("sign-in-page-submit").Class("blue-action-button").Name("submit").Type("submit").Value("Sign In"),
 		),
 	)
