@@ -1,0 +1,10 @@
+#start-page-subtitle {
+    text-align: center;
+    font-size: 20px;
+}
+
+#start-page-action-button-row {
+    display: flex;
+    justify-content: center;
+    column-gap: 20px;
+}

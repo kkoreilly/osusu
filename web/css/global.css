@@ -1,0 +1,19 @@
+.page-title {
+    text-align: center;
+    font-size: 40px;
+}
+
+.blue-action-button {
+    cursor: pointer;
+    border-radius: 7%;
+    border: none;
+    font-size: 20px;
+    padding: 20px;
+    text-decoration: none;
+    color: white;
+    background-color: hsl(240, 100%, 60%);
+}
+
+.blue-action-button:hover {
+    background-color: hsl(240, 100%, 40%);
+}
