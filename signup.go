@@ -25,7 +25,9 @@ func (s *signUp) Render() app.UI {
 
 func (s *signUp) OnSubmit(ctx app.Context, e app.Event) {
 	e.PreventDefault()
-	username := app.Window().GetElementByID("sign-up-page-username").Get("value")
-	password := app.Window().GetElementByID("sign-up-page-password").Get("value")
+	username := app.Window().GetElementByID("sign-up-page-username").Get("value").String()
+	password := app.Window().GetElementByID("sign-up-page-password").Get("value").String()
 	log.Println("Username:", username, "Password:", password)
+	SaveUsername(username, ctx)
+	ctx.Navigate("/home")
 }

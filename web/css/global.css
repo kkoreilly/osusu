@@ -3,6 +3,11 @@
     font-size: 40px;
 }
 
+.page-subtitle {
+    text-align: center;
+    font-size: 20px;
+}
+
 .action-button-row {
     display: flex;
     justify-content: center;
