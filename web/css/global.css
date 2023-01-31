@@ -3,17 +3,36 @@
     font-size: 40px;
 }
 
-.blue-action-button {
+.action-button-row {
+    display: flex;
+    justify-content: center;
+    column-gap: 20px;
+}
+
+.action-button {
     cursor: pointer;
     border-radius: 7%;
-    border: none;
     font-size: 20px;
     padding: 20px;
     text-decoration: none;
+}
+
+.blue-action-button {
+    border: none;
     color: white;
     background-color: hsl(240, 100%, 60%);
 }
 
 .blue-action-button:hover {
     background-color: hsl(240, 100%, 40%);
+}
+
+.white-action-button {
+    border: 1px solid black;
+    color: black;
+    background-color: white;
+}
+
+.white-action-button:hover {
+    background-color: darkgray;
 }
