@@ -15,6 +15,8 @@ func main() {
 	app.Route("/signin", &signIn{})
 	app.Route("/signup", &signUp{})
 	app.Route("/home", &home{})
+	app.Route("/edit", &edit{})
+	app.Route("/recommendations", &recommendations{})
 
 	// Once the routes set up, the next thing to do is to either launch the app
 	// or the server that serves the app.
@@ -40,7 +42,7 @@ func main() {
 		Title:       "MealRec",
 		Icon:        app.Icon{Default: "/web/images/icon-192.png", Large: "/web/images/icon-512.png"},
 		Description: "An app for getting recommendations on what meals to eat",
-		Styles:      []string{"/web/css/global.css", "/web/css/start.css", "/web/css/signinup.css"},
+		Styles:      []string{"/web/css/global.css", "/web/css/start.css", "/web/css/signinup.css", "/web/css/home.css", "/web/css/edit.css"},
 	})
 
 	if err := http.ListenAndServe(":8000", nil); err != nil {

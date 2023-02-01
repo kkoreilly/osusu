@@ -1,0 +1,8 @@
+.home-page-meal {
+    padding: 10px;
+    cursor: pointer;
+}
+
+.home-page-meal:hover {
+    background-color: darkgray;
+}
