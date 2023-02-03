@@ -36,12 +36,20 @@ func (e *edit) OnNav(ctx app.Context) {
 	}
 	e.meal = GetCurrentMeal(ctx)
 	app.Window().GetElementByID("edit-page-name-input").Set("value", e.meal.Name)
+	app.Window().GetElementByID("edit-page-cost-input").Set("value", e.meal.Cost)
+	app.Window().GetElementByID("edit-page-effort-input").Set("value", e.meal.Effort)
+	app.Window().GetElementByID("edit-page-healthiness-input").Set("value", e.meal.Healthiness)
 }
 
 func (e *edit) OnSubmit(ctx app.Context, event app.Event) {
 	event.PreventDefault()
 	delete(e.meals, e.meal.Name)
+
 	e.meal.Name = app.Window().GetElementByID("edit-page-name-input").Get("value").String()
+	e.meal.Cost = app.Window().GetElementByID("edit-page-cost-input").Get("valueAsNumber").Int()
+	e.meal.Effort = app.Window().GetElementByID("edit-page-effort-input").Get("valueAsNumber").Int()
+	e.meal.Healthiness = app.Window().GetElementByID("edit-page-healthiness-input").Get("valueAsNumber").Int()
+
 	e.meals[e.meal.Name] = e.meal
 	SetMeals(e.meals, ctx)
 	ctx.Navigate("/home")
