@@ -1,14 +1,12 @@
 package main
 
 import (
-	"strconv"
-
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
 )
 
 type home struct {
 	app.Compo
-	meals []Meal
+	meals map[string]Meal
 }
 
 func (h *home) Render() app.UI {
@@ -20,9 +18,9 @@ func (h *home) Render() app.UI {
 		),
 		app.Hr(),
 		app.Div().ID("home-page-meals-container").Body(
-			app.Range(h.meals).Slice(func(i int) app.UI {
-				return app.Div().ID("home-page-meal-" + strconv.Itoa(i)).Class("home-page-meal").Text(h.meals[i].Name).
-					OnClick(func(ctx app.Context, e app.Event) { h.MealOnClick(ctx, e, h.meals[i]) })
+			app.Range(h.meals).Map(func(k string) app.UI {
+				return app.Div().ID("home-page-meal-" + k).Class("home-page-meal").Text(k).
+					OnClick(func(ctx app.Context, e app.Event) { h.MealOnClick(ctx, e, h.meals[k]) })
 			}),
 		),
 	)
@@ -39,9 +37,9 @@ func (h *home) MealOnClick(ctx app.Context, e app.Event, meal Meal) {
 }
 
 func (h *home) OnNav(ctx app.Context) {
-	h.meals = []Meal{
-		{"Sandwich"},
-		{"Salad"},
-		{"Soup"},
+	h.meals = GetMeals(ctx)
+	if h.meals == nil {
+		h.meals = make(Meals)
+		SetMeals(h.meals, ctx)
 	}
 }

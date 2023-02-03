@@ -17,6 +17,7 @@ func main() {
 	app.Route("/home", &home{})
 	app.Route("/edit", &edit{})
 	app.Route("/recommendations", &recommendations{})
+	app.Route("/person", &person{})
 
 	// Once the routes set up, the next thing to do is to either launch the app
 	// or the server that serves the app.

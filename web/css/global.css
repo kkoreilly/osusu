@@ -1,3 +1,9 @@
+:root {
+    background: white;
+    background: linear-gradient(180deg, white 0%, hsl(0, 0%, 90%) 100%);
+    background-attachment: fixed;
+}
+
 .page-title {
     text-align: center;
     font-size: 40px;
@@ -40,4 +46,37 @@
 
 .white-action-button:hover {
     background-color: darkgray;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    row-gap: 10px;
+}
+
+.input {
+    font-size: 20px;
+    padding: 10px;
+    width: min(70%, 500px);
+}
+
+.input-range {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 25px;
+    background-color: lightgray;
+    outline: none;
+    padding: 0;
+}
+
+/* add ::-moz-range-thumb */
+
+.input-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 25px;
+    height: 25px;
+    background-color: green;
+    cursor: pointer;
 }

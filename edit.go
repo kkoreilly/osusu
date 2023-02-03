@@ -4,18 +4,45 @@ import "github.com/maxence-charriere/go-app/v9/pkg/app"
 
 type edit struct {
 	app.Compo
+	meal  Meal
+	meals Meals
 }
 
 func (e *edit) Render() app.UI {
 	return app.Div().Body(
 		app.H1().ID("edit-page-title").Class("page-title").Text("Edit"),
-		app.Form().ID("edit-page-form").Body(
+		app.Form().ID("edit-page-form").Class("form").OnSubmit(e.OnSubmit).Body(
 			app.Label().ID("edit-page-name-label").Class("edit-page-label").For("edit-page-name-input").Text("Name:"),
-			app.Input().ID("edit-page-name-input").Class("edit-page-input"),
+			app.Input().ID("edit-page-name-input").Class("input", "edit-page-input").Type("text"),
+			app.Label().ID("edit-page-cost-label").Class("edit-page-label").For("edit-page-cost-input").Text("Cost:"),
+			app.Input().ID("edit-page-cost-input").Class("input", "input-range", "edit-page-input").Type("range").Min(0).Max(100),
+			app.Label().ID("edit-page-effort-label").Class("edit-page-label").For("edit-page-effort-input").Text("Effort:"),
+			app.Input().ID("edit-page-effort-input").Class("input", "input-range", "edit-page-input").Type("range").Min(0).Max(100),
+			app.Label().ID("edit-page-healthiness-label").Class("edit-page-label").For("edit-page-healthiness-input").Text("Healthiness:"),
+			app.Input().ID("edit-page-healthiness-input").Class("input", "input-range", "edit-page-input").Type("range").Min(0).Max(100),
+			app.Div().ID("edit-page-action-button-row").Class("action-button-row").Body(
+				app.A().ID("edit-page-cancel-button").Class("action-button", "white-action-button").Href("/home").Text("Cancel"),
+				app.Input().ID("edit-page-save-button").Class("action-button", "blue-action-button").Type("submit").Value("Save"),
+			),
 		),
 	)
 }
 
 func (e *edit) OnNav(ctx app.Context) {
-	app.Window().GetElementByID("edit-page-name-input").Set("value", GetCurrentMeal(ctx).Name)
+	e.meals = GetMeals(ctx)
+	if e.meals == nil {
+		e.meals = make(Meals)
+		SetMeals(e.meals, ctx)
+	}
+	e.meal = GetCurrentMeal(ctx)
+	app.Window().GetElementByID("edit-page-name-input").Set("value", e.meal.Name)
+}
+
+func (e *edit) OnSubmit(ctx app.Context, event app.Event) {
+	event.PreventDefault()
+	delete(e.meals, e.meal.Name)
+	e.meal.Name = app.Window().GetElementByID("edit-page-name-input").Get("value").String()
+	e.meals[e.meal.Name] = e.meal
+	SetMeals(e.meals, ctx)
+	ctx.Navigate("/home")
 }
