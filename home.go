@@ -27,7 +27,7 @@ func (h *home) Render() app.UI {
 }
 
 func (h *home) New(ctx app.Context, e app.Event) {
-	SetCurrentMeal(Meal{}, ctx)
+	SetCurrentMeal(DefaultMeal(), ctx)
 	ctx.Navigate("/edit")
 }
 

@@ -1,4 +1,25 @@
-.edit-page-label {
-    font-size: 25px;
-    font-weight: bold;
+#edit-page-cost-input::-webkit-slider-thumb {
+    background-color: orange;
+    box-shadow: -100vw 0 0 100vw hsl(39, 100%, 70%);
+}
+
+#edit-page-cost-input::-moz-range-thumb {
+    background-color: orange;
+}
+
+#edit-page-cost-input::-moz-range-progress {
+    background-color: hsl(39, 100%, 70%);
+}
+
+#edit-page-effort-input::-webkit-slider-thumb {
+    background-color: blue;
+    box-shadow: -100vw 0 0 100vw hsl(240, 100%, 70%);
+}
+
+#edit-page-effort-input::-moz-range-thumb {
+    background-color: blue;
+}
+
+#edit-page-effort-input::-moz-range-progress {
+    background-color: hsl(240, 100%, 70%);
 }

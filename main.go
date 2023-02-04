@@ -43,7 +43,7 @@ func main() {
 		Title:       "MealRec",
 		Icon:        app.Icon{Default: "/web/images/icon-192.png", Large: "/web/images/icon-512.png"},
 		Description: "An app for getting recommendations on what meals to eat",
-		Styles:      []string{"/web/css/global.css", "/web/css/start.css", "/web/css/signinup.css", "/web/css/home.css", "/web/css/edit.css"},
+		Styles:      []string{"https://fonts.googleapis.com/css?family=Roboto", "/web/css/global.css", "/web/css/start.css", "/web/css/signinup.css", "/web/css/home.css", "/web/css/edit.css"},
 	})
 
 	if err := http.ListenAndServe(":8000", nil); err != nil {

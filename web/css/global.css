@@ -1,3 +1,7 @@
+* {
+    font-family: 'Roboto';
+}
+
 :root {
     background: white;
     background: linear-gradient(180deg, white 0%, hsl(0, 0%, 90%) 100%);
@@ -55,10 +59,15 @@
     row-gap: 10px;
 }
 
+.input-label {
+    font-size: 25px;
+    font-weight: bold;
+}
+
 .input {
     font-size: 20px;
     padding: 10px;
-    width: min(70%, 500px);
+    width: min(70%, 700px);
 }
 
 .input-range {
@@ -66,11 +75,14 @@
     appearance: none;
     height: 25px;
     background-color: lightgray;
-    outline: none;
     padding: 0;
+    overflow: hidden;
+    cursor: pointer;
 }
 
-/* add ::-moz-range-thumb */
+.input-range:hover {
+    background-color: darkgray;
+}
 
 .input-range::-webkit-slider-thumb {
     -webkit-appearance: none;
@@ -78,5 +90,22 @@
     width: 25px;
     height: 25px;
     background-color: green;
-    cursor: pointer;
+    cursor: ew-resize;
+    box-shadow: -100vw 0 0 100vw hsl(120, 100%, 40%);
+}
+
+.input-range::-moz-range-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 25px;
+    height: 25px;
+    background-color: green;
+    cursor: ew-resize;
+    border: none;
+    border-radius: 0;
+}
+
+.input-range::-moz-range-progress {
+    background-color: hsl(120, 100%, 40%);
+    height: 25px;
 }

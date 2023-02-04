@@ -13,6 +13,16 @@ type Meal struct {
 // Meals ia a map that represents the meals
 type Meals map[string]Meal
 
+// DefaultMeal makes and returns a meal with default values
+func DefaultMeal() Meal {
+	return Meal{
+		Name:        "",
+		Cost:        50,
+		Effort:      50,
+		Healthiness: 50,
+	}
+}
+
 // SetCurrentMeal sets the current meal state value to the given meal, using the given context
 func SetCurrentMeal(meal Meal, ctx app.Context) {
 	ctx.SetState("currentMeal", meal, app.Persist)

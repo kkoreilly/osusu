@@ -12,13 +12,13 @@ func (e *edit) Render() app.UI {
 	return app.Div().Body(
 		app.H1().ID("edit-page-title").Class("page-title").Text("Edit"),
 		app.Form().ID("edit-page-form").Class("form").OnSubmit(e.OnSubmit).Body(
-			app.Label().ID("edit-page-name-label").Class("edit-page-label").For("edit-page-name-input").Text("Name:"),
-			app.Input().ID("edit-page-name-input").Class("input", "edit-page-input").Type("text"),
-			app.Label().ID("edit-page-cost-label").Class("edit-page-label").For("edit-page-cost-input").Text("Cost:"),
+			app.Label().ID("edit-page-name-label").Class("input-label", "edit-page-input-label").For("edit-page-name-input").Text("Name:"),
+			app.Input().ID("edit-page-name-input").Class("input", "edit-page-input").Type("text").Placeholder("Name"),
+			app.Label().ID("edit-page-cost-label").Class("input-label", "edit-page-input-label").For("edit-page-cost-input").Text("Cost:"),
 			app.Input().ID("edit-page-cost-input").Class("input", "input-range", "edit-page-input").Type("range").Min(0).Max(100),
-			app.Label().ID("edit-page-effort-label").Class("edit-page-label").For("edit-page-effort-input").Text("Effort:"),
+			app.Label().ID("edit-page-effort-label").Class("input-label", "edit-page-input-label").For("edit-page-effort-input").Text("Effort:"),
 			app.Input().ID("edit-page-effort-input").Class("input", "input-range", "edit-page-input").Type("range").Min(0).Max(100),
-			app.Label().ID("edit-page-healthiness-label").Class("edit-page-label").For("edit-page-healthiness-input").Text("Healthiness:"),
+			app.Label().ID("edit-page-healthiness-label").Class("input-label", "edit-page-input-label").For("edit-page-healthiness-input").Text("Healthiness:"),
 			app.Input().ID("edit-page-healthiness-input").Class("input", "input-range", "edit-page-input").Type("range").Min(0).Max(100),
 			app.Div().ID("edit-page-action-button-row").Class("action-button-row").Body(
 				app.A().ID("edit-page-cancel-button").Class("action-button", "white-action-button").Href("/home").Text("Cancel"),
