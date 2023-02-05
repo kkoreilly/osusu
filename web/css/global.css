@@ -1,5 +1,5 @@
 * {
-    font-family: 'Roboto';
+    font-family: 'Roboto', sans-serif;
 }
 
 :root {
@@ -42,6 +42,16 @@
     background-color: hsl(240, 100%, 40%);
 }
 
+.red-action-button {
+    border: none;
+    color: white;
+    background-color: hsl(0, 100%, 60%);
+}
+
+.red-action-button:hover {
+    background-color: hsl(0, 100%, 40%);
+}
+
 .white-action-button {
     border: 1px solid black;
     color: black;
@@ -78,6 +88,8 @@
     padding: 0;
     overflow: hidden;
     cursor: pointer;
+    --thumb-color: green;
+    --progress-color: hsl(120, 100%, 40%);
 }
 
 .input-range:hover {
@@ -89,9 +101,9 @@
     appearance: none;
     width: 25px;
     height: 25px;
-    background-color: green;
+    background-color: var(--thumb-color);
     cursor: ew-resize;
-    box-shadow: -100vw 0 0 100vw hsl(120, 100%, 40%);
+    box-shadow: -100vw 0 0 100vw var(--progress-color);
 }
 
 .input-range::-moz-range-thumb {
@@ -99,13 +111,13 @@
     appearance: none;
     width: 25px;
     height: 25px;
-    background-color: green;
+    background-color: var(--thumb-color);
     cursor: ew-resize;
     border: none;
     border-radius: 0;
 }
 
 .input-range::-moz-range-progress {
-    background-color: hsl(120, 100%, 40%);
+    background-color: var(--progress-color);
     height: 25px;
 }

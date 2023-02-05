@@ -30,5 +30,5 @@ func (s *signIn) OnSubmit(ctx app.Context, e app.Event) {
 	password := app.Window().GetElementByID("sign-in-page-password").Get("value").String()
 	log.Println("Username:", username, "Password:", password)
 	SaveUsername(username, ctx)
-	ctx.Navigate("/home")
+	ctx.Navigate("/people")
 }

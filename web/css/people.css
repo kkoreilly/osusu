@@ -1,0 +1,25 @@
+#people-page-people-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    padding-top: 20px;
+}
+
+.people-page-person {
+    border: 1px solid black;
+    border-radius: 10%;
+    padding: 30px;
+    text-align: center;
+    cursor: pointer;
+}
+
+.people-page-person:hover {
+    background-color: darkgray;
+}
+
+.people-page-person-input {
+    font-size: 20px;
+    text-align: center;
+    padding: 10px;
+}

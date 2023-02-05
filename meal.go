@@ -10,7 +10,7 @@ type Meal struct {
 	Healthiness int
 }
 
-// Meals ia a map that represents the meals
+// Meals is a map that represents multiple meals
 type Meals map[string]Meal
 
 // DefaultMeal makes and returns a meal with default values
