@@ -121,3 +121,10 @@
     background-color: var(--progress-color);
     height: 25px;
 }
+
+.error-text {
+    font-size: 20px;
+    text-align: center;
+    color: red;
+    font-weight: bold;
+}

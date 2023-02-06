@@ -1,13 +1,12 @@
 package main
 
 import (
-	"log"
-
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
 )
 
 type signIn struct {
 	app.Compo
+	err string
 }
 
 func (s *signIn) Render() app.UI {
@@ -21,14 +20,21 @@ func (s *signIn) Render() app.UI {
 				app.Input().ID("sign-in-page-submit").Class("action-button", "blue-action-button").Name("submit").Type("submit").Value("Sign In"),
 			),
 		),
+		app.P().ID("sign-in-page-error").Class("error-text").Text(s.err),
 	)
 }
 
 func (s *signIn) OnSubmit(ctx app.Context, e app.Event) {
 	e.PreventDefault()
+
 	username := app.Window().GetElementByID("sign-in-page-username").Get("value").String()
 	password := app.Window().GetElementByID("sign-in-page-password").Get("value").String()
-	log.Println("Username:", username, "Password:", password)
-	SaveUsername(username, ctx)
+	user := User{Username: username, Password: password}
+
+	err := SignInRequest(user)
+	if err != nil {
+		s.err = err.Error()
+		return
+	}
 	ctx.Navigate("/people")
 }
