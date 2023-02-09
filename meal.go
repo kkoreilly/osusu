@@ -4,6 +4,7 @@ import "github.com/maxence-charriere/go-app/v9/pkg/app"
 
 // Meal is a struct that represents the data of a meal
 type Meal struct {
+	ID          int
 	Name        string
 	Cost        int
 	Effort      int

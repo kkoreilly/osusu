@@ -122,9 +122,8 @@
     height: 25px;
 }
 
-.error-text {
+.status-text {
     font-size: 20px;
     text-align: center;
-    color: red;
     font-weight: bold;
 }

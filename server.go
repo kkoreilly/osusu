@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"time"
+	"strconv"
 
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
 	"golang.org/x/crypto/bcrypt"
@@ -26,8 +26,8 @@ func startServer() {
 	}
 
 	http.HandleFunc("/api/createUser", handleCreateUser)
-
 	http.HandleFunc("/api/signIn", handleSignIn)
+	http.HandleFunc("/api/getMeals", handleGetMeals)
 
 	if err := http.ListenAndServe(":8000", nil); err != nil {
 		log.Fatal(err)
@@ -50,23 +50,29 @@ func handleCreateUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "username and password must not be empty", http.StatusBadRequest)
 		return
 	}
-	t := time.Now()
+	originalPassword := user.Password
 	// encrypt password
 	hash, err := bcrypt.GenerateFromPassword([]byte(user.Password), 14)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	user.Password = string(hash)
-	log.Println(time.Since(t))
 
-	err = CreateUserDB(user)
+	user, err = CreateUserDB(user)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	fmt.Fprint(w, "successfully created the user")
+	// return original password instead of encrypted version
+	user.Password = originalPassword
+	// return user
+	json, err := json.Marshal(user)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write(json)
 }
 
 func handleSignIn(w http.ResponseWriter, r *http.Request) {
@@ -81,11 +87,42 @@ func handleSignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = SignInDB(user)
+	user, err = SignInDB(user)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
+	// return user
+	json, err := json.Marshal(user)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write(json)
+}
 
-	fmt.Fprint(w, "user authenticated")
+func handleGetMeals(w http.ResponseWriter, r *http.Request) {
+	userIDParams := r.URL.Query()["u"]
+	if userIDParams == nil {
+		http.Error(w, "missing user id parameter", http.StatusBadRequest)
+		return
+	}
+	userID, err := strconv.Atoi(userIDParams[0])
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	user := User{ID: userID}
+
+	meals, err := GetMealsDB(user)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	json, err := json.Marshal(meals)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write(json)
 }

@@ -6,7 +6,7 @@ import (
 
 type signUp struct {
 	app.Compo
-	err string
+	status string
 }
 
 func (s *signUp) Render() app.UI {
@@ -20,21 +20,27 @@ func (s *signUp) Render() app.UI {
 				app.Input().ID("sign-up-page-submit").Class("action-button", "blue-action-button").Name("submit").Type("submit").Value("Sign Up"),
 			),
 		),
-		app.P().ID("sign-up-page-error").Class("error-text").Text(s.err),
+		app.P().ID("sign-up-page-status").Class("status-text").Text(s.status),
 	)
 }
 
 func (s *signUp) OnSubmit(ctx app.Context, e app.Event) {
 	e.PreventDefault()
 
-	username := app.Window().GetElementByID("sign-up-page-username").Get("value").String()
-	password := app.Window().GetElementByID("sign-up-page-password").Get("value").String()
-	user := User{Username: username, Password: password}
+	s.status = "Loading..."
 
-	err := CreateUserRequest(user)
-	if err != nil {
-		s.err = err.Error()
-		return
-	}
-	ctx.Navigate("/people")
+	ctx.Defer(func(ctx app.Context) {
+		username := app.Window().GetElementByID("sign-up-page-username").Get("value").String()
+		password := app.Window().GetElementByID("sign-up-page-password").Get("value").String()
+		user := User{Username: username, Password: password}
+
+		user, err := CreateUserRequest(user)
+		if err != nil {
+			s.status = err.Error()
+			s.Update()
+			return
+		}
+		SetCurrentUser(user, ctx)
+		ctx.Navigate("/people")
+	})
 }

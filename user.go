@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+
+	"github.com/maxence-charriere/go-app/v9/pkg/app"
 )
 
 // User is a struct that represents a user in the users database
@@ -15,44 +17,68 @@ type User struct {
 	Password string
 }
 
-// CreateUserRequest sends an HTTP request to the server to create a user
-func CreateUserRequest(user User) error {
+// CreateUserRequest sends an HTTP request to the server to create a user and returns the created user if successful and an error if not
+func CreateUserRequest(user User) (User, error) {
 	jsonData, err := json.Marshal(user)
 	if err != nil {
-		return err
+		return User{}, err
 	}
 	resp, err := http.Post("/api/createUser", "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
-		return err
+		return User{}, err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
-			return err
+			return User{}, err
 		}
-		return fmt.Errorf("create user request failed with status %s and body %v", resp.Status, string(body))
+		return User{}, fmt.Errorf("Error %s: %v", resp.Status, string(body))
 	}
-	return nil
+	// return gotten user
+	var res User
+	err = json.NewDecoder(resp.Body).Decode(&res)
+	if err != nil {
+		return User{}, err
+	}
+	return res, nil
 }
 
-// SignInRequest sends an HTTP request to the server to sign in a user
-func SignInRequest(user User) error {
+// SignInRequest sends an HTTP request to the server to sign in a user and returns the signed in user if successful and an error if not
+func SignInRequest(user User) (User, error) {
 	jsonData, err := json.Marshal(user)
 	if err != nil {
-		return err
+		return User{}, err
 	}
 	resp, err := http.Post("/api/signIn", "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
-		return err
+		return User{}, err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
-			return err
+			return User{}, err
 		}
-		return fmt.Errorf("sign in request failed with status %s and body %v", resp.Status, string(body))
+		return User{}, fmt.Errorf("Error %s: %v", resp.Status, string(body))
 	}
-	return nil
+	// return gotten user
+	var res User
+	err = json.NewDecoder(resp.Body).Decode(&res)
+	if err != nil {
+		return User{}, err
+	}
+	return res, nil
+}
+
+// SetCurrentUser sets the value of the current user in local storage
+func SetCurrentUser(user User, ctx app.Context) {
+	ctx.SetState("currentUser", user, app.Persist, app.Encrypt)
+}
+
+// GetCurrentUser gets the value of the current user from local storage
+func GetCurrentUser(ctx app.Context) User {
+	var user User
+	ctx.GetState("currentUser", &user)
+	return user
 }
