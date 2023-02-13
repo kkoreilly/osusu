@@ -1,8 +1,6 @@
 package main
 
 import (
-	"log"
-
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
 )
 
@@ -22,14 +20,5 @@ func (s *start) Render() app.UI {
 }
 
 func (s *start) OnNav(ctx app.Context) {
-	user := GetCurrentUser(ctx)
-	if user.Username != "" && user.Password != "" {
-		user, err := SignInRequest(user)
-		if err != nil {
-			log.Println(err)
-			return
-		}
-		SetCurrentUser(user, ctx)
-		ctx.Navigate("/home")
-	}
+
 }

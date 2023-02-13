@@ -1,11 +1,14 @@
 package main
 
-import "github.com/maxence-charriere/go-app/v9/pkg/app"
+import (
+	"log"
+
+	"github.com/maxence-charriere/go-app/v9/pkg/app"
+)
 
 type edit struct {
 	app.Compo
-	meal  Meal
-	meals Meals
+	meal Meal
 }
 
 func (e *edit) Render() app.UI {
@@ -37,11 +40,6 @@ func (e *edit) Render() app.UI {
 }
 
 func (e *edit) OnNav(ctx app.Context) {
-	e.meals = GetMeals(ctx)
-	if e.meals == nil {
-		e.meals = make(Meals)
-		SetMeals(e.meals, ctx)
-	}
 	e.meal = GetCurrentMeal(ctx)
 	app.Window().GetElementByID("edit-page-name-input").Set("value", e.meal.Name)
 	app.Window().GetElementByID("edit-page-cost-input").Set("value", e.meal.Cost)
@@ -51,15 +49,18 @@ func (e *edit) OnNav(ctx app.Context) {
 
 func (e *edit) OnSubmit(ctx app.Context, event app.Event) {
 	event.PreventDefault()
-	delete(e.meals, e.meal.Name)
 
 	e.meal.Name = app.Window().GetElementByID("edit-page-name-input").Get("value").String()
 	e.meal.Cost = app.Window().GetElementByID("edit-page-cost-input").Get("valueAsNumber").Int()
 	e.meal.Effort = app.Window().GetElementByID("edit-page-effort-input").Get("valueAsNumber").Int()
 	e.meal.Healthiness = app.Window().GetElementByID("edit-page-healthiness-input").Get("valueAsNumber").Int()
 
-	e.meals[e.meal.Name] = e.meal
-	SetMeals(e.meals, ctx)
+	err := UpdateMealRequest(e.meal)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
 	ctx.Navigate("/home")
 }
 
@@ -70,8 +71,13 @@ func (e *edit) InitialDelete(ctx app.Context, event app.Event) {
 
 func (e *edit) ConfirmDelete(ctx app.Context, event app.Event) {
 	event.PreventDefault()
-	delete(e.meals, e.meal.Name)
-	SetMeals(e.meals, ctx)
+
+	err := DeleteMealRequest(e.meal)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
 	ctx.Navigate("/home")
 }
 

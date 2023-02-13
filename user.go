@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -15,6 +16,7 @@ type User struct {
 	ID       int
 	Username string
 	Password string
+	People   []string
 }
 
 // CreateUserRequest sends an HTTP request to the server to create a user and returns the created user if successful and an error if not
@@ -69,6 +71,20 @@ func SignInRequest(user User) (User, error) {
 		return User{}, err
 	}
 	return res, nil
+}
+
+// AutoSignIn attempts to sign in using the saved login information, if it exists. Returns nil if signed in, an error if not.
+func AutoSignIn(ctx app.Context) error {
+	user := GetCurrentUser(ctx)
+	if user.Username == "" || user.Password == "" {
+		return errors.New("no saved login information")
+	}
+	user, err := SignInRequest(user)
+	if err != nil {
+		return err
+	}
+	SetCurrentUser(user, ctx)
+	return nil
 }
 
 // SetCurrentUser sets the value of the current user in local storage

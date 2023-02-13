@@ -1,12 +1,15 @@
 package main
 
 import (
+	"log"
+	"strconv"
+
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
 )
 
 type home struct {
 	app.Compo
-	meals map[string]Meal
+	meals Meals
 }
 
 func (h *home) Render() app.UI {
@@ -18,16 +21,22 @@ func (h *home) Render() app.UI {
 		),
 		app.Hr(),
 		app.Div().ID("home-page-meals-container").Body(
-			app.Range(h.meals).Map(func(k string) app.UI {
-				return app.Div().ID("home-page-meal-" + k).Class("home-page-meal").Text(k).
-					OnClick(func(ctx app.Context, e app.Event) { h.MealOnClick(ctx, e, h.meals[k]) })
+			app.Range(h.meals).Slice(func(i int) app.UI {
+				meal := h.meals[i]
+				return app.Div().ID("home-page-meal-" + strconv.Itoa(i)).Class("home-page-meal").Text(meal.Name).
+					OnClick(func(ctx app.Context, e app.Event) { h.MealOnClick(ctx, e, meal) })
 			}),
 		),
 	)
 }
 
 func (h *home) New(ctx app.Context, e app.Event) {
-	SetCurrentMeal(DefaultMeal(), ctx)
+	meal, err := CreateMealRequest(GetCurrentUser(ctx))
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	SetCurrentMeal(meal, ctx)
 	ctx.Navigate("/edit")
 }
 
@@ -37,9 +46,9 @@ func (h *home) MealOnClick(ctx app.Context, e app.Event, meal Meal) {
 }
 
 func (h *home) OnNav(ctx app.Context) {
-	h.meals = GetMeals(ctx)
-	if h.meals == nil {
-		h.meals = make(Meals)
-		SetMeals(h.meals, ctx)
+	meals, err := GetMealsRequest(GetCurrentUser(ctx))
+	if err != nil {
+		log.Println(err)
 	}
+	h.meals = meals
 }

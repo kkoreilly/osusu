@@ -2,7 +2,7 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"strconv"
@@ -25,20 +25,30 @@ func startServer() {
 		log.Fatal(err)
 	}
 
-	http.HandleFunc("/api/createUser", handleCreateUser)
-	http.HandleFunc("/api/signIn", handleSignIn)
-	http.HandleFunc("/api/getMeals", handleGetMeals)
+	handleFunc(http.MethodPost, "/api/createUser", handleCreateUser)
+	handleFunc(http.MethodPost, "/api/signIn", handleSignIn)
+	handleFunc(http.MethodGet, "/api/getMeals", handleGetMeals)
+	handleFunc(http.MethodPost, "/api/createMeal", handleCreateMeal)
+	handleFunc(http.MethodPost, "/api/updateMeal", handleUpdateMeal)
+	handleFunc(http.MethodDelete, "/api/deleteMeal", handleDeleteMeal)
 
 	if err := http.ListenAndServe(":8000", nil); err != nil {
 		log.Fatal(err)
 	}
 }
 
+func handleFunc(method string, path string, handler http.HandlerFunc) {
+	http.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != method {
+			w.Header().Set("Allow", method)
+			http.Error(w, "The "+r.Method+" method is not supported for this URL; only the "+method+" method is supported for this URL.", http.StatusMethodNotAllowed)
+			return
+		}
+		handler(w, r)
+	})
+}
+
 func handleCreateUser(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, fmt.Sprintf("The %s method is not supported for this URL; only the POST method is supported for this URL.", r.Method), http.StatusBadRequest)
-		return
-	}
 	var user User
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
@@ -76,10 +86,6 @@ func handleCreateUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleSignIn(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, fmt.Sprintf("The %s method is not supported for this URL; only the POST method is supported for this URL.", r.Method), http.StatusBadRequest)
-		return
-	}
 	var user User
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
@@ -102,19 +108,18 @@ func handleSignIn(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleGetMeals(w http.ResponseWriter, r *http.Request) {
-	userIDParams := r.URL.Query()["u"]
-	if userIDParams == nil {
+	ownerParams := r.URL.Query()["u"]
+	if ownerParams == nil {
 		http.Error(w, "missing user id parameter", http.StatusBadRequest)
 		return
 	}
-	userID, err := strconv.Atoi(userIDParams[0])
+	owner, err := strconv.Atoi(ownerParams[0])
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	user := User{ID: userID}
 
-	meals, err := GetMealsDB(user)
+	meals, err := GetMealsDB(owner)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -125,4 +130,63 @@ func handleGetMeals(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Write(json)
+}
+
+func handleCreateMeal(w http.ResponseWriter, r *http.Request) {
+	b, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	owner, err := strconv.Atoi(string(b))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	meal, err := CreateMealDB(owner)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	// return meal
+	json, err := json.Marshal(meal)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write(json)
+}
+
+func handleUpdateMeal(w http.ResponseWriter, r *http.Request) {
+	var meal Meal
+	err := json.NewDecoder(r.Body).Decode(&meal)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	err = UpdateMealDB(meal)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write([]byte("meal updated"))
+}
+
+func handleDeleteMeal(w http.ResponseWriter, r *http.Request) {
+	b, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	id, err := strconv.Atoi(string(b))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	err = DeleteMealDB(id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write([]byte("meal deleted"))
 }
