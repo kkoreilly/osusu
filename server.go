@@ -27,10 +27,16 @@ func startServer() {
 
 	handleFunc(http.MethodPost, "/api/createUser", handleCreateUser)
 	handleFunc(http.MethodPost, "/api/signIn", handleSignIn)
+
 	handleFunc(http.MethodGet, "/api/getMeals", handleGetMeals)
 	handleFunc(http.MethodPost, "/api/createMeal", handleCreateMeal)
 	handleFunc(http.MethodPost, "/api/updateMeal", handleUpdateMeal)
 	handleFunc(http.MethodDelete, "/api/deleteMeal", handleDeleteMeal)
+
+	handleFunc(http.MethodGet, "/api/getPeople", handleGetPeople)
+	handleFunc(http.MethodPost, "/api/createPerson", handleCreatePerson)
+	handleFunc(http.MethodPost, "/api/updatePerson", handleUpdatePerson)
+	handleFunc(http.MethodDelete, "/api/deletePerson", handleDeletePerson)
 
 	if err := http.ListenAndServe(":8000", nil); err != nil {
 		log.Fatal(err)
@@ -108,18 +114,18 @@ func handleSignIn(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleGetMeals(w http.ResponseWriter, r *http.Request) {
-	ownerParams := r.URL.Query()["u"]
-	if ownerParams == nil {
+	userIDParams := r.URL.Query()["u"]
+	if userIDParams == nil {
 		http.Error(w, "missing user id parameter", http.StatusBadRequest)
 		return
 	}
-	owner, err := strconv.Atoi(ownerParams[0])
+	userID, err := strconv.Atoi(userIDParams[0])
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	meals, err := GetMealsDB(owner)
+	meals, err := GetMealsDB(userID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -138,12 +144,12 @@ func handleCreateMeal(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	owner, err := strconv.Atoi(string(b))
+	userID, err := strconv.Atoi(string(b))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	meal, err := CreateMealDB(owner)
+	meal, err := CreateMealDB(userID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -189,4 +195,88 @@ func handleDeleteMeal(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Write([]byte("meal deleted"))
+}
+
+func handleGetPeople(w http.ResponseWriter, r *http.Request) {
+	userIDParams := r.URL.Query()["u"]
+	if userIDParams == nil {
+		http.Error(w, "missing user id parameter", http.StatusBadRequest)
+		return
+	}
+	userID, err := strconv.Atoi(userIDParams[0])
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	people, err := GetPeopleDB(userID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	json, err := json.Marshal(people)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write(json)
+}
+
+func handleCreatePerson(w http.ResponseWriter, r *http.Request) {
+	b, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	userID, err := strconv.Atoi(string(b))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	person, err := CreatePersonDB(userID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	// return person
+	json, err := json.Marshal(person)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write(json)
+}
+
+func handleUpdatePerson(w http.ResponseWriter, r *http.Request) {
+	var person Person
+	err := json.NewDecoder(r.Body).Decode(&person)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	err = UpdatePersonDB(person)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write([]byte("person updated"))
+}
+
+func handleDeletePerson(w http.ResponseWriter, r *http.Request) {
+	b, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	id, err := strconv.Atoi(string(b))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	err = DeletePersonDB(id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write([]byte("person deleted"))
 }

@@ -13,7 +13,7 @@ func (s *signIn) Render() app.UI {
 	return app.Div().Body(
 		app.H1().ID("sign-in-page-title").Class("page-title").Text("Sign In"),
 		app.Form().ID("sign-in-page-form").Class("form").OnSubmit(s.OnSubmit).Body(
-			app.Input().ID("sign-in-page-username").Class("input", "sign-in-page-input").Name("username").Type("text").Placeholder("Username"),
+			app.Input().ID("sign-in-page-username").Class("input", "sign-in-page-input").Name("username").Type("text").Placeholder("Username").AutoFocus(true),
 			app.Input().ID("sign-in-page-password").Class("input", "sign-in-page-input").Name("password").Type("password").Placeholder("Password"),
 			app.Div().ID("sign-in-page-action-button-row").Class("action-button-row").Body(
 				app.A().ID("sign-in-page-cancel").Class("action-button", "white-action-button").Href("/").Text("Cancel"),

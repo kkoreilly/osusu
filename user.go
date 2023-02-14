@@ -16,7 +16,6 @@ type User struct {
 	ID       int
 	Username string
 	Password string
-	People   []string
 }
 
 // CreateUserRequest sends an HTTP request to the server to create a user and returns the created user if successful and an error if not

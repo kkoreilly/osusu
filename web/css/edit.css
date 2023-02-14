@@ -8,6 +8,11 @@
     --progress-color: hsl(240, 100%, 70%);
 }
 
+#edit-page-taste-input {
+    --thumb-color: purple;
+    --progress-color: hsl(300, 100%, 45%);
+}
+
 #edit-page-confirm-delete-text {
     font-size: 20px;
     text-align: center;

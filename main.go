@@ -12,6 +12,7 @@ func main() {
 	app.Route("/edit", &edit{})
 	app.Route("/recommendations", &recommendations{})
 	app.Route("/people", &people{})
+	app.Route("/person", &person{})
 
 	app.RunWhenOnBrowser()
 

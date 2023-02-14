@@ -18,20 +18,22 @@ type Meal struct {
 	Cost        int
 	Effort      int
 	Healthiness int
-	Owner       int
+	Taste       map[int]int // key is person id, value is taste rating
+	UserID      int
 }
 
 // Meals is a slice that represents multiple meals
 type Meals []Meal
 
-// DefaultMeal makes and returns a meal with default values
-func DefaultMeal() Meal {
-	return Meal{
-		Name:        "",
-		Cost:        50,
-		Effort:      50,
-		Healthiness: 50,
+// Score produces a score from 0 to 100 for the meal based on its attributes
+func (m Meal) Score() int {
+	// average of all attributes
+	var tasteSum int
+	for _, v := range m.Taste {
+		tasteSum += v
 	}
+	sum := (100 - m.Cost) + (100 - m.Effort) + m.Healthiness + tasteSum
+	return sum / (len(m.Taste) + 3)
 }
 
 // SetCurrentMeal sets the current meal state value to the given meal, using the given context
@@ -68,10 +70,10 @@ func GetMealsRequest(user User) (Meals, error) {
 	return meals, nil
 }
 
-// CreateMealRequest sends an HTTP request to the server to create a meal with the given user as the owner and returns the created meal if successful and an error if not
+// CreateMealRequest sends an HTTP request to the server to create a meal associated with the given user and returns the created meal if successful and an error if not
 func CreateMealRequest(user User) (Meal, error) {
-	owner := user.ID
-	resp, err := http.Post("/api/createMeal", "text/plain", bytes.NewBufferString(strconv.Itoa(owner)))
+	userID := user.ID
+	resp, err := http.Post("/api/createMeal", "text/plain", bytes.NewBufferString(strconv.Itoa(userID)))
 	if err != nil {
 		return Meal{}, err
 	}
