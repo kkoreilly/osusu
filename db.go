@@ -97,8 +97,13 @@ func CreateMealDB(userID int) (Meal, error) {
 	VALUES ($1) RETURNING *`
 	row := db.QueryRow(statement, userID)
 	var id, cost, effort, healthiness int
-	var name string
-	err := row.Scan(&id, &name, &cost, &effort, &healthiness, &userID)
+	var name, taste string
+	err := row.Scan(&id, &name, &cost, &effort, &healthiness, &taste, &userID)
+	if err != nil {
+		return Meal{}, err
+	}
+	var tasteMap map[int]int
+	err = json.Unmarshal([]byte(taste), &tasteMap)
 	if err != nil {
 		return Meal{}, err
 	}
@@ -108,6 +113,7 @@ func CreateMealDB(userID int) (Meal, error) {
 		Cost:        cost,
 		Effort:      effort,
 		Healthiness: healthiness,
+		Taste:       tasteMap,
 		UserID:      userID,
 	}
 	return meal, nil

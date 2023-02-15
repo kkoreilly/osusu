@@ -3,7 +3,7 @@
     cursor: pointer;
     display: flex;
     justify-content: space-between;
-    width: min(var(--score-percent), calc(100% - 20px));
+    width: clamp(70px, var(--score-percent), calc(100% - 20px));
     background-color: hsl(var(--color-h), 100%, 50%);
 }
 
@@ -16,4 +16,23 @@
     display: inline;
     margin: 0;
     padding: 0;
+}
+
+.home-page-meal-name[data-taste-set="false"] {
+    text-decoration: underline;
+}
+
+#home-page-options-cost-input {
+    --thumb-color: orange;
+    --progress-color: hsl(39, 100%, 70%);
+}
+
+#home-page-options-effort-input {
+    --thumb-color: blue;
+    --progress-color: hsl(240, 100%, 70%);
+}
+
+#home-page-options-taste-input {
+    --thumb-color: purple;
+    --progress-color: hsl(300, 100%, 45%);
 }

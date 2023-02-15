@@ -24,8 +24,6 @@ func (e *edit) Render() app.UI {
 			app.Input().ID("edit-page-effort-input").Class("input", "input-range", "edit-page-input").Type("range").Min(0).Max(100),
 			app.Label().ID("edit-page-healthiness-label").Class("input-label", "edit-page-input-label").For("edit-page-healthiness-input").Text("Healthiness:"),
 			app.Input().ID("edit-page-healthiness-input").Class("input", "input-range", "edit-page-input").Type("range").Min(0).Max(100),
-			// app.Label().ID("edit-page-compatibility-label").Class("input-label", "edit-page-input-label").For("edit-page-compatibility-input").Text("Can You ("+e.person.Name+") Eat This?"),
-			// app.Input().ID("edit-page-compatibility-input").Class("input", "edit-page-input").Type("checkbox"),
 			app.Label().ID("edit-page-taste-label").Class("input-label", "edit-page-input-label").For("edit-page-taste-input").Text("Taste For You ("+e.person.Name+"):"),
 			app.Input().ID("edit-page-taste-input").Class("input", "input-range", "edit-page-input").Type("range").Min(0).Max(100),
 			app.Div().ID("edit-page-action-button-row").Class("action-button-row").Body(

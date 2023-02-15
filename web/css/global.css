@@ -77,9 +77,10 @@
 .input {
     font-size: 20px;
     padding: 10px;
-    width: min(70%, 700px);
+    width: min(70vw, 700px);
     height: 30px;
     border-radius: 10px;
+    border: 1px solid black;
 }
 
 .input-range {
@@ -90,6 +91,7 @@
     padding: 0;
     overflow: hidden;
     cursor: pointer;
+    border: none;
     --thumb-color: green;
     --progress-color: hsl(120, 100%, 40%);
 }

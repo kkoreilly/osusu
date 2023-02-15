@@ -28,7 +28,7 @@ func (p *people) Render() app.UI {
 		),
 		app.Div().ID("people-page-people-container").Body(
 			app.Range(p.people).Slice(func(i int) app.UI {
-				return app.Div().ID("people-page-person-" + strconv.Itoa(i)).Class("people-page-person").Text(p.people[i].Name).
+				return app.Button().ID("people-page-person-" + strconv.Itoa(i)).Class("people-page-person").Text(p.people[i].Name).
 					OnClick(func(ctx app.Context, e app.Event) { p.PersonOnClick(ctx, e, p.people[i]) })
 			}),
 		),

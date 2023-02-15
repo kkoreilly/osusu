@@ -25,15 +25,19 @@ type Meal struct {
 // Meals is a slice that represents multiple meals
 type Meals []Meal
 
-// Score produces a score from 0 to 100 for the meal based on its attributes
-func (m Meal) Score() int {
+// Score produces a score from 0 to 100 for the meal based on its attributes and the given options
+func (m Meal) Score(options Options) int {
 	// average of all attributes
 	var tasteSum int
 	for _, v := range m.Taste {
 		tasteSum += v
 	}
-	sum := (100 - m.Cost) + (100 - m.Effort) + m.Healthiness + tasteSum
-	return sum / (len(m.Taste) + 3)
+	sum := options.CostWeight*(100-m.Cost) + options.EffortWeight*(100-m.Effort) + options.HealthinessWeight*m.Healthiness + options.TasteWeight*tasteSum
+	den := options.CostWeight + options.EffortWeight + options.HealthinessWeight + len(m.Taste)*options.TasteWeight
+	if den == 0 {
+		return 0
+	}
+	return sum / den
 }
 
 // SetCurrentMeal sets the current meal state value to the given meal, using the given context
