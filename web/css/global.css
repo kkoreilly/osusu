@@ -2,11 +2,12 @@
     font-family: 'Roboto', sans-serif;
 }
 
+/* 
 :root {
     background: white;
     background: linear-gradient(180deg, white 0%, hsl(0, 0%, 90%) 100%);
     background-attachment: fixed;
-}
+} */
 
 .page-title {
     text-align: center;
@@ -130,4 +131,9 @@
     font-size: 20px;
     text-align: center;
     font-weight: bold;
+}
+
+hr {
+    width: 100%;
+    border: 1px solid black;
 }

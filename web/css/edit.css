@@ -18,3 +18,7 @@
     text-align: center;
     font-weight: bold;
 }
+
+#edit-page-hr {
+    width: min(70vw, 700px)
+}

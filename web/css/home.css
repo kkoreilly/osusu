@@ -36,3 +36,8 @@
     --thumb-color: purple;
     --progress-color: hsl(300, 100%, 45%);
 }
+
+#home-page-options-recency-input {
+    --thumb-color: red;
+    --progress-color: hsl(0, 100%, 70%);
+}

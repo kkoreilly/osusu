@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"time"
 
 	_ "github.com/lib/pq"
 	"golang.org/x/crypto/bcrypt"
@@ -68,7 +69,8 @@ func GetMealsDB(userID int) (Meals, error) {
 	for rows.Next() {
 		var id, cost, effort, healthiness, userID int
 		var name, taste string
-		err := rows.Scan(&id, &name, &cost, &effort, &healthiness, &taste, &userID)
+		var lastDone time.Time
+		err := rows.Scan(&id, &name, &cost, &effort, &healthiness, &taste, &userID, &lastDone)
 		if err != nil {
 			return nil, err
 		}
@@ -85,6 +87,7 @@ func GetMealsDB(userID int) (Meals, error) {
 			Healthiness: healthiness,
 			Taste:       tasteMap,
 			UserID:      userID,
+			LastDone:    lastDone,
 		}
 		res = append(res, meal)
 	}
@@ -93,12 +96,13 @@ func GetMealsDB(userID int) (Meals, error) {
 
 // CreateMealDB creates a meal in the database with the given userID and returns the created meal if successful and an error if not
 func CreateMealDB(userID int) (Meal, error) {
-	statement := `INSERT INTO meals (user_id)
-	VALUES ($1) RETURNING *`
-	row := db.QueryRow(statement, userID)
+	statement := `INSERT INTO meals (user_id, last_done)
+	VALUES ($1, $2) RETURNING *`
+	row := db.QueryRow(statement, userID, time.Now())
 	var id, cost, effort, healthiness int
 	var name, taste string
-	err := row.Scan(&id, &name, &cost, &effort, &healthiness, &taste, &userID)
+	var lastDone time.Time
+	err := row.Scan(&id, &name, &cost, &effort, &healthiness, &taste, &userID, &lastDone)
 	if err != nil {
 		return Meal{}, err
 	}
@@ -115,6 +119,7 @@ func CreateMealDB(userID int) (Meal, error) {
 		Healthiness: healthiness,
 		Taste:       tasteMap,
 		UserID:      userID,
+		LastDone:    lastDone,
 	}
 	return meal, nil
 }
@@ -122,13 +127,13 @@ func CreateMealDB(userID int) (Meal, error) {
 // UpdateMealDB updates a meal in the database
 func UpdateMealDB(meal Meal) error {
 	statement := `UPDATE meals
-	SET name = $1, cost = $2, effort = $3, healthiness = $4, taste = $5
-	WHERE id = $6`
+	SET name = $1, cost = $2, effort = $3, healthiness = $4, taste = $5, last_done = $6
+	WHERE id = $7`
 	tasteJSON, err := json.Marshal(meal.Taste)
 	if err != nil {
 		return err
 	}
-	_, err = db.Exec(statement, meal.Name, meal.Cost, meal.Effort, meal.Healthiness, string(tasteJSON), meal.ID)
+	_, err = db.Exec(statement, meal.Name, meal.Cost, meal.Effort, meal.Healthiness, string(tasteJSON), meal.LastDone, meal.ID)
 	return err
 }
 

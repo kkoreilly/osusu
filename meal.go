@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
 )
@@ -19,6 +20,7 @@ type Meal struct {
 	Effort      int
 	Healthiness int
 	Taste       map[int]int // key is person id, value is taste rating
+	LastDone    time.Time
 	UserID      int
 }
 
@@ -32,8 +34,12 @@ func (m Meal) Score(options Options) int {
 	for _, v := range m.Taste {
 		tasteSum += v
 	}
-	sum := options.CostWeight*(100-m.Cost) + options.EffortWeight*(100-m.Effort) + options.HealthinessWeight*m.Healthiness + options.TasteWeight*tasteSum
-	den := options.CostWeight + options.EffortWeight + options.HealthinessWeight + len(m.Taste)*options.TasteWeight
+	recencyScore := int(2 * time.Now().Truncate(time.Hour*24).UTC().Sub(m.LastDone) / (time.Hour * 24))
+	if recencyScore > 100 {
+		recencyScore = 100
+	}
+	sum := options.CostWeight*(100-m.Cost) + options.EffortWeight*(100-m.Effort) + options.HealthinessWeight*m.Healthiness + options.TasteWeight*tasteSum + options.RecencyWeight*recencyScore
+	den := options.CostWeight + options.EffortWeight + options.HealthinessWeight + len(m.Taste)*options.TasteWeight + options.RecencyWeight
 	if den == 0 {
 		return 0
 	}

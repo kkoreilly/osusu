@@ -8,6 +8,7 @@ type Options struct {
 	EffortWeight      int
 	HealthinessWeight int
 	TasteWeight       int
+	RecencyWeight     int
 }
 
 // SetOptions sets the options state value to the given meal recommendation options

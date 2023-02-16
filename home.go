@@ -40,14 +40,16 @@ func (h *home) Render() app.UI {
 		),
 		app.Dialog().ID("home-page-options").Body(
 			app.Form().ID("home-page-form").Class("form").OnSubmit(h.SaveOptions).Body(
-				app.Label().ID("home-page-options-cost-label").Class("input-label", "home-page-options-input-label").For("home-page-options-cost-input").Text("Cost Weight:"),
-				app.Input().ID("home-page-options-cost-input").Class("input", "input-range", "home-page-options-input").Type("range").Min(0).Max(100),
-				app.Label().ID("home-page-options-effort-label").Class("input-label", "home-page-options-input-label").For("home-page-options-effort-input").Text("Effort Weight:"),
-				app.Input().ID("home-page-options-effort-input").Class("input", "input-range", "home-page-options-input").Type("range").Min(0).Max(100),
-				app.Label().ID("home-page-options-healthiness-label").Class("input-label", "home-page-options-input-label").For("home-page-options-healthiness-input").Text("Healthiness Weight:"),
-				app.Input().ID("home-page-options-healthiness-input").Class("input", "input-range", "home-page-options-input").Type("range").Min(0).Max(100),
-				app.Label().ID("home-page-options-taste-label").Class("input-label", "home-page-options-input-label").For("home-page-options-taste-input").Text("Taste Weight:"),
-				app.Input().ID("home-page-options-taste-input").Class("input", "input-range", "home-page-options-input").Type("range").Min(0).Max(100),
+				app.Label().ID("home-page-options-taste-label").Class("input-label").For("home-page-options-taste-input").Text("Taste Weight:"),
+				app.Input().ID("home-page-options-taste-input").Class("input", "input-range").Type("range").Min(0).Max(100),
+				app.Label().ID("home-page-options-recency-label").Class("input-label").For("home-page-options-recency-input").Text("Recency Weight:"),
+				app.Input().ID("home-page-options-recency-input").Class("input", "input-range").Type("range").Min(0).Max(100),
+				app.Label().ID("home-page-options-cost-label").Class("input-label").For("home-page-options-cost-input").Text("Cost Weight:"),
+				app.Input().ID("home-page-options-cost-input").Class("input", "input-range").Type("range").Min(0).Max(100),
+				app.Label().ID("home-page-options-effort-label").Class("input-label").For("home-page-options-effort-input").Text("Effort Weight:"),
+				app.Input().ID("home-page-options-effort-input").Class("input", "input-range").Type("range").Min(0).Max(100),
+				app.Label().ID("home-page-options-healthiness-label").Class("input-label").For("home-page-options-healthiness-input").Text("Healthiness Weight:"),
+				app.Input().ID("home-page-options-healthiness-input").Class("input", "input-range").Type("range").Min(0).Max(100),
 				app.Div().ID("home-page-options-action-button-row").Class("action-button-row").Body(
 					app.Input().ID("home-page-options-cancel-button").Class("white-action-button", "action-button").Type("button").Value("Cancel").OnClick(h.CancelOptions),
 					app.Input().ID("home-page-options-save-button").Class("blue-action-button", "action-button").Type("submit").Value("Save"),
@@ -78,12 +80,13 @@ func (h *home) OnNav(ctx app.Context) {
 
 	h.options = GetOptions(ctx)
 	if h.options == (Options{}) {
-		h.options = Options{50, 50, 50, 50}
+		h.options = Options{50, 50, 50, 50, 50}
 	}
-	app.Window().GetElementByID("home-page-options-cost-input").Set("value", h.options.CostWeight)
-	app.Window().GetElementByID("home-page-options-effort-input").Set("value", h.options.EffortWeight)
-	app.Window().GetElementByID("home-page-options-healthiness-input").Set("value", h.options.HealthinessWeight)
-	app.Window().GetElementByID("home-page-options-taste-input").Set("value", h.options.TasteWeight)
+	app.Window().GetElementByID("home-page-options-cost-input").Set("valueAsNumber", h.options.CostWeight)
+	app.Window().GetElementByID("home-page-options-effort-input").Set("valueAsNumber", h.options.EffortWeight)
+	app.Window().GetElementByID("home-page-options-healthiness-input").Set("valueAsNumber", h.options.HealthinessWeight)
+	app.Window().GetElementByID("home-page-options-taste-input").Set("valueAsNumber", h.options.TasteWeight)
+	app.Window().GetElementByID("home-page-options-recency-input").Set("valueAsNumber", h.options.RecencyWeight)
 
 	meals, err := GetMealsRequest(GetCurrentUser(ctx))
 	if err != nil {
@@ -108,6 +111,7 @@ func (h *home) SaveOptions(ctx app.Context, e app.Event) {
 	h.options.EffortWeight = app.Window().GetElementByID("home-page-options-effort-input").Get("valueAsNumber").Int()
 	h.options.HealthinessWeight = app.Window().GetElementByID("home-page-options-healthiness-input").Get("valueAsNumber").Int()
 	h.options.TasteWeight = app.Window().GetElementByID("home-page-options-taste-input").Get("valueAsNumber").Int()
+	h.options.RecencyWeight = app.Window().GetElementByID("home-page-options-recency-input").Get("valueAsNumber").Int()
 	SetOptions(h.options, ctx)
 
 	app.Window().GetElementByID("home-page-options").Call("close")
