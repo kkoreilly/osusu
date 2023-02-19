@@ -24,7 +24,12 @@ func CreateUserRequest(user User) (User, error) {
 	if err != nil {
 		return User{}, err
 	}
-	resp, err := http.Post("/api/createUser", "application/json", bytes.NewBuffer(jsonData))
+	req, err := NewRequest(http.MethodPost, "/api/createUser", bytes.NewBuffer(jsonData))
+	if err != nil {
+		return User{}, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return User{}, err
 	}
@@ -51,7 +56,12 @@ func SignInRequest(user User) (User, error) {
 	if err != nil {
 		return User{}, err
 	}
-	resp, err := http.Post("/api/signIn", "application/json", bytes.NewBuffer(jsonData))
+	req, err := NewRequest(http.MethodPost, "/api/signIn", bytes.NewBuffer(jsonData))
+	if err != nil {
+		return User{}, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return User{}, err
 	}

@@ -1,6 +1,9 @@
 package main
 
 import (
+	"crypto/rand"
+	"crypto/sha256"
+	"crypto/subtle"
 	"encoding/json"
 	"io"
 	"log"
@@ -9,6 +12,12 @@ import (
 
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
 	"golang.org/x/crypto/bcrypt"
+)
+
+// API access constants
+const (
+	APIUsername = "z3J8i6gVMyA!H$Ukpvqt5xLos5FgicTeWYf*MtfFU48HMUeMTaMCN59biD^3VxBup@^n7wnWgzCg442!95R9QHnt^6uKZ7f5ip2ycUjbfQ3sWzCZWVP8xgw!dZTn!trD"
+	APIPassword = "gbx5T3*UJSALdxAES$n@w2m6b4o949XKMHsApk@Zt4&q3cf$37Jvf#g4#nd95hSnc4K%#h!JD9ifSkDhQyPMT@brtuU!cFxBJwny!ukC$s^ZVPdPzkJm8DvX4bK7to7d"
 )
 
 func startServer() {
@@ -25,26 +34,46 @@ func startServer() {
 		log.Fatal(err)
 	}
 
-	handleFunc(http.MethodPost, "/api/createUser", handleCreateUser)
-	handleFunc(http.MethodPost, "/api/signIn", handleSignIn)
+	HandleFunc(http.MethodPost, "/api/createUser", handleCreateUser)
+	HandleFunc(http.MethodPost, "/api/signIn", handleSignIn)
 
-	handleFunc(http.MethodGet, "/api/getMeals", handleGetMeals)
-	handleFunc(http.MethodPost, "/api/createMeal", handleCreateMeal)
-	handleFunc(http.MethodPost, "/api/updateMeal", handleUpdateMeal)
-	handleFunc(http.MethodDelete, "/api/deleteMeal", handleDeleteMeal)
+	HandleFunc(http.MethodGet, "/api/getMeals", handleGetMeals)
+	HandleFunc(http.MethodPost, "/api/createMeal", handleCreateMeal)
+	HandleFunc(http.MethodPost, "/api/updateMeal", handleUpdateMeal)
+	HandleFunc(http.MethodDelete, "/api/deleteMeal", handleDeleteMeal)
 
-	handleFunc(http.MethodGet, "/api/getPeople", handleGetPeople)
-	handleFunc(http.MethodPost, "/api/createPerson", handleCreatePerson)
-	handleFunc(http.MethodPost, "/api/updatePerson", handleUpdatePerson)
-	handleFunc(http.MethodDelete, "/api/deletePerson", handleDeletePerson)
+	HandleFunc(http.MethodGet, "/api/getPeople", handleGetPeople)
+	HandleFunc(http.MethodPost, "/api/createPerson", handleCreatePerson)
+	HandleFunc(http.MethodPost, "/api/updatePerson", handleUpdatePerson)
+	HandleFunc(http.MethodDelete, "/api/deletePerson", handleDeletePerson)
 
 	if err := http.ListenAndServe(":8000", nil); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func handleFunc(method string, path string, handler http.HandlerFunc) {
+// HandleFunc handles the given path with the given handler, requiring basic auth and accepting only the given method
+func HandleFunc(method string, path string, handler http.HandlerFunc) {
 	http.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
+		username, password, ok := r.BasicAuth()
+		if !ok {
+			w.Header().Set("WWW-Authenticate", `Basic realm="restricted", charset="UTF-8"`)
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+		usernameHash := sha256.Sum256([]byte(username))
+		passwordHash := sha256.Sum256([]byte(password))
+		expectedUsernameHash := sha256.Sum256([]byte(APIUsername))
+		expectedPasswordHash := sha256.Sum256([]byte(APIPassword))
+
+		usernameMatch := (subtle.ConstantTimeCompare(usernameHash[:], expectedUsernameHash[:]) == 1)
+		passwordMatch := (subtle.ConstantTimeCompare(passwordHash[:], expectedPasswordHash[:]) == 1)
+
+		if !(usernameMatch && passwordMatch) {
+			w.Header().Set("WWW-Authenticate", `Basic realm="restricted", charset="UTF-8"`)
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
 		if r.Method != method {
 			w.Header().Set("Allow", method)
 			http.Error(w, "The "+r.Method+" method is not supported for this URL; only the "+method+" method is supported for this URL.", http.StatusMethodNotAllowed)
@@ -52,6 +81,15 @@ func handleFunc(method string, path string, handler http.HandlerFunc) {
 		}
 		handler(w, r)
 	})
+}
+
+func generateToken() ([]byte, error) {
+	b := make([]byte, 32)
+	_, err := rand.Read(b)
+	if err != nil {
+		return nil, err
+	}
+	return b, nil
 }
 
 func handleCreateUser(w http.ResponseWriter, r *http.Request) {

@@ -41,6 +41,9 @@ func (p *person) Render() app.UI {
 }
 
 func (p *person) OnNav(ctx app.Context) {
+	if Authenticate(true, ctx) {
+		return
+	}
 	p.person = GetCurrentPerson(ctx)
 	app.Window().GetElementByID("person-page-name-input").Set("value", p.person.Name)
 }

@@ -36,6 +36,9 @@ func (p *people) Render() app.UI {
 }
 
 func (p *people) OnNav(ctx app.Context) {
+	if Authenticate(true, ctx) {
+		return
+	}
 	people, err := GetPeopleRequest(GetCurrentUser(ctx))
 	if err != nil {
 		log.Println(err)
@@ -71,30 +74,13 @@ func GetCurrentPerson(ctx app.Context) Person {
 	return person
 }
 
-// // UpdatePeopleRequest sends a request to the server to update the people for the user
-// func UpdatePeopleRequest(user User) error {
-// 	jsonData, err := json.Marshal(user)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	resp, err := http.Post("/api/updatePeople", "application/json", bytes.NewBuffer(jsonData))
-// 	if err != nil {
-// 		return err
-// 	}
-// 	defer resp.Body.Close()
-// 	if resp.StatusCode != http.StatusOK {
-// 		body, err := io.ReadAll(resp.Body)
-// 		if err != nil {
-// 			return err
-// 		}
-// 		return fmt.Errorf("Error %s: %v", resp.Status, string(body))
-// 	}
-// 	return nil
-// }
-
 // GetPeopleRequest sends an HTTP request to the server to get the people for the given user
 func GetPeopleRequest(user User) (People, error) {
-	resp, err := http.Get("/api/getPeople?u=" + strconv.Itoa(user.ID))
+	req, err := NewRequest(http.MethodGet, "/api/getPeople?u="+strconv.Itoa(user.ID), nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +103,12 @@ func GetPeopleRequest(user User) (People, error) {
 // CreatePersonRequest sends an HTTP request to the server to create a person associated with the given user and returns the created person if successful and an error if not
 func CreatePersonRequest(user User) (Person, error) {
 	userID := user.ID
-	resp, err := http.Post("/api/createPerson", "text/plain", bytes.NewBufferString(strconv.Itoa(userID)))
+	req, err := NewRequest(http.MethodPost, "/api/createPerson", bytes.NewBufferString(strconv.Itoa(userID)))
+	if err != nil {
+		return Person{}, err
+	}
+	req.Header.Set("Content-Type", "text/plain")
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return Person{}, err
 	}
@@ -144,7 +135,12 @@ func UpdatePersonRequest(person Person) error {
 	if err != nil {
 		return err
 	}
-	resp, err := http.Post("/api/updatePerson", "application/json", bytes.NewBuffer(jsonData))
+	req, err := NewRequest(http.MethodPost, "/api/updatePerson", bytes.NewBuffer(jsonData))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return err
 	}
@@ -162,7 +158,7 @@ func UpdatePersonRequest(person Person) error {
 // DeletePersonRequest sends an HTTP request to the server to delete the given person
 func DeletePersonRequest(person Person) error {
 	id := person.ID
-	req, err := http.NewRequest(http.MethodDelete, "/api/deletePerson", bytes.NewBufferString(strconv.Itoa(id)))
+	req, err := NewRequest(http.MethodDelete, "/api/deletePerson", bytes.NewBufferString(strconv.Itoa(id)))
 	if err != nil {
 		return err
 	}

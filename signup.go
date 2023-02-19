@@ -24,6 +24,12 @@ func (s *signUp) Render() app.UI {
 	)
 }
 
+func (s *signUp) OnNav(ctx app.Context) {
+	if Authenticate(false, ctx) {
+		return
+	}
+}
+
 func (s *signUp) OnSubmit(ctx app.Context, e app.Event) {
 	e.PreventDefault()
 

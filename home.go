@@ -12,10 +12,15 @@ type home struct {
 	app.Compo
 	meals   Meals
 	person  Person
+	people  People
 	options Options
 }
 
 func (h *home) Render() app.UI {
+	people := make(map[string]bool)
+	for k, v := range h.options.People {
+		people[strconv.Itoa(k)] = v
+	}
 	return app.Div().Body(
 		app.H1().ID("home-page-title").Class("page-title").Text("Welcome, "+h.person.Name),
 		app.Div().ID("home-page-action-button-row").Class("action-button-row").Body(
@@ -39,17 +44,29 @@ func (h *home) Render() app.UI {
 			}),
 		),
 		app.Dialog().ID("home-page-options").Body(
-			app.Form().ID("home-page-form").Class("form").OnSubmit(h.SaveOptions).Body(
+			app.Form().ID("home-page-options-form").Class("form").OnSubmit(h.SaveOptions).Body(
 				app.Label().ID("home-page-options-taste-label").Class("input-label").For("home-page-options-taste-input").Text("Taste Weight:"),
-				app.Input().ID("home-page-options-taste-input").Class("input", "input-range").Type("range").Min(0).Max(100),
+				app.Input().ID("home-page-options-taste-input").Class("input", "input-range").Type("range").Min(0).Max(100).Value(h.options.TasteWeight),
 				app.Label().ID("home-page-options-recency-label").Class("input-label").For("home-page-options-recency-input").Text("Recency Weight:"),
-				app.Input().ID("home-page-options-recency-input").Class("input", "input-range").Type("range").Min(0).Max(100),
+				app.Input().ID("home-page-options-recency-input").Class("input", "input-range").Type("range").Min(0).Max(100).Value(h.options.RecencyWeight),
 				app.Label().ID("home-page-options-cost-label").Class("input-label").For("home-page-options-cost-input").Text("Cost Weight:"),
-				app.Input().ID("home-page-options-cost-input").Class("input", "input-range").Type("range").Min(0).Max(100),
+				app.Input().ID("home-page-options-cost-input").Class("input", "input-range").Type("range").Min(0).Max(100).Value(h.options.CostWeight),
 				app.Label().ID("home-page-options-effort-label").Class("input-label").For("home-page-options-effort-input").Text("Effort Weight:"),
-				app.Input().ID("home-page-options-effort-input").Class("input", "input-range").Type("range").Min(0).Max(100),
+				app.Input().ID("home-page-options-effort-input").Class("input", "input-range").Type("range").Min(0).Max(100).Value(h.options.EffortWeight),
 				app.Label().ID("home-page-options-healthiness-label").Class("input-label").For("home-page-options-healthiness-input").Text("Healthiness Weight:"),
-				app.Input().ID("home-page-options-healthiness-input").Class("input", "input-range").Type("range").Min(0).Max(100),
+				app.Input().ID("home-page-options-healthiness-input").Class("input", "input-range").Type("range").Min(0).Max(100).Value(h.options.HealthinessWeight),
+				app.Label().ID("home-page-options-people-label").Class("input-label").For("home-page-options-people-container").Text("Who Are You Eating With?"),
+				app.Div().ID("home-page-options-people-container").Body(
+					app.Range(h.people).Slice(func(i int) app.UI {
+						si := strconv.Itoa(i)
+						p := h.people[i]
+						checked := h.options.People[p.ID]
+						return app.Div().ID("home-page-options-person-container-"+si).Class("home-page-options-person-container").DataSet("checked", checked).OnClick(func(ctx app.Context, e app.Event) { h.Update() }).Body(
+							app.Input().ID("home-page-options-person-input-"+si).Class("home-page-options-person-input", "input-checkbox").Type("checkbox").Checked(checked),
+							app.Label().ID("home-page-options-person-label-"+si).Class("home-page-options-person-label").For("home-page-options-person-input-"+si).Text(p.Name),
+						)
+					}),
+				),
 				app.Div().ID("home-page-options-action-button-row").Class("action-button-row").Body(
 					app.Input().ID("home-page-options-cancel-button").Class("white-action-button", "action-button").Type("button").Value("Cancel").OnClick(h.CancelOptions),
 					app.Input().ID("home-page-options-save-button").Class("blue-action-button", "action-button").Type("submit").Value("Save"),
@@ -76,21 +93,37 @@ func (h *home) MealOnClick(ctx app.Context, e app.Event, meal Meal) {
 }
 
 func (h *home) OnNav(ctx app.Context) {
+	if Authenticate(true, ctx) {
+		return
+	}
 	h.person = GetCurrentPerson(ctx)
 
-	h.options = GetOptions(ctx)
-	if h.options == (Options{}) {
-		h.options = Options{50, 50, 50, 50, 50}
+	people, err := GetPeopleRequest(GetCurrentUser(ctx))
+	if err != nil {
+		log.Println(err)
+		return
 	}
-	app.Window().GetElementByID("home-page-options-cost-input").Set("valueAsNumber", h.options.CostWeight)
-	app.Window().GetElementByID("home-page-options-effort-input").Set("valueAsNumber", h.options.EffortWeight)
-	app.Window().GetElementByID("home-page-options-healthiness-input").Set("valueAsNumber", h.options.HealthinessWeight)
-	app.Window().GetElementByID("home-page-options-taste-input").Set("valueAsNumber", h.options.TasteWeight)
-	app.Window().GetElementByID("home-page-options-recency-input").Set("valueAsNumber", h.options.RecencyWeight)
+	h.people = people
+
+	h.options = GetOptions(ctx)
+	if h.options.People == nil {
+		h.options = Options{50, 50, 50, 50, 50, make(map[int]bool)}
+	}
+	for _, p := range h.people {
+		if _, ok := h.options.People[p.ID]; !ok {
+			h.options.People[p.ID] = true
+		}
+	}
+	// app.Window().GetElementByID("home-page-options-cost-input").Set("valueAsNumber", h.options.CostWeight)
+	// app.Window().GetElementByID("home-page-options-effort-input").Set("valueAsNumber", h.options.EffortWeight)
+	// app.Window().GetElementByID("home-page-options-healthiness-input").Set("valueAsNumber", h.options.HealthinessWeight)
+	// app.Window().GetElementByID("home-page-options-taste-input").Set("valueAsNumber", h.options.TasteWeight)
+	// app.Window().GetElementByID("home-page-options-recency-input").Set("valueAsNumber", h.options.RecencyWeight)
 
 	meals, err := GetMealsRequest(GetCurrentUser(ctx))
 	if err != nil {
 		log.Println(err)
+		return
 	}
 	h.meals = meals
 	h.SortMeals()
@@ -112,6 +145,11 @@ func (h *home) SaveOptions(ctx app.Context, e app.Event) {
 	h.options.HealthinessWeight = app.Window().GetElementByID("home-page-options-healthiness-input").Get("valueAsNumber").Int()
 	h.options.TasteWeight = app.Window().GetElementByID("home-page-options-taste-input").Get("valueAsNumber").Int()
 	h.options.RecencyWeight = app.Window().GetElementByID("home-page-options-recency-input").Get("valueAsNumber").Int()
+	for i, p := range h.people {
+		checked := app.Window().GetElementByID("home-page-options-person-input-" + strconv.Itoa(i)).Get("checked").Bool()
+		h.options.People[p.ID] = checked
+	}
+
 	SetOptions(h.options, ctx)
 
 	app.Window().GetElementByID("home-page-options").Call("close")

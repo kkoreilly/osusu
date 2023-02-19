@@ -20,5 +20,7 @@ func (s *start) Render() app.UI {
 }
 
 func (s *start) OnNav(ctx app.Context) {
-
+	if Authenticate(false, ctx) {
+		return
+	}
 }

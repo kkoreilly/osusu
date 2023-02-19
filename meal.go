@@ -31,8 +31,14 @@ type Meals []Meal
 func (m Meal) Score(options Options) int {
 	// average of all attributes
 	var tasteSum int
-	for _, v := range m.Taste {
-		tasteSum += v
+	for i, v := range m.Taste {
+		use := options.People[i]
+		// invert the person's rating if they are not participating
+		if use {
+			tasteSum += v
+		} else {
+			tasteSum += 100 - v
+		}
 	}
 	recencyScore := int(2 * time.Now().Truncate(time.Hour*24).UTC().Sub(m.LastDone) / (time.Hour * 24))
 	if recencyScore > 100 {
@@ -60,7 +66,11 @@ func GetCurrentMeal(ctx app.Context) Meal {
 
 // GetMealsRequest sends an HTTP request to the server to get the meals for the given user
 func GetMealsRequest(user User) (Meals, error) {
-	resp, err := http.Get("/api/getMeals?u=" + strconv.Itoa(user.ID))
+	req, err := NewRequest(http.MethodGet, "/api/getMeals?u="+strconv.Itoa(user.ID), nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +93,12 @@ func GetMealsRequest(user User) (Meals, error) {
 // CreateMealRequest sends an HTTP request to the server to create a meal associated with the given user and returns the created meal if successful and an error if not
 func CreateMealRequest(user User) (Meal, error) {
 	userID := user.ID
-	resp, err := http.Post("/api/createMeal", "text/plain", bytes.NewBufferString(strconv.Itoa(userID)))
+	req, err := NewRequest(http.MethodPost, "/api/createMeal", bytes.NewBufferString(strconv.Itoa(userID)))
+	if err != nil {
+		return Meal{}, err
+	}
+	req.Header.Set("Content-Type", "text/plain")
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return Meal{}, err
 	}
@@ -110,7 +125,12 @@ func UpdateMealRequest(meal Meal) error {
 	if err != nil {
 		return err
 	}
-	resp, err := http.Post("/api/updateMeal", "application/json", bytes.NewBuffer(jsonData))
+	req, err := NewRequest(http.MethodPost, "/api/updateMeal", bytes.NewBuffer(jsonData))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return err
 	}
@@ -128,7 +148,7 @@ func UpdateMealRequest(meal Meal) error {
 // DeleteMealRequest sends an HTTP request to the server to delete the given meal
 func DeleteMealRequest(meal Meal) error {
 	id := meal.ID
-	req, err := http.NewRequest(http.MethodDelete, "/api/deleteMeal", bytes.NewBufferString(strconv.Itoa(id)))
+	req, err := NewRequest(http.MethodDelete, "/api/deleteMeal", bytes.NewBufferString(strconv.Itoa(id)))
 	if err != nil {
 		return err
 	}
