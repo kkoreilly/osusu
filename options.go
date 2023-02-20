@@ -10,6 +10,8 @@ type Options struct {
 	TasteWeight       int
 	RecencyWeight     int
 	People            map[int]bool // key is person id, value is whether or not they are included
+	Type              string
+	Source            []string
 }
 
 // SetOptions sets the options state value to the given meal recommendation options

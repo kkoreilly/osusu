@@ -4,11 +4,13 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"crypto/subtle"
+	"encoding/hex"
 	"encoding/json"
 	"io"
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
 	"golang.org/x/crypto/bcrypt"
@@ -19,6 +21,8 @@ const (
 	APIUsername = "z3J8i6gVMyA!H$Ukpvqt5xLos5FgicTeWYf*MtfFU48HMUeMTaMCN59biD^3VxBup@^n7wnWgzCg442!95R9QHnt^6uKZ7f5ip2ycUjbfQ3sWzCZWVP8xgw!dZTn!trD"
 	APIPassword = "gbx5T3*UJSALdxAES$n@w2m6b4o949XKMHsApk@Zt4&q3cf$37Jvf#g4#nd95hSnc4K%#h!JD9ifSkDhQyPMT@brtuU!cFxBJwny!ukC$s^ZVPdPzkJm8DvX4bK7to7d"
 )
+
+var sessions = make(map[string]int)
 
 func startServer() {
 	http.Handle("/", &app.Handler{
@@ -36,6 +40,7 @@ func startServer() {
 
 	HandleFunc(http.MethodPost, "/api/createUser", handleCreateUser)
 	HandleFunc(http.MethodPost, "/api/signIn", handleSignIn)
+	HandleFunc(http.MethodPost, "/api/authenticateSession", handleAuthenticateSession)
 
 	HandleFunc(http.MethodGet, "/api/getMeals", handleGetMeals)
 	HandleFunc(http.MethodPost, "/api/createMeal", handleCreateMeal)
@@ -83,13 +88,14 @@ func HandleFunc(method string, path string, handler http.HandlerFunc) {
 	})
 }
 
-func generateToken() ([]byte, error) {
-	b := make([]byte, 32)
+// GenerateSessionID generates a session id
+func GenerateSessionID() (string, error) {
+	b := make([]byte, 64)
 	_, err := rand.Read(b)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	return b, nil
+	return hex.EncodeToString(b), nil
 }
 
 func handleCreateUser(w http.ResponseWriter, r *http.Request) {
@@ -104,7 +110,6 @@ func handleCreateUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "username and password must not be empty", http.StatusBadRequest)
 		return
 	}
-	originalPassword := user.Password
 	// encrypt password
 	hash, err := bcrypt.GenerateFromPassword([]byte(user.Password), 14)
 	if err != nil {
@@ -118,8 +123,21 @@ func handleCreateUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	// return original password instead of encrypted version
-	user.Password = originalPassword
+	// make session id
+	session, err := GenerateSessionID()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	user.Session = session
+	sessionHash := sha256.Sum256([]byte(session))
+	err = CreateSessionDB(hex.EncodeToString(sessionHash[:]), user.ID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	// return blank password
+	user.Password = ""
 	// return user
 	json, err := json.Marshal(user)
 	if err != nil {
@@ -142,6 +160,20 @@ func handleSignIn(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
+	// make session
+	session, err := GenerateSessionID()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	user.Session = session
+	sessionHash := sha256.Sum256([]byte(session))
+	err = CreateSessionDB(hex.EncodeToString(sessionHash[:]), user.ID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	// return blank password
+	user.Password = ""
 	// return user
 	json, err := json.Marshal(user)
 	if err != nil {
@@ -149,6 +181,22 @@ func handleSignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Write(json)
+}
+
+func handleAuthenticateSession(w http.ResponseWriter, r *http.Request) {
+	var user User
+	err := json.NewDecoder(r.Body).Decode(&user)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	sessionHash := sha256.Sum256([]byte(user.Session))
+	userID, expires, err := GetSessionDB(hex.EncodeToString(sessionHash[:]))
+	if err != nil || userID != user.ID || expires.Before(time.Now()) {
+		http.Error(w, "Invalid Session ID", http.StatusUnauthorized)
+		return
+	}
+	w.Write([]byte("Authenticated"))
 }
 
 func handleGetMeals(w http.ResponseWriter, r *http.Request) {

@@ -21,6 +21,18 @@ func (e *edit) Render() app.UI {
 			app.Input().ID("edit-page-name-input").Class("input").Type("text").Placeholder("Meal Name").AutoFocus(true).Value(e.meal.Name),
 			app.Label().ID("edit-page-last-done-label").Class("input-label").For("edit-page-last-done-input").Text("Last Done:"),
 			app.Input().ID("edit-page-last-done-input").Class("input").Type("date").Value(e.meal.LastDone.Format("2006-01-02")),
+			app.Label().ID("edit-page-type-label").Class("input-label").For("edit-page-type-inputs-container").Text("Type:"),
+			app.Div().ID("edit-page-type-inputs-container").Class("chips-container").Body(
+				Chip("edit-page-type-breakfast", "radio", "edit-page-type", "Breakfast", e.meal.Type == "Breakfast"),
+				Chip("edit-page-type-lunch", "radio", "edit-page-type", "Lunch", e.meal.Type == "Lunch"),
+				Chip("edit-page-type-dinner", "radio", "edit-page-type", "Dinner", e.meal.Type == "Dinner"),
+			),
+			app.Label().ID("edit-page-source-label").Class("input-label").For("edit-page-source-inputs-container").Text("Source:"),
+			app.Div().ID("edit-page-source-inputs-container").Class("chips-container").Body(
+				Chip("edit-page-source-cooking", "radio", "edit-page-source", "Cooking", e.meal.Source == "Cooking"),
+				Chip("edit-page-source-restaurant", "radio", "edit-page-source", "Dine-In", e.meal.Source == "Dine-In"),
+				Chip("edit-page-source-takeout", "radio", "edit-page-source", "Takeout", e.meal.Source == "Takeout"),
+			),
 			app.Label().ID("edit-page-taste-label").Class("input-label").For("edit-page-taste-input").Text("Your Rating:"),
 			app.Input().ID("edit-page-taste-input").Class("input", "input-range").Type("range").Min(0).Max(100).Value(e.meal.Taste[e.person.ID]),
 			app.Hr().ID("edit-page-hr"),
@@ -52,12 +64,12 @@ func (e *edit) OnNav(ctx app.Context) {
 	}
 	e.person = GetCurrentPerson(ctx)
 	e.meal = GetCurrentMeal(ctx)
-	// app.Window().GetElementByID("edit-page-name-input").Set("value", e.meal.Name)
-	// app.Window().GetElementByID("edit-page-cost-input").Set("valueAsNumber", e.meal.Cost)
-	// app.Window().GetElementByID("edit-page-effort-input").Set("valueAsNumber", e.meal.Effort)
-	// app.Window().GetElementByID("edit-page-healthiness-input").Set("valueAsNumber", e.meal.Healthiness)
-	// app.Window().GetElementByID("edit-page-taste-input").Set("valueAsNumber", e.meal.Taste[e.person.ID])
-	// app.Window().GetElementByID("edit-page-last-done-input").Set("valueAsNumber", e.meal.LastDone.UnixMilli())
+	if e.meal.Type == "" {
+		e.meal.Type = "Dinner"
+	}
+	if e.meal.Source == "" {
+		e.meal.Source = "Cooking"
+	}
 }
 
 func (e *edit) OnSubmit(ctx app.Context, event app.Event) {
@@ -68,8 +80,16 @@ func (e *edit) OnSubmit(ctx app.Context, event app.Event) {
 	e.meal.Effort = app.Window().GetElementByID("edit-page-effort-input").Get("valueAsNumber").Int()
 	e.meal.Healthiness = app.Window().GetElementByID("edit-page-healthiness-input").Get("valueAsNumber").Int()
 	e.meal.Taste[e.person.ID] = app.Window().GetElementByID("edit-page-taste-input").Get("valueAsNumber").Int()
-	e.meal.LastDone = time.UnixMilli(int64(app.Window().GetElementByID("edit-page-last-done-input").Get("valueAsDate").Call("getTime").Int())).UTC()
 
+	e.meal.LastDone = time.UnixMilli(int64((app.Window().GetElementByID("edit-page-last-done-input").Get("valueAsNumber").Int()))).UTC()
+	elem := app.Window().Get("document").Call("querySelector", `input[name="edit-page-type"]:checked`)
+	if !elem.IsNull() {
+		e.meal.Type = elem.Get("value").String()
+	}
+	elem = app.Window().Get("document").Call("querySelector", `input[name="edit-page-source"]:checked`)
+	if !elem.IsNull() {
+		e.meal.Source = elem.Get("value").String()
+	}
 	err := UpdateMealRequest(e.meal)
 	if err != nil {
 		log.Println(err)

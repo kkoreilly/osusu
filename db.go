@@ -57,9 +57,25 @@ func SignInDB(user User) (User, error) {
 	return user, nil
 }
 
+// CreateSessionDB creates a new session in the database with the given session id and user id
+func CreateSessionDB(id string, userID int) error {
+	statement := `INSERT INTO sessions (id, user_id, expires)
+	VALUES ($1, $2, $3)`
+	_, err := db.Exec(statement, id, userID, time.Now().UTC().Add(30*24*time.Hour))
+	return err
+}
+
+// GetSessionDB gets the user id and expiration date of the given session if it exists. Otherwise, it returns an error
+func GetSessionDB(id string) (userID int, expires time.Time, err error) {
+	statement := `SELECT user_id, expires FROM sessions WHERE id=$1`
+	row := db.QueryRow(statement, id)
+	err = row.Scan(&userID, &expires)
+	return
+}
+
 // GetMealsDB gets the meals from the database that are associated with the given user id
 func GetMealsDB(userID int) (Meals, error) {
-	statement := `SELECT * FROM meals WHERE user_id=$1`
+	statement := `SELECT id, name, cost, effort, healthiness, taste, type, source, last_done FROM meals WHERE user_id=$1`
 	rows, err := db.Query(statement, userID)
 	if err != nil {
 		return nil, err
@@ -68,9 +84,9 @@ func GetMealsDB(userID int) (Meals, error) {
 	res := Meals{}
 	for rows.Next() {
 		var id, cost, effort, healthiness, userID int
-		var name, taste string
+		var name, taste, mealType, source string
 		var lastDone time.Time
-		err := rows.Scan(&id, &name, &cost, &effort, &healthiness, &taste, &userID, &lastDone)
+		err := rows.Scan(&id, &name, &cost, &effort, &healthiness, &taste, &mealType, &source, &lastDone)
 		if err != nil {
 			return nil, err
 		}
@@ -86,8 +102,10 @@ func GetMealsDB(userID int) (Meals, error) {
 			Effort:      effort,
 			Healthiness: healthiness,
 			Taste:       tasteMap,
-			UserID:      userID,
+			Type:        mealType,
+			Source:      source,
 			LastDone:    lastDone,
+			UserID:      userID,
 		}
 		res = append(res, meal)
 	}
@@ -97,12 +115,11 @@ func GetMealsDB(userID int) (Meals, error) {
 // CreateMealDB creates a meal in the database with the given userID and returns the created meal if successful and an error if not
 func CreateMealDB(userID int) (Meal, error) {
 	statement := `INSERT INTO meals (user_id, last_done)
-	VALUES ($1, $2) RETURNING *`
+	VALUES ($1, $2) RETURNING id, name, cost, effort, healthiness, taste, type, source`
 	row := db.QueryRow(statement, userID, time.Now())
 	var id, cost, effort, healthiness int
-	var name, taste string
-	var lastDone time.Time
-	err := row.Scan(&id, &name, &cost, &effort, &healthiness, &taste, &userID, &lastDone)
+	var name, taste, mealType, source string
+	err := row.Scan(&id, &name, &cost, &effort, &healthiness, &taste, &mealType, &source)
 	if err != nil {
 		return Meal{}, err
 	}
@@ -118,8 +135,10 @@ func CreateMealDB(userID int) (Meal, error) {
 		Effort:      effort,
 		Healthiness: healthiness,
 		Taste:       tasteMap,
+		Type:        mealType,
+		Source:      source,
+		LastDone:    time.Now(),
 		UserID:      userID,
-		LastDone:    lastDone,
 	}
 	return meal, nil
 }
@@ -127,13 +146,13 @@ func CreateMealDB(userID int) (Meal, error) {
 // UpdateMealDB updates a meal in the database
 func UpdateMealDB(meal Meal) error {
 	statement := `UPDATE meals
-	SET name = $1, cost = $2, effort = $3, healthiness = $4, taste = $5, last_done = $6
-	WHERE id = $7`
+	SET name = $1, cost = $2, effort = $3, healthiness = $4, taste = $5, type = $6, source = $7, last_done = $8
+	WHERE id = $9`
 	tasteJSON, err := json.Marshal(meal.Taste)
 	if err != nil {
 		return err
 	}
-	_, err = db.Exec(statement, meal.Name, meal.Cost, meal.Effort, meal.Healthiness, string(tasteJSON), meal.LastDone, meal.ID)
+	_, err = db.Exec(statement, meal.Name, meal.Cost, meal.Effort, meal.Healthiness, string(tasteJSON), meal.Type, meal.Source, meal.LastDone, meal.ID)
 	return err
 }
 

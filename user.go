@@ -3,10 +3,10 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
 )
@@ -16,6 +16,7 @@ type User struct {
 	ID       int
 	Username string
 	Password string
+	Session  string // session id, not part of user in user database, but stored locally
 }
 
 // CreateUserRequest sends an HTTP request to the server to create a user and returns the created user if successful and an error if not
@@ -82,23 +83,9 @@ func SignInRequest(user User) (User, error) {
 	return res, nil
 }
 
-// AutoSignIn attempts to sign in using the saved login information, if it exists. Returns nil if signed in, an error if not.
-func AutoSignIn(ctx app.Context) error {
-	user := GetCurrentUser(ctx)
-	if user.Username == "" || user.Password == "" {
-		return errors.New("no saved login information")
-	}
-	user, err := SignInRequest(user)
-	if err != nil {
-		return err
-	}
-	SetCurrentUser(user, ctx)
-	return nil
-}
-
 // SetCurrentUser sets the value of the current user in local storage
 func SetCurrentUser(user User, ctx app.Context) {
-	ctx.SetState("currentUser", user, app.Persist, app.Encrypt)
+	ctx.SetState("currentUser", user, app.Persist, app.Encrypt, app.ExpiresIn(30*24*time.Hour))
 }
 
 // GetCurrentUser gets the value of the current user from local storage

@@ -20,6 +20,8 @@ type Meal struct {
 	Effort      int
 	Healthiness int
 	Taste       map[int]int // key is person id, value is taste rating
+	Type        string
+	Source      string
 	LastDone    time.Time
 	UserID      int
 }

@@ -56,16 +56,19 @@ func (h *home) Render() app.UI {
 				app.Label().ID("home-page-options-healthiness-label").Class("input-label").For("home-page-options-healthiness-input").Text("Healthiness Weight:"),
 				app.Input().ID("home-page-options-healthiness-input").Class("input", "input-range").Type("range").Min(0).Max(100).Value(h.options.HealthinessWeight),
 				app.Label().ID("home-page-options-people-label").Class("input-label").For("home-page-options-people-container").Text("Who Are You Eating With?"),
-				app.Div().ID("home-page-options-people-container").Body(
+				app.Div().ID("home-page-options-people-container").Class("chips-container").Body(
 					app.Range(h.people).Slice(func(i int) app.UI {
 						si := strconv.Itoa(i)
 						p := h.people[i]
 						checked := h.options.People[p.ID]
-						return app.Div().ID("home-page-options-person-container-"+si).Class("home-page-options-person-container").DataSet("checked", checked).OnClick(func(ctx app.Context, e app.Event) { h.Update() }).Body(
-							app.Input().ID("home-page-options-person-input-"+si).Class("home-page-options-person-input", "input-checkbox").Type("checkbox").Checked(checked),
-							app.Label().ID("home-page-options-person-label-"+si).Class("home-page-options-person-label").For("home-page-options-person-input-"+si).Text(p.Name),
-						)
+						return Chip("home-page-options-person-"+si, "checkbox", "home-page-options-person-"+si, p.Name, checked)
 					}),
+				),
+				app.Label().ID("home-page-options-type-label").Class("input-label").For("home-page-options-type-container").Text("What Type of Meal Are You Having?"),
+				app.Div().ID("home-page-options-type-container").Class("chips-container").Body(
+					Chip("home-page-options-type-breakfast", "radio", "home-page-options-type", "Breakfast", h.options.Type == "Breakfast"),
+					Chip("home-page-options-type-lunch", "radio", "home-page-options-type", "Lunch", h.options.Type == "Lunch"),
+					Chip("home-page-options-type-dinner", "radio", "home-page-options-type", "Dinner", h.options.Type == "Dinner"),
 				),
 				app.Div().ID("home-page-options-action-button-row").Class("action-button-row").Body(
 					app.Input().ID("home-page-options-cancel-button").Class("white-action-button", "action-button").Type("button").Value("Cancel").OnClick(h.CancelOptions),
@@ -73,6 +76,14 @@ func (h *home) Render() app.UI {
 				),
 			),
 		),
+	)
+}
+
+// Chip returns a new chip element with the given id, input type, name, value, checked value, and classes
+func Chip(id string, inputType string, name string, value string, checked bool, class ...string) app.UI {
+	return app.Label().ID(id+"-chip-label").Class("chip-label").For(id+"-chip-input").Body(
+		app.Input().ID(id+"-chip-input").Class("chip-input").Type(inputType).Name(name).Checked(checked).Value(value),
+		app.Text(value),
 	)
 }
 
@@ -107,18 +118,13 @@ func (h *home) OnNav(ctx app.Context) {
 
 	h.options = GetOptions(ctx)
 	if h.options.People == nil {
-		h.options = Options{50, 50, 50, 50, 50, make(map[int]bool)}
+		h.options = Options{50, 50, 50, 50, 50, make(map[int]bool), "", []string{}}
 	}
 	for _, p := range h.people {
 		if _, ok := h.options.People[p.ID]; !ok {
 			h.options.People[p.ID] = true
 		}
 	}
-	// app.Window().GetElementByID("home-page-options-cost-input").Set("valueAsNumber", h.options.CostWeight)
-	// app.Window().GetElementByID("home-page-options-effort-input").Set("valueAsNumber", h.options.EffortWeight)
-	// app.Window().GetElementByID("home-page-options-healthiness-input").Set("valueAsNumber", h.options.HealthinessWeight)
-	// app.Window().GetElementByID("home-page-options-taste-input").Set("valueAsNumber", h.options.TasteWeight)
-	// app.Window().GetElementByID("home-page-options-recency-input").Set("valueAsNumber", h.options.RecencyWeight)
 
 	meals, err := GetMealsRequest(GetCurrentUser(ctx))
 	if err != nil {
@@ -146,7 +152,7 @@ func (h *home) SaveOptions(ctx app.Context, e app.Event) {
 	h.options.TasteWeight = app.Window().GetElementByID("home-page-options-taste-input").Get("valueAsNumber").Int()
 	h.options.RecencyWeight = app.Window().GetElementByID("home-page-options-recency-input").Get("valueAsNumber").Int()
 	for i, p := range h.people {
-		checked := app.Window().GetElementByID("home-page-options-person-input-" + strconv.Itoa(i)).Get("checked").Bool()
+		checked := app.Window().GetElementByID("home-page-options-person-" + strconv.Itoa(i) + "-chip-input").Get("checked").Bool()
 		h.options.People[p.ID] = checked
 	}
 
