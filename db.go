@@ -24,12 +24,10 @@ func CreateUserDB(user User) (User, error) {
 	statement := `INSERT INTO users (username, password)
 	VALUES ($1, $2) RETURNING id`
 	row := db.QueryRow(statement, user.Username, user.Password)
-	var id int
-	err := row.Scan(&id)
+	err := row.Scan(&user.ID)
 	if err != nil {
 		return User{}, err
 	}
-	user.ID = id
 	return user, err
 }
 
@@ -37,9 +35,8 @@ func CreateUserDB(user User) (User, error) {
 func SignInDB(user User) (User, error) {
 	statement := `SELECT id, password FROM users WHERE username=$1`
 	row := db.QueryRow(statement, user.Username)
-	var id int
 	var password string
-	err := row.Scan(&id, &password)
+	err := row.Scan(&user.ID, &password)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return User{}, errors.New("no user with the given username exists")
@@ -53,7 +50,6 @@ func SignInDB(user User) (User, error) {
 		}
 		return User{}, err
 	}
-	user.ID = id
 	return user, nil
 }
 
@@ -61,7 +57,7 @@ func SignInDB(user User) (User, error) {
 func CreateSessionDB(id string, userID int) error {
 	statement := `INSERT INTO sessions (id, user_id, expires)
 	VALUES ($1, $2, $3)`
-	_, err := db.Exec(statement, id, userID, time.Now().UTC().Add(30*24*time.Hour))
+	_, err := db.Exec(statement, id, userID, time.Now().UTC().Add(RememberMeSessionLength))
 	return err
 }
 
@@ -73,40 +69,36 @@ func GetSessionDB(id string) (userID int, expires time.Time, err error) {
 	return
 }
 
+// DeleteSessionDB deletes the given session from the database
+func DeleteSessionDB(id string) error {
+	statement := `DELETE FROM sessions
+	WHERE id = $1`
+	_, err := db.Exec(statement, id)
+	return err
+}
+
 // GetMealsDB gets the meals from the database that are associated with the given user id
 func GetMealsDB(userID int) (Meals, error) {
-	statement := `SELECT id, name, cost, effort, healthiness, taste, type, source, last_done FROM meals WHERE user_id=$1`
+	statement := `SELECT id, name, description, cost, effort, healthiness, taste, type, source, last_done FROM meals WHERE user_id=$1`
 	rows, err := db.Query(statement, userID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	res := Meals{}
+	var res Meals
 	for rows.Next() {
-		var id, cost, effort, healthiness, userID int
-		var name, taste, mealType, source string
-		var lastDone time.Time
-		err := rows.Scan(&id, &name, &cost, &effort, &healthiness, &taste, &mealType, &source, &lastDone)
+		var meal Meal
+		var tasteJSON string
+		err := rows.Scan(&meal.ID, &meal.Name, &meal.Description, &meal.Cost, &meal.Effort, &meal.Healthiness, &tasteJSON, &meal.Type, &meal.Source, &meal.LastDone)
 		if err != nil {
 			return nil, err
 		}
 		var tasteMap map[int]int
-		err = json.Unmarshal([]byte(taste), &tasteMap)
+		err = json.Unmarshal([]byte(tasteJSON), &tasteMap)
 		if err != nil {
 			return nil, err
 		}
-		meal := Meal{
-			ID:          id,
-			Name:        name,
-			Cost:        cost,
-			Effort:      effort,
-			Healthiness: healthiness,
-			Taste:       tasteMap,
-			Type:        mealType,
-			Source:      source,
-			LastDone:    lastDone,
-			UserID:      userID,
-		}
+		meal.Taste = tasteMap
 		res = append(res, meal)
 	}
 	return res, nil
@@ -115,44 +107,33 @@ func GetMealsDB(userID int) (Meals, error) {
 // CreateMealDB creates a meal in the database with the given userID and returns the created meal if successful and an error if not
 func CreateMealDB(userID int) (Meal, error) {
 	statement := `INSERT INTO meals (user_id, last_done)
-	VALUES ($1, $2) RETURNING id, name, cost, effort, healthiness, taste, type, source`
+	VALUES ($1, $2) RETURNING id, cost, effort, healthiness, taste, type, source`
 	row := db.QueryRow(statement, userID, time.Now())
-	var id, cost, effort, healthiness int
-	var name, taste, mealType, source string
-	err := row.Scan(&id, &name, &cost, &effort, &healthiness, &taste, &mealType, &source)
+	var meal Meal
+	var tasteJSON string
+	err := row.Scan(&meal.ID, &meal.Cost, &meal.Effort, &meal.Healthiness, &tasteJSON, &meal.Type, &meal.Source)
 	if err != nil {
 		return Meal{}, err
 	}
 	var tasteMap map[int]int
-	err = json.Unmarshal([]byte(taste), &tasteMap)
+	err = json.Unmarshal([]byte(tasteJSON), &tasteMap)
 	if err != nil {
 		return Meal{}, err
 	}
-	meal := Meal{
-		ID:          id,
-		Name:        name,
-		Cost:        cost,
-		Effort:      effort,
-		Healthiness: healthiness,
-		Taste:       tasteMap,
-		Type:        mealType,
-		Source:      source,
-		LastDone:    time.Now(),
-		UserID:      userID,
-	}
+	meal.Taste = tasteMap
 	return meal, nil
 }
 
 // UpdateMealDB updates a meal in the database
 func UpdateMealDB(meal Meal) error {
 	statement := `UPDATE meals
-	SET name = $1, cost = $2, effort = $3, healthiness = $4, taste = $5, type = $6, source = $7, last_done = $8
-	WHERE id = $9`
+	SET name = $1, description = $2, cost = $3, effort = $4, healthiness = $5, taste = $6, type = $7, source = $8, last_done = $9
+	WHERE id = $10`
 	tasteJSON, err := json.Marshal(meal.Taste)
 	if err != nil {
 		return err
 	}
-	_, err = db.Exec(statement, meal.Name, meal.Cost, meal.Effort, meal.Healthiness, string(tasteJSON), meal.Type, meal.Source, meal.LastDone, meal.ID)
+	_, err = db.Exec(statement, meal.Name, meal.Description, meal.Cost, meal.Effort, meal.Healthiness, string(tasteJSON), meal.Type, meal.Source, meal.LastDone, meal.ID)
 	return err
 }
 
@@ -166,25 +147,20 @@ func DeleteMealDB(id int) error {
 
 // GetPeopleDB gets all of the people from the database that are associated with the given user id
 func GetPeopleDB(userID int) (People, error) {
-	statement := `SELECT * FROM people WHERE user_id=$1`
+	statement := `SELECT id, name FROM people WHERE user_id=$1`
 	rows, err := db.Query(statement, userID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	res := People{}
+	var res People
 	for rows.Next() {
-		var id, userID int
-		var name string
-		err := rows.Scan(&id, &name, &userID)
+		var person Person
+		err := rows.Scan(&person.ID, &person.Name)
 		if err != nil {
 			return nil, err
 		}
-		person := Person{
-			ID:     id,
-			Name:   name,
-			UserID: userID,
-		}
+		person.UserID = userID
 		res = append(res, person)
 	}
 	return res, nil
@@ -193,19 +169,14 @@ func GetPeopleDB(userID int) (People, error) {
 // CreatePersonDB creates a person in the database with the given userID and returns the created person if successful and an error if not
 func CreatePersonDB(userID int) (Person, error) {
 	statement := `INSERT INTO people (user_id)
-	VALUES ($1) RETURNING *`
+	VALUES ($1) RETURNING id, name`
 	row := db.QueryRow(statement, userID)
-	var id int
-	var name string
-	err := row.Scan(&id, &name, &userID)
+	var person Person
+	err := row.Scan(&person.ID, &person.Name)
 	if err != nil {
 		return Person{}, err
 	}
-	person := Person{
-		ID:     id,
-		Name:   name,
-		UserID: userID,
-	}
+	person.UserID = userID
 	return person, nil
 }
 

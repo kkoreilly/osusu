@@ -41,3 +41,9 @@
     --thumb-color: red;
     --progress-color: hsl(0, 100%, 70%);
 }
+
+#home-page-confirm-sign-out-text {
+    font-size: 20px;
+    text-align: center;
+    font-weight: bold;
+}

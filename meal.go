@@ -16,6 +16,7 @@ import (
 type Meal struct {
 	ID          int
 	Name        string
+	Description string
 	Cost        int
 	Effort      int
 	Healthiness int

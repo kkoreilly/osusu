@@ -41,6 +41,7 @@ func startServer() {
 	HandleFunc(http.MethodPost, "/api/createUser", handleCreateUser)
 	HandleFunc(http.MethodPost, "/api/signIn", handleSignIn)
 	HandleFunc(http.MethodPost, "/api/authenticateSession", handleAuthenticateSession)
+	HandleFunc(http.MethodPost, "/api/signOut", handleSignOut)
 
 	HandleFunc(http.MethodGet, "/api/getMeals", handleGetMeals)
 	HandleFunc(http.MethodPost, "/api/createMeal", handleCreateMeal)
@@ -123,18 +124,20 @@ func handleCreateUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	// make session id
-	session, err := GenerateSessionID()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	user.Session = session
-	sessionHash := sha256.Sum256([]byte(session))
-	err = CreateSessionDB(hex.EncodeToString(sessionHash[:]), user.ID)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+	// make session if remember me
+	if user.RememberMe {
+		session, err := GenerateSessionID()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		user.Session = session
+		sessionHash := sha256.Sum256([]byte(session))
+		err = CreateSessionDB(hex.EncodeToString(sessionHash[:]), user.ID)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 	}
 	// return blank password
 	user.Password = ""
@@ -160,17 +163,19 @@ func handleSignIn(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
-	// make session
-	session, err := GenerateSessionID()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-	user.Session = session
-	sessionHash := sha256.Sum256([]byte(session))
-	err = CreateSessionDB(hex.EncodeToString(sessionHash[:]), user.ID)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+	// make session if remember me
+	if user.RememberMe {
+		session, err := GenerateSessionID()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		user.Session = session
+		sessionHash := sha256.Sum256([]byte(session))
+		err = CreateSessionDB(hex.EncodeToString(sessionHash[:]), user.ID)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 	}
 	// return blank password
 	user.Password = ""
@@ -191,12 +196,42 @@ func handleAuthenticateSession(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	sessionHash := sha256.Sum256([]byte(user.Session))
-	userID, expires, err := GetSessionDB(hex.EncodeToString(sessionHash[:]))
-	if err != nil || userID != user.ID || expires.Before(time.Now()) {
+	sessionHashString := hex.EncodeToString(sessionHash[:])
+	userID, expires, err := GetSessionDB(sessionHashString)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+	if expires.Before(time.Now()) {
+		err := DeleteSessionDB(sessionHashString)
+		if err != nil {
+			log.Println("Error deleting expired Session ID:", err)
+		}
+		http.Error(w, "Session ID Expired", http.StatusUnauthorized)
+		return
+	}
+	if userID != user.ID {
 		http.Error(w, "Invalid Session ID", http.StatusUnauthorized)
 		return
 	}
 	w.Write([]byte("Authenticated"))
+}
+
+func handleSignOut(w http.ResponseWriter, r *http.Request) {
+	var user User
+	err := json.NewDecoder(r.Body).Decode(&user)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	sessionHash := sha256.Sum256([]byte(user.Session))
+	sessionHashString := hex.EncodeToString(sessionHash[:])
+	err = DeleteSessionDB(sessionHashString)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write([]byte("Signed Out"))
 }
 
 func handleGetMeals(w http.ResponseWriter, r *http.Request) {
