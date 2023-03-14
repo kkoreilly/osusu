@@ -2,12 +2,6 @@
     font-family: 'Roboto', sans-serif;
 }
 
-/* 
-:root {
-    background: white;
-    background: linear-gradient(180deg, white 0%, hsl(0, 0%, 90%) 100%);
-    background-attachment: fixed;
-} */
 
 #auth {
     position: fixed;
@@ -35,6 +29,8 @@
     display: flex;
     justify-content: center;
     column-gap: 20px;
+    row-gap: 20px;
+    flex-wrap: wrap;
 }
 
 .action-button {
@@ -73,6 +69,16 @@
 
 .white-action-button:hover {
     background-color: darkgray;
+}
+
+.green-action-button {
+    border: none;
+    color: white;
+    background-color: hsl(120, 100%, 30%);
+}
+
+.green-action-button:hover {
+    background-color: hsl(120, 100%, 20%);
 }
 
 .form {
@@ -159,28 +165,6 @@ hr {
     justify-content: center;
 }
 
-/* .chip-container {
-    display: flex;
-    font-size: 20px;
-    border-radius: 100px;
-    /* height: 40px;
-align-items: center;
-background-color: yellow;
-}
-
-.chip-container:hover {
-    background-color: hsl(60, 100%, 40%);
-}
-
-.chip-container:has(.chip-input:checked) {
-    background-color: hsl(120, 73%, 50%);
-}
-
-.chip-container:has(.chip-input:checked):hover {
-    background-color: hsl(120, 73%, 40%);
-}
-
-*/
 .chip-input {
     -webkit-appearance: none;
     appearance: none;

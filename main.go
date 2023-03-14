@@ -10,6 +10,7 @@ func main() {
 	app.Route("/signup", &signUp{})
 	app.Route("/home", &home{})
 	app.Route("/edit", &edit{})
+	app.Route("/entries", &entries{})
 	app.Route("/people", &people{})
 	app.Route("/person", &person{})
 
