@@ -2,27 +2,82 @@
     font-family: 'Roboto', sans-serif;
 }
 
+body {
+    margin: 0;
+}
 
-#auth {
-    position: fixed;
+.page-top-bar {
+    width: 100vw;
+    background-color: hsl(49, 95%, 55%);
+    position: sticky;
     top: 0;
     left: 0;
-    width: 100vw;
-    height: 100vw;
-    z-index: 10000;
-    background-color: white;
-    text-align: center;
-    display: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.page-top-bar-icon-link {
+    padding: 10px;
+    margin-left: 5px;
+    display: flex;
+    align-items: center;
+    column-gap: 10px;
+    text-decoration: none;
+    border-radius: 5px;
+    flex-grow: 1;
+}
+
+.page-top-bar-icon-link:hover {
+    background-color: hsl(49, 95%, 40%);
+}
+
+.page-top-bar-icon-img {
+    width: 50px;
+    height: 50px;
+}
+
+.page-top-bar-icon-text {
+    font-size: 30px;
+    color: black;
+    font-weight: bold;
 }
 
 .page-title {
     text-align: center;
     font-size: 40px;
+    margin: 0;
+    flex-grow: 1;
+}
+
+.page-top-bar-buttons {
+    display: flex;
+    align-items: center;
+    justify-content: end;
+    flex-grow: 1;
+}
+
+.page-top-bar-button {
+    padding: 10px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    border: none;
+    background-color: hsl(49, 95%, 55%);
+    font-size: 30px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.page-top-bar-button:hover {
+    background-color: hsl(49, 95%, 40%);
 }
 
 .page-subtitle {
     text-align: center;
     font-size: 20px;
+    width: min(80vw, 700px);
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .action-button-row {
@@ -88,64 +143,6 @@
     row-gap: 10px;
 }
 
-.input-label {
-    font-size: 25px;
-    font-weight: bold;
-    text-align: center;
-}
-
-.input {
-    font-size: 20px;
-    padding: 10px;
-    width: min(70vw, 700px);
-    height: 30px;
-    border-radius: 10px;
-    border: 1px solid black;
-}
-
-.input-range {
-    -webkit-appearance: none;
-    appearance: none;
-    height: 25px;
-    background-color: lightgray;
-    padding: 0;
-    overflow: hidden;
-    cursor: pointer;
-    border: none;
-    --thumb-color: green;
-    --progress-color: hsl(120, 100%, 40%);
-}
-
-.input-range:hover {
-    background-color: darkgray;
-}
-
-.input-range::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 25px;
-    height: 25px;
-    background-color: var(--thumb-color);
-    cursor: ew-resize;
-    box-shadow: -100vw 0 0 100vw var(--progress-color);
-}
-
-.input-range::-moz-range-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 25px;
-    height: 25px;
-    background-color: var(--thumb-color);
-    cursor: ew-resize;
-    border: none;
-    border-radius: 0;
-}
-
-.input-range::-moz-range-progress {
-    background-color: var(--progress-color);
-    height: 25px;
-}
-
 .status-text {
     font-size: 20px;
     text-align: center;
@@ -155,97 +152,4 @@
 hr {
     width: 100%;
     border: 1px solid black;
-}
-
-.chips-container {
-    display: flex;
-    column-gap: 10px;
-    flex-wrap: wrap;
-    row-gap: 10px;
-    justify-content: center;
-}
-
-.chip-input {
-    -webkit-appearance: none;
-    appearance: none;
-    background-color: inherit;
-    margin: 0;
-    font: inherit;
-    color: black;
-    width: 0;
-    height: 0;
-    border-radius: 0.15em;
-    transform: translateY(-0.075em);
-    display: grid;
-    place-content: center;
-    cursor: pointer;
-    transition: 200ms width linear;
-}
-
-.chip-input:checked {
-    width: 1.15em;
-    height: 1.15em;
-    padding-right: 7.5px;
-}
-
-.chip-input::before {
-    content: "";
-    width: 0;
-    height: 0;
-    box-shadow: inset 1em 1em black;
-    transform-origin: bottom left;
-    transform: scale(0);
-    transition: 200ms transform linear;
-    /* clip-path: polygon(20% 0%, 0% 20%, 30% 50%, 0% 80%, 20% 100%, 50% 70%, 80% 100%, 100% 80%, 70% 50%, 100% 20%, 80% 0%, 50% 30%); */
-}
-
-.chip-input:checked::before {
-    width: 1em;
-    height: 1em;
-    transform: scale(1);
-    clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
-}
-
-.chip-label {
-    padding: 15px;
-    cursor: pointer;
-    display: flex;
-    font-size: 20px;
-    border-radius: 100px;
-    background-color: yellow;
-    flex-wrap: wrap;
-    -webkit-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-}
-
-.chip-label:hover {
-    background-color: hsl(60, 100%, 40%);
-}
-
-.chip-label:has(.chip-input:checked) {
-    background-color: hsl(120, 73%, 50%);
-}
-
-.chip-label:has(.chip-input:checked):hover {
-    background-color: hsl(120, 73%, 40%);
-}
-
-.input-textarea {
-    resize: none;
-    height: 100px;
-}
-
-.input-container {
-    display: flex;
-    flex-direction: column;
-    row-gap: 10px;
-    align-items: center;
-}
-
-.chips-outer-container {
-    display: flex;
-    flex-direction: column;
-    row-gap: 10px;
-    align-items: center;
 }

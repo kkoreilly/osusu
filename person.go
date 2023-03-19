@@ -19,33 +19,35 @@ type person struct {
 }
 
 func (p *person) Render() app.UI {
-	return app.Div().Body(
-		app.H1().ID("person-page-title").Class("page-title").Text("Confirm Person"),
-		app.Form().ID("person-page-form").Class("form").OnSubmit(p.OnSubmit).Body(
-			app.Label().ID("person-page-name-label").Class("input-label").For("person-page-name-input").Text("Name:"),
-			app.Input().ID("person-page-name-input").Class("input").Type("text").Placeholder("Person Name").AutoFocus(true),
-			app.Div().ID("person-page-action-button-row").Class("action-button-row").Body(
-				app.Input().ID("person-page-delete-button").Class("action-button", "red-action-button").Type("button").Value("Delete").OnClick(p.InitialDelete),
-				app.A().ID("person-page-back-button").Class("action-button", "white-action-button").Href("/people").Text("Back"),
-				app.Input().ID("person-page-continue-button").Class("action-button", "blue-action-button").Type("submit").Value("Continue"),
+	return &Page{
+		ID:                     "person",
+		Title:                  "Person",
+		Description:            "Confirm person",
+		AuthenticationRequired: true,
+		OnNavFunc: func(ctx app.Context) {
+			p.person = GetCurrentPerson(ctx)
+			app.Window().GetElementByID("person-page-name-input").Set("value", p.person.Name)
+		},
+		TitleElement: "Confirm Person",
+		Elements: []app.UI{
+			app.Form().ID("person-page-form").Class("form").OnSubmit(p.OnSubmit).Body(
+				app.Label().ID("person-page-name-label").Class("input-label").For("person-page-name-input").Text("Name:"),
+				app.Input().ID("person-page-name-input").Class("input").Type("text").Placeholder("Person Name").AutoFocus(true),
+				app.Div().ID("person-page-action-button-row").Class("action-button-row").Body(
+					app.Input().ID("person-page-delete-button").Class("action-button", "red-action-button").Type("button").Value("Delete").OnClick(p.InitialDelete),
+					app.A().ID("person-page-back-button").Class("action-button", "white-action-button").Href("/people").Text("Back"),
+					app.Input().ID("person-page-continue-button").Class("action-button", "blue-action-button").Type("submit").Value("Continue"),
+				),
 			),
-		),
-		app.Dialog().ID("person-page-confirm-delete").Body(
-			app.P().ID("person-page-confirm-delete-text").Text("Are you sure you want to delete this person?"),
-			app.Div().ID("person-page-confirm-delete-action-button-row").Class("action-button-row").Body(
-				app.Button().ID("person-page-confirm-delete-delete").Class("action-button", "red-action-button").Text("Yes, Delete").OnClick(p.ConfirmDelete),
-				app.Button().ID("person-page-confirm-delete-cancel").Class("action-button", "white-action-button").Text("No, Cancel").OnClick(p.CancelDelete),
+			app.Dialog().ID("person-page-confirm-delete").Body(
+				app.P().ID("person-page-confirm-delete-text").Text("Are you sure you want to delete this person?"),
+				app.Div().ID("person-page-confirm-delete-action-button-row").Class("action-button-row").Body(
+					app.Button().ID("person-page-confirm-delete-delete").Class("action-button", "red-action-button").Text("Yes, Delete").OnClick(p.ConfirmDelete),
+					app.Button().ID("person-page-confirm-delete-cancel").Class("action-button", "white-action-button").Text("No, Cancel").OnClick(p.CancelDelete),
+				),
 			),
-		),
-	)
-}
-
-func (p *person) OnNav(ctx app.Context) {
-	if Authenticate(true, ctx) {
-		return
+		},
 	}
-	p.person = GetCurrentPerson(ctx)
-	app.Window().GetElementByID("person-page-name-input").Set("value", p.person.Name)
 }
 
 func (p *person) OnSubmit(ctx app.Context, e app.Event) {
@@ -55,7 +57,7 @@ func (p *person) OnSubmit(ctx app.Context, e app.Event) {
 	p.person.Name = app.Window().GetElementByID("person-page-name-input").Get("value").String()
 
 	if p.person.Name != originalName {
-		err := UpdatePersonRequest(p.person)
+		_, err := UpdatePersonAPI.Call(p.person)
 		if err != nil {
 			log.Println(err)
 			return
@@ -74,7 +76,7 @@ func (p *person) InitialDelete(ctx app.Context, event app.Event) {
 func (p *person) ConfirmDelete(ctx app.Context, event app.Event) {
 	event.PreventDefault()
 
-	err := DeletePersonRequest(p.person)
+	_, err := DeletePersonAPI.Call(p.person.ID)
 	if err != nil {
 		log.Println(err)
 		return

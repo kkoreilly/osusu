@@ -1,3 +1,4 @@
 *.wasm
 *.exe
 mealrec
+.DS_Store

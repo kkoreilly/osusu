@@ -24,7 +24,7 @@ func (r *RadioChips) Render() app.UI {
 			app.Range(r.Options).Slice(func(i int) app.UI {
 				si := strconv.Itoa(i)
 				val := r.Options[i]
-				return app.Label().ID(r.ID+"-chip-label-"+si).Class("chip-label").For(r.ID+"-chip-input-"+si).Body(
+				return app.Label().ID(r.ID+"-chip-label-"+si).Class("chip-label").For(r.ID+"-chip-input-"+si).DataSet("checked", val == *r.Value).Body(
 					app.Input().ID(r.ID+"-chip-input-"+si).Class("chip-input").Type("radio").Name(r.ID).Checked(val == *r.Value).OnChange(func(ctx app.Context, e app.Event) {
 						if e.Get("target").Get("checked").Bool() {
 							*r.Value = val
@@ -65,7 +65,7 @@ func (c *CheckboxChips) Render() app.UI {
 			app.Range(c.Options).Slice(func(i int) app.UI {
 				si := strconv.Itoa(i)
 				val := c.Options[i]
-				return app.Label().ID(c.ID+"-chip-label-"+si).Class("chip-label").For(c.ID+"-chip-input-"+si).Body(
+				return app.Label().ID(c.ID+"-chip-label-"+si).Class("chip-label").For(c.ID+"-chip-input-"+si).DataSet("checked", (*c.Value)[val]).Body(
 					app.Input().ID(c.ID+"-chip-input-"+si).Class("chip-input").Type("checkbox").Name(c.ID).Checked((*c.Value)[val]).OnChange(func(ctx app.Context, e app.Event) {
 						(*c.Value)[val] = e.Get("target").Get("checked").Bool()
 					}),
@@ -77,7 +77,7 @@ func (c *CheckboxChips) Render() app.UI {
 }
 
 // OnNav is called when the component is loaded, and it sets the value to the default value
-func (c *CheckboxChips) OnNav() {
+func (c *CheckboxChips) OnNav(ctx app.Context) {
 	*c.Value = c.Default
 }
 
@@ -97,7 +97,7 @@ type CheckboxChip struct {
 
 // Render returns the UI of the CheckboxChip component, which has one checkbox chip
 func (c *CheckboxChip) Render() app.UI {
-	return app.Label().ID(c.ID+"-chip-label").Class("chip-label").For(c.ID+"-chip-input").Body(
+	return app.Label().ID(c.ID+"-chip-label").Class("chip-label").For(c.ID+"-chip-input").DataSet("checked", *c.Value).Body(
 		app.Input().ID(c.ID+"-chip-input").Class("chip-input").Type("checkbox").Name(c.ID).Checked(*c.Value).OnChange(func(ctx app.Context, e app.Event) {
 			*c.Value = e.Get("target").Get("checked").Bool()
 		}),
@@ -106,7 +106,7 @@ func (c *CheckboxChip) Render() app.UI {
 }
 
 // OnNav is called when the component is loaded, and it sets the value to the default value
-func (c *CheckboxChip) OnNav() {
+func (c *CheckboxChip) OnNav(ctx app.Context) {
 	*c.Value = c.Default
 }
 

@@ -1,0 +1,69 @@
+.input-container {
+    display: flex;
+    flex-direction: column;
+    row-gap: 10px;
+    align-items: center;
+}
+
+.input-label {
+    font-size: 25px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.input {
+    font-size: 20px;
+    padding: 10px;
+    width: min(70vw, 700px);
+    height: 30px;
+    border-radius: 10px;
+    border: 1px solid black;
+}
+
+.input-range {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 25px;
+    background-color: lightgray;
+    padding: 0;
+    overflow: hidden;
+    cursor: pointer;
+    border: none;
+    --thumb-color: green;
+    --progress-color: hsl(120, 100%, 40%);
+}
+
+.input-range:hover {
+    background-color: darkgray;
+}
+
+.input-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 25px;
+    height: 25px;
+    background-color: var(--thumb-color);
+    cursor: ew-resize;
+    box-shadow: -100vw 0 0 100vw var(--progress-color);
+}
+
+.input-range::-moz-range-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 25px;
+    height: 25px;
+    background-color: var(--thumb-color);
+    cursor: ew-resize;
+    border: none;
+    border-radius: 0;
+}
+
+.input-range::-moz-range-progress {
+    background-color: var(--progress-color);
+    height: 25px;
+}
+
+.input-textarea {
+    resize: none;
+    height: 100px;
+}

@@ -1,12 +1,7 @@
 package main
 
 import (
-	"bytes"
-	"encoding/json"
-	"fmt"
-	"io"
 	"log"
-	"net/http"
 	"strconv"
 
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
@@ -21,34 +16,37 @@ type people struct {
 }
 
 func (p *people) Render() app.UI {
-	return app.Div().Body(
-		app.H1().ID("people-page-title").Class("page-title").Text("Who Are You?"),
-		app.Div().ID("people-page-action-button-row").Class("action-button-row").Body(
-			app.Button().ID("people-page-new-person").Class("action-button", "blue-action-button").Text("New Person").OnClick(p.New),
-		),
-		app.Div().ID("people-page-people-container").Body(
-			app.Range(p.people).Slice(func(i int) app.UI {
-				return app.Button().ID("people-page-person-" + strconv.Itoa(i)).Class("people-page-person").Text(p.people[i].Name).
-					OnClick(func(ctx app.Context, e app.Event) { p.PersonOnClick(ctx, e, p.people[i]) })
-			}),
-		),
-	)
-}
+	return &Page{
+		ID:                     "people",
+		Title:                  "People",
+		Description:            "Select a person",
+		AuthenticationRequired: true,
+		OnNavFunc: func(ctx app.Context) {
+			people, err := GetPeopleAPI.Call(GetCurrentUser(ctx).ID)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+			p.people = people
+		},
+		TitleElement: "Who Are You?",
+		Elements: []app.UI{
+			app.Div().ID("people-page-action-button-row").Class("action-button-row").Body(
+				app.Button().ID("people-page-new-person").Class("action-button", "blue-action-button").Text("New Person").OnClick(p.New),
+			),
+			app.Div().ID("people-page-people-container").Body(
+				app.Range(p.people).Slice(func(i int) app.UI {
+					return app.Button().ID("people-page-person-" + strconv.Itoa(i)).Class("people-page-person").Text(p.people[i].Name).
+						OnClick(func(ctx app.Context, e app.Event) { p.PersonOnClick(ctx, e, p.people[i]) })
+				}),
+			),
+		},
+	}
 
-func (p *people) OnNav(ctx app.Context) {
-	if Authenticate(true, ctx) {
-		return
-	}
-	people, err := GetPeopleRequest(GetCurrentUser(ctx))
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	p.people = people
 }
 
 func (p *people) New(ctx app.Context, e app.Event) {
-	person, err := CreatePersonRequest(GetCurrentUser(ctx))
+	person, err := CreatePersonAPI.Call(GetCurrentUser(ctx).ID)
 	if err != nil {
 		log.Println(err)
 		return
@@ -72,107 +70,4 @@ func GetCurrentPerson(ctx app.Context) Person {
 	var person Person
 	ctx.GetState("currentPerson", &person)
 	return person
-}
-
-// GetPeopleRequest sends an HTTP request to the server to get the people for the given user
-func GetPeopleRequest(user User) (People, error) {
-	req, err := NewRequest(http.MethodGet, "/api/getPeople?u="+strconv.Itoa(user.ID), nil)
-	if err != nil {
-		return nil, err
-	}
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return nil, err
-		}
-		return nil, fmt.Errorf("Error %s: %v", resp.Status, string(body))
-	}
-	var people People
-	err = json.NewDecoder(resp.Body).Decode(&people)
-	if err != nil {
-		return nil, err
-	}
-	return people, nil
-}
-
-// CreatePersonRequest sends an HTTP request to the server to create a person associated with the given user and returns the created person if successful and an error if not
-func CreatePersonRequest(user User) (Person, error) {
-	userID := user.ID
-	req, err := NewRequest(http.MethodPost, "/api/createPerson", bytes.NewBufferString(strconv.Itoa(userID)))
-	if err != nil {
-		return Person{}, err
-	}
-	req.Header.Set("Content-Type", "text/plain")
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return Person{}, err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return Person{}, err
-		}
-		return Person{}, fmt.Errorf("Error %s: %v", resp.Status, string(body))
-	}
-	// return gotten person
-	var res Person
-	err = json.NewDecoder(resp.Body).Decode(&res)
-	if err != nil {
-		return Person{}, err
-	}
-	return res, nil
-}
-
-// UpdatePersonRequest sends an HTTP request to the server to update the given person
-func UpdatePersonRequest(person Person) error {
-	jsonData, err := json.Marshal(person)
-	if err != nil {
-		return err
-	}
-	req, err := NewRequest(http.MethodPost, "/api/updatePerson", bytes.NewBuffer(jsonData))
-	if err != nil {
-		return err
-	}
-	req.Header.Set("Content-Type", "application/json")
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return err
-		}
-		return fmt.Errorf("Error %s: %v", resp.Status, string(body))
-	}
-	return nil
-}
-
-// DeletePersonRequest sends an HTTP request to the server to delete the given person
-func DeletePersonRequest(person Person) error {
-	id := person.ID
-	req, err := NewRequest(http.MethodDelete, "/api/deletePerson", bytes.NewBufferString(strconv.Itoa(id)))
-	if err != nil {
-		return err
-	}
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return err
-		}
-		return fmt.Errorf("Error %s: %v", resp.Status, string(body))
-	}
-	return nil
 }

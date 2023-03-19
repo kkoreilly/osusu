@@ -1,11 +1,6 @@
 package main
 
 import (
-	"bytes"
-	"encoding/json"
-	"fmt"
-	"io"
-	"net/http"
 	"time"
 
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
@@ -28,12 +23,11 @@ func Authenticate(required bool, ctx app.Context) bool {
 	if !ok {
 		user := GetCurrentUser(ctx)
 		if user.Session != "" {
-			err := AuthenticateRequest(user)
+			_, err := AuthenticateSessionAPI.Call(user)
 			if err == nil {
 				ok = true
 				authenticated = time.Now()
 			}
-
 		}
 	}
 	switch {
@@ -45,30 +39,4 @@ func Authenticate(required bool, ctx app.Context) bool {
 		return false
 	}
 	return true
-}
-
-// AuthenticateRequest sends an HTTP request to the server to authenticate a user based on its session id
-func AuthenticateRequest(user User) error {
-	jsonData, err := json.Marshal(user)
-	if err != nil {
-		return err
-	}
-	req, err := NewRequest(http.MethodPost, "/api/authenticateSession", bytes.NewBuffer(jsonData))
-	if err != nil {
-		return err
-	}
-	req.Header.Set("Content-Type", "application/json")
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return err
-		}
-		return fmt.Errorf("Error %s: %v", resp.Status, string(body))
-	}
-	return nil
 }

@@ -9,19 +9,21 @@ type entries struct {
 }
 
 func (e *entries) Render() app.UI {
-	return app.Div().Body(
-		app.H1().ID("entries-page-title").Class("page-title").Text("Entries for "+e.meal.Name),
-		app.Div().ID("entries-page-action-button-row").Class("action-button-row").Body(
-			app.A().ID("entries-page-back-button").Class("white-action-button", "action-button").Href("/edit").Text("Back"),
-		),
-		app.Hr(),
-	)
-}
-
-func (e *entries) OnNav(ctx app.Context) {
-	if Authenticate(true, ctx) {
-		return
+	return &Page{
+		ID:                     "entries",
+		Title:                  "Entries",
+		Description:            "View meal entries",
+		AuthenticationRequired: true,
+		OnNavFunc: func(ctx app.Context) {
+			e.person = GetCurrentPerson(ctx)
+			e.meal = GetCurrentMeal(ctx)
+		},
+		TitleElement: "Entries for " + e.meal.Name,
+		Elements: []app.UI{
+			app.Div().ID("entries-page-action-button-row").Class("action-button-row").Body(
+				app.A().ID("entries-page-back-button").Class("white-action-button", "action-button").Href("/edit").Text("Back"),
+			),
+			app.Hr(),
+		},
 	}
-	e.person = GetCurrentPerson(ctx)
-	e.meal = GetCurrentMeal(ctx)
 }
