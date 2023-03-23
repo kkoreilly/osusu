@@ -34,16 +34,16 @@ func (p *person) Render() app.UI {
 				app.Label().ID("person-page-name-label").Class("input-label").For("person-page-name-input").Text("Name:"),
 				app.Input().ID("person-page-name-input").Class("input").Type("text").Placeholder("Person Name").AutoFocus(true),
 				app.Div().ID("person-page-action-button-row").Class("action-button-row").Body(
-					app.Input().ID("person-page-delete-button").Class("action-button", "red-action-button").Type("button").Value("Delete").OnClick(p.InitialDelete),
-					app.A().ID("person-page-back-button").Class("action-button", "white-action-button").Href("/people").Text("Back"),
-					app.Input().ID("person-page-continue-button").Class("action-button", "blue-action-button").Type("submit").Value("Continue"),
+					app.Input().ID("person-page-delete-button").Class("action-button", "danger-action-button").Type("button").Value("Delete").OnClick(p.InitialDelete),
+					app.A().ID("person-page-back-button").Class("action-button", "secondary-action-button").Href("/people").Text("Back"),
+					app.Input().ID("person-page-continue-button").Class("action-button", "primary-action-button").Type("submit").Value("Continue"),
 				),
 			),
 			app.Dialog().ID("person-page-confirm-delete").Body(
 				app.P().ID("person-page-confirm-delete-text").Text("Are you sure you want to delete this person?"),
 				app.Div().ID("person-page-confirm-delete-action-button-row").Class("action-button-row").Body(
-					app.Button().ID("person-page-confirm-delete-delete").Class("action-button", "red-action-button").Text("Yes, Delete").OnClick(p.ConfirmDelete),
-					app.Button().ID("person-page-confirm-delete-cancel").Class("action-button", "white-action-button").Text("No, Cancel").OnClick(p.CancelDelete),
+					app.Button().ID("person-page-confirm-delete-delete").Class("action-button", "danger-action-button").Text("Yes, Delete").OnClick(p.ConfirmDelete),
+					app.Button().ID("person-page-confirm-delete-cancel").Class("action-button", "secondary-action-button").Text("No, Cancel").OnClick(p.CancelDelete),
 				),
 			),
 		},

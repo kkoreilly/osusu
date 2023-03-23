@@ -8,12 +8,15 @@ import (
 	"net/http"
 )
 
+// An API is a structural representation of a requestable API that accepts the given method on the given path and executes the given function.
+// APIs are requested with the Call function.
 type API[I, O any] struct {
 	Method string
 	Path   string
 	Func   func(data I) (O, error)
 }
 
+// NewAPI creates and returns a new API with the given values
 func NewAPI[I, O any](method string, path string, serverFunc func(data I) (O, error)) *API[I, O] {
 	HandleFunc(method, path, func(w http.ResponseWriter, r *http.Request) {
 		var data I
@@ -41,6 +44,7 @@ func NewAPI[I, O any](method string, path string, serverFunc func(data I) (O, er
 	}
 }
 
+// Call requests the API with the given input data and returns the result
 func (a *API[I, O]) Call(data I) (O, error) {
 	jsonData, err := json.Marshal(data)
 	if err != nil {

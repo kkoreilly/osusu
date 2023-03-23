@@ -25,8 +25,8 @@ func (s *signUp) Render() app.UI {
 				NewTextInput("sign-up-page-password", "Password:", "Password", false, &s.user.Password).SetType("password"),
 				NewCheckboxChip("sign-up-page-remember-me", "Remember Me", true, &s.user.RememberMe),
 				app.Div().ID("sign-up-page-action-button-row").Class("action-button-row").Body(
-					app.A().ID("sign-up-page-cancel").Class("action-button", "white-action-button").Href("/").Text("Cancel"),
-					app.Input().ID("sign-up-page-submit").Class("action-button", "blue-action-button").Name("submit").Type("submit").Value("Sign Up"),
+					app.A().ID("sign-up-page-cancel").Class("action-button", "secondary-action-button").Href("/").Text("Cancel"),
+					app.Input().ID("sign-up-page-submit").Class("action-button", "primary-action-button").Name("submit").Type("submit").Value("Sign Up"),
 				),
 			),
 			app.P().ID("sign-up-page-status").Class("status-text").Text(s.status),

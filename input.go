@@ -14,6 +14,7 @@ type Input[T any] struct {
 	AutoFocus   bool
 	Value       *T
 	ValueFunc   func(app.Value) T
+	// CurrentPerson Person // allows the use of PersonMap as the value
 }
 
 // Render returns the UI of the input component, which includes a label and an input associated with it
@@ -26,6 +27,14 @@ func (i *Input[T]) Render() app.UI {
 			*i.Value = i.ValueFunc(e.Get("target"))
 		})
 	}
+
+	// switch val := any(*i.Value).(type) {
+	// case PersonMap:
+	// 	input = app.Input().ID(i.ID+"-input").Class("input", i.InputClass).Type(i.Type).Placeholder(i.Placeholder).AutoFocus(i.AutoFocus).Value(val[i.CurrentPerson.ID]).OnChange(func(ctx app.Context, e app.Event) {
+	// 		*i.Value = i.ValueFunc(e.Get("target"))
+	// 	})
+	// }
+
 	return app.Div().ID(i.ID+"-input-container").Class("input-container").Body(
 		app.Label().ID(i.ID+"-input-label").Class("input-label").For(i.ID+"-input").Text(i.Label),
 		input,
@@ -50,6 +59,16 @@ func NewTextInput(id string, label string, placeholder string, autoFocus bool, v
 // NewRangeInput makes a new range input component from the given values
 func NewRangeInput(id string, label string, value *int) *Input[int] {
 	return &Input[int]{IsTextarea: false, ID: id, Label: label, InputClass: "input-range", Type: "range", Value: value, ValueFunc: ValueFuncInt}
+}
+
+// NewRangeInputPersonMap makes a new range input component from the given values with the value as the entry in the person map corresponding to the given current person
+func NewRangeInputPersonMap(id string, label string, value *PersonMap, currentPerson Person) *Input[int] {
+	val := (*value)[currentPerson.ID]
+	return &Input[int]{IsTextarea: false, ID: id, Label: label, InputClass: "input-range", Type: "range", Value: &val, ValueFunc: func(v app.Value) int {
+		res := v.Get("valueAsNumber").Int()
+		(*value)[currentPerson.ID] = res
+		return res
+	}}
 }
 
 // NewTextarea makes a new textarea input component from the given values

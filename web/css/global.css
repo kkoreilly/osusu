@@ -2,82 +2,10 @@
     font-family: 'Roboto', sans-serif;
 }
 
-body {
-    margin: 0;
-}
-
-.page-top-bar {
-    width: 100vw;
-    background-color: hsl(49, 95%, 55%);
-    position: sticky;
-    top: 0;
-    left: 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.page-top-bar-icon-link {
-    padding: 10px;
-    margin-left: 5px;
-    display: flex;
-    align-items: center;
-    column-gap: 10px;
-    text-decoration: none;
-    border-radius: 5px;
-    flex-grow: 1;
-}
-
-.page-top-bar-icon-link:hover {
-    background-color: hsl(49, 95%, 40%);
-}
-
-.page-top-bar-icon-img {
-    width: 50px;
-    height: 50px;
-}
-
-.page-top-bar-icon-text {
-    font-size: 30px;
-    color: black;
-    font-weight: bold;
-}
-
-.page-title {
-    text-align: center;
-    font-size: 40px;
-    margin: 0;
-    flex-grow: 1;
-}
-
-.page-top-bar-buttons {
-    display: flex;
-    align-items: center;
-    justify-content: end;
-    flex-grow: 1;
-}
-
-.page-top-bar-button {
-    padding: 10px;
-    padding-top: 20px;
-    padding-bottom: 20px;
-    border: none;
-    background-color: hsl(49, 95%, 55%);
-    font-size: 30px;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-.page-top-bar-button:hover {
-    background-color: hsl(49, 95%, 40%);
-}
-
-.page-subtitle {
-    text-align: center;
-    font-size: 20px;
-    width: min(80vw, 700px);
-    margin-left: auto;
-    margin-right: auto;
+:root {
+    --amber: hsl(49, 95%, 55%);
+    --dark-amber: hsl(49, 95%, 40%);
+    --amaranth: hsl(341, 83%, 53%);
 }
 
 .action-button-row {
@@ -96,44 +24,44 @@ body {
     text-decoration: none;
 }
 
-.blue-action-button {
+.primary-action-button {
     border: none;
     color: white;
-    background-color: hsl(240, 100%, 60%);
+    background-color: hsl(228, 92%, 50%);
 }
 
-.blue-action-button:hover {
-    background-color: hsl(240, 100%, 40%);
+.primary-action-button:hover {
+    background-color: hsl(228, 92%, 40%);
 }
 
-.red-action-button {
+.danger-action-button {
     border: none;
     color: white;
     background-color: hsl(0, 100%, 60%);
 }
 
-.red-action-button:hover {
+.danger-action-button:hover {
     background-color: hsl(0, 100%, 40%);
 }
 
-.white-action-button {
-    border: 1px solid black;
-    color: black;
-    background-color: white;
-}
-
-.white-action-button:hover {
-    background-color: darkgray;
-}
-
-.green-action-button {
+.secondary-action-button {
     border: none;
-    color: white;
-    background-color: hsl(120, 100%, 30%);
+    color: black;
+    background-color: hsl(48, 92%, 81%);
 }
 
-.green-action-button:hover {
-    background-color: hsl(120, 100%, 20%);
+.secondary-action-button:hover {
+    background-color: hsl(48, 92%, 70%);
+}
+
+.tertiary-action-button {
+    border: none;
+    color: black;
+    background-color: hsl(103, 51%, 51%);
+}
+
+.tertiary-action-button:hover {
+    background-color: hsl(103, 51%, 40%);
 }
 
 .form {

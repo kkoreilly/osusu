@@ -61,9 +61,9 @@ func (h *home) Render() app.UI {
 		TitleElement: "Welcome, " + h.person.Name,
 		Elements: []app.UI{
 			app.Div().ID("home-page-action-button-row").Class("action-button-row").Body(
-				app.Button().ID("home-page-sign-out-button").Class("red-action-button", "action-button").Text("Sign Out").OnClick(h.InitialSignOut),
-				app.Button().ID("home-page-options-button").Class("white-action-button", "action-button").Text("Options").OnClick(h.ShowOptions),
-				app.Button().ID("home-page-new-button").Class("blue-action-button", "action-button").Text("New").OnClick(h.New),
+				app.Button().ID("home-page-sign-out-button").Class("danger-action-button", "action-button").Text("Sign Out").OnClick(h.InitialSignOut),
+				app.Button().ID("home-page-options-button").Class("secondary-action-button", "action-button").Text("Options").OnClick(h.ShowOptions),
+				app.Button().ID("home-page-new-button").Class("primary-action-button", "action-button").Text("New").OnClick(h.New),
 			),
 			app.Hr(),
 			app.Div().ID("home-page-meals-container").Body(
@@ -95,16 +95,16 @@ func (h *home) Render() app.UI {
 					NewRadioChips("home-page-options-type", "What meal are you eating?", "Dinner", &h.options.Type, mealTypes...),
 					NewCheckboxChips("home-page-options-source", "What meal sources are okay?", map[string]bool{"Cooking": true, "Dine-In": true, "Takeout": true}, &h.options.Source, mealSources...),
 					app.Div().ID("home-page-options-action-button-row").Class("action-button-row").Body(
-						app.Input().ID("home-page-options-cancel-button").Class("white-action-button", "action-button").Type("button").Value("Cancel").OnClick(h.CancelOptions),
-						app.Input().ID("home-page-options-save-button").Class("blue-action-button", "action-button").Type("submit").Value("Save"),
+						app.Input().ID("home-page-options-cancel-button").Class("secondary-action-button", "action-button").Type("button").Value("Cancel").OnClick(h.CancelOptions),
+						app.Input().ID("home-page-options-save-button").Class("primary-action-button", "action-button").Type("submit").Value("Save"),
 					),
 				),
 			),
 			app.Dialog().ID("home-page-confirm-sign-out").Body(
 				app.P().ID("home-page-confirm-sign-out-text").Text("Are you sure you want to sign out?"),
 				app.Div().ID("home-page-confirm-sign-out-action-button-row").Class("action-button-row").Body(
-					app.Button().ID("home-page-confirm-sign-out-sign-out").Class("action-button", "red-action-button").Text("Yes, Sign Out").OnClick(h.ConfirmSignOut),
-					app.Button().ID("edit-page-confirm-sign-out-cancel").Class("action-button", "white-action-button").Text("No, Cancel").OnClick(h.CancelSignOut),
+					app.Button().ID("home-page-confirm-sign-out-sign-out").Class("action-button", "danger-action-button").Text("Yes, Sign Out").OnClick(h.ConfirmSignOut),
+					app.Button().ID("edit-page-confirm-sign-out-cancel").Class("action-button", "secondary-action-button").Text("No, Cancel").OnClick(h.CancelSignOut),
 				),
 			),
 		},
@@ -119,12 +119,12 @@ func (h *home) New(ctx app.Context, e app.Event) {
 	}
 	meal.Taste[h.person.ID] = 50
 	SetCurrentMeal(meal, ctx)
-	ctx.Navigate("/edit")
+	ctx.Navigate("/meal")
 }
 
 func (h *home) MealOnClick(ctx app.Context, e app.Event, meal Meal) {
 	SetCurrentMeal(meal, ctx)
-	ctx.Navigate("/edit")
+	ctx.Navigate("/meal")
 }
 
 func (h *home) ShowOptions(ctx app.Context, e app.Event) {

@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
 )
@@ -29,12 +30,14 @@ func startServer() {
 		Styles: []string{
 			"https://fonts.googleapis.com/css?family=Roboto",
 			"/web/css/global.css",
+			"/web/css/page.css",
 			"/web/css/home.css",
 			"/web/css/edit.css",
 			"/web/css/people.css",
 			"/web/css/input.css",
 			"/web/css/chips.css",
 		},
+		AutoUpdateInterval: 10 * time.Second,
 	})
 
 	err := ConnectToDB()

@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"encoding/json"
 	"errors"
 	"time"
 
@@ -88,17 +87,10 @@ func GetMealsDB(userID int) (Meals, error) {
 	var res Meals
 	for rows.Next() {
 		var meal Meal
-		var tasteJSON string
-		err := rows.Scan(&meal.ID, &meal.Name, &meal.Description, &meal.Cost, &meal.Effort, &meal.Healthiness, &tasteJSON, &meal.Type, &meal.Source, &meal.LastDone)
+		err := rows.Scan(&meal.ID, &meal.Name, &meal.Description, &meal.Cost, &meal.Effort, &meal.Healthiness, &meal.Taste, &meal.Type, &meal.Source, &meal.LastDone)
 		if err != nil {
 			return nil, err
 		}
-		var tasteMap map[int]int
-		err = json.Unmarshal([]byte(tasteJSON), &tasteMap)
-		if err != nil {
-			return nil, err
-		}
-		meal.Taste = tasteMap
 		res = append(res, meal)
 	}
 	return res, nil
@@ -110,17 +102,10 @@ func CreateMealDB(userID int) (Meal, error) {
 	VALUES ($1, $2) RETURNING id, cost, effort, healthiness, taste, type, source`
 	row := db.QueryRow(statement, userID, time.Now())
 	var meal Meal
-	var tasteJSON string
-	err := row.Scan(&meal.ID, &meal.Cost, &meal.Effort, &meal.Healthiness, &tasteJSON, &meal.Type, &meal.Source)
+	err := row.Scan(&meal.ID, &meal.Cost, &meal.Effort, &meal.Healthiness, &meal.Taste, &meal.Type, &meal.Source)
 	if err != nil {
 		return Meal{}, err
 	}
-	var tasteMap map[int]int
-	err = json.Unmarshal([]byte(tasteJSON), &tasteMap)
-	if err != nil {
-		return Meal{}, err
-	}
-	meal.Taste = tasteMap
 	return meal, nil
 }
 
@@ -129,11 +114,7 @@ func UpdateMealDB(meal Meal) error {
 	statement := `UPDATE meals
 	SET name = $1, description = $2, cost = $3, effort = $4, healthiness = $5, taste = $6, type = $7, source = $8, last_done = $9
 	WHERE id = $10`
-	tasteJSON, err := json.Marshal(meal.Taste)
-	if err != nil {
-		return err
-	}
-	_, err = db.Exec(statement, meal.Name, meal.Description, meal.Cost, meal.Effort, meal.Healthiness, string(tasteJSON), meal.Type, meal.Source, meal.LastDone, meal.ID)
+	_, err := db.Exec(statement, meal.Name, meal.Description, meal.Cost, meal.Effort, meal.Healthiness, meal.Taste, meal.Type, meal.Source, meal.LastDone, meal.ID)
 	return err
 }
 
@@ -192,6 +173,59 @@ func UpdatePersonDB(person Person) error {
 // DeletePersonDB deletes the person with the given id from the database
 func DeletePersonDB(id int) error {
 	statement := `DELETE FROM people
+	WHERE id = $1`
+	_, err := db.Exec(statement, id)
+	return err
+}
+
+// GetEntriesDB gets the entries from the database that have the given user id
+func GetEntriesDB(userID int) (Entries, error) {
+	statement := `SELECT id, meal_id, entry_date, type, source, cost, effort, healthiness, taste FROM entries
+	WHERE user_id = $1`
+	rows, err := db.Query(statement, userID)
+	if err != nil {
+		return nil, err
+	}
+	var res Entries
+	for rows.Next() {
+		var entry Entry
+		err := rows.Scan(&entry.ID, &entry.MealID, &entry.Date, &entry.Type, &entry.Source, &entry.Cost, &entry.Effort, &entry.Healthiness, &entry.Taste)
+		if err != nil {
+			return nil, err
+		}
+		entry.UserID = userID
+		res = append(res, entry)
+	}
+	return res, nil
+}
+
+// CreateEntryDB creates and returns a new entry in the database with the given user and meal id
+func CreateEntryDB(userID, mealID int) (Entry, error) {
+	statement := `INSERT INTO entries (user_id, meal_id),
+	VALUES ($1, $2) RETURNING id`
+	row := db.QueryRow(statement, userID, mealID)
+	var entry Entry
+	err := row.Scan(&entry.ID)
+	if err != nil {
+		return Entry{}, err
+	}
+	entry.UserID = userID
+	entry.MealID = mealID
+	return entry, nil
+}
+
+// UpdateEntryDB updates an entry in the database to have the values of the given entry
+func UpdateEntryDB(entry Entry) error {
+	statement := `UPDATE entries
+	SET entry_date = $1, type = $2, source = $3, cost = $4, effort = $5, healthiness = $6, taste = $7
+	WHERE id = $8`
+	_, err := db.Exec(statement, entry.Date, entry.Type, entry.Source, entry.Cost, entry.Effort, entry.Healthiness, entry.Taste, entry.ID)
+	return err
+}
+
+// DeleteEntryDB deletes the entry with the given id from the database
+func DeleteEntryDB(id int) error {
+	statement := `DELETE FROM entries
 	WHERE id = $1`
 	_, err := db.Exec(statement, id)
 	return err

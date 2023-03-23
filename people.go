@@ -32,7 +32,7 @@ func (p *people) Render() app.UI {
 		TitleElement: "Who Are You?",
 		Elements: []app.UI{
 			app.Div().ID("people-page-action-button-row").Class("action-button-row").Body(
-				app.Button().ID("people-page-new-person").Class("action-button", "blue-action-button").Text("New Person").OnClick(p.New),
+				app.Button().ID("people-page-new-person").Class("action-button", "primary-action-button").Text("New Person").OnClick(p.New),
 			),
 			app.Div().ID("people-page-people-container").Body(
 				app.Range(p.people).Slice(func(i int) app.UI {

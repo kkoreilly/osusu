@@ -11,6 +11,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// SignUpAPI attempts to create a user with the given information.
+// It returns the created user if successful and an error if not.
 var SignUpAPI = NewAPI(http.MethodPost, "/api/signUp", func(user User) (User, error) {
 	if user.Username == "" || user.Password == "" {
 		return User{}, errors.New("username and password must not be empty")
@@ -44,6 +46,8 @@ var SignUpAPI = NewAPI(http.MethodPost, "/api/signUp", func(user User) (User, er
 	return user, nil
 })
 
+// SignInAPI attempts to sign the given user into the app.
+// It returns the user if successful and an error if not.
 var SignInAPI = NewAPI(http.MethodPost, "/api/signIn", func(user User) (User, error) {
 	user, err := SignInDB(user)
 	if err != nil {
@@ -67,6 +71,8 @@ var SignInAPI = NewAPI(http.MethodPost, "/api/signIn", func(user User) (User, er
 	return user, nil
 })
 
+// AuthenticateSessionAPI checks whether the given user has a valid session id.
+// It returns a confirmation string if so and an error if not.
 var AuthenticateSessionAPI = NewAPI(http.MethodPost, "/api/authenticateSession", func(user User) (string, error) {
 	sessionHash := sha256.Sum256([]byte(user.Session))
 	sessionHashString := hex.EncodeToString(sessionHash[:])
@@ -87,7 +93,9 @@ var AuthenticateSessionAPI = NewAPI(http.MethodPost, "/api/authenticateSession",
 	return "authenticated", nil
 })
 
-var SignOutAPI = NewAPI(http.MethodPost, "/api/signOut", func(user User) (string, error) {
+// SignOutAPI attempts to sign the given user out of the app.
+// It returns a confirmation string if successful and an error if not.
+var SignOutAPI = NewAPI(http.MethodDelete, "/api/signOut", func(user User) (string, error) {
 	sessionHash := sha256.Sum256([]byte(user.Session))
 	sessionHashString := hex.EncodeToString(sessionHash[:])
 	err := DeleteSessionDB(sessionHashString)
@@ -97,15 +105,19 @@ var SignOutAPI = NewAPI(http.MethodPost, "/api/signOut", func(user User) (string
 	return "signed out", nil
 })
 
+// GetMealsAPI returns the meals in the database that have the given user id.
 var GetMealsAPI = NewAPI(http.MethodGet, "/api/getMeals", func(userID int) (Meals, error) {
 	return GetMealsDB(userID)
 })
 
+// CreateMealAPI creates and returns a new meal under the given user id.
 var CreateMealAPI = NewAPI(http.MethodPost, "/api/createMeal", func(userID int) (Meal, error) {
 	return CreateMealDB(userID)
 })
 
-var UpdateMealAPI = NewAPI(http.MethodPost, "/api/updateMeal", func(meal Meal) (string, error) {
+// UpdateMealAPI updates the given meal in the database to have the values of the given meal.
+// It returns a confirmation string if successful and an error otherwise.
+var UpdateMealAPI = NewAPI(http.MethodPut, "/api/updateMeal", func(meal Meal) (string, error) {
 	err := UpdateMealDB(meal)
 	if err != nil {
 		return "", err
@@ -113,6 +125,8 @@ var UpdateMealAPI = NewAPI(http.MethodPost, "/api/updateMeal", func(meal Meal) (
 	return "meal updated", nil
 })
 
+// DeleteMealAPI deletes the given meal from the database.
+// It returns a confirmation string if successful and an error if not.
 var DeleteMealAPI = NewAPI(http.MethodDelete, "/api/deleteMeal", func(id int) (string, error) {
 	err := DeleteMealDB(id)
 	if err != nil {
@@ -121,15 +135,19 @@ var DeleteMealAPI = NewAPI(http.MethodDelete, "/api/deleteMeal", func(id int) (s
 	return "meal deleted", nil
 })
 
+// GetPeopleAPI gets and returns the people associated with the given user id from the database.
 var GetPeopleAPI = NewAPI(http.MethodGet, "/api/getPeople", func(userID int) (People, error) {
 	return GetPeopleDB(userID)
 })
 
+// CreatePersonAPI creates and returns a new person under the given user id.
 var CreatePersonAPI = NewAPI(http.MethodPost, "/api/createPerson", func(userID int) (Person, error) {
 	return CreatePersonDB(userID)
 })
 
-var UpdatePersonAPI = NewAPI(http.MethodPost, "/api/updatePerson", func(person Person) (string, error) {
+// UpdatePersonAPI updates the given person in the database.
+// It returns a confirmation string if successful and an error if not.
+var UpdatePersonAPI = NewAPI(http.MethodPut, "/api/updatePerson", func(person Person) (string, error) {
 	err := UpdatePersonDB(person)
 	if err != nil {
 		return "", err
@@ -137,10 +155,42 @@ var UpdatePersonAPI = NewAPI(http.MethodPost, "/api/updatePerson", func(person P
 	return "person updated", nil
 })
 
+// DeletePersonAPI deletes the given person from the database.
+// It returns a confirmation string if successful and an error if not.
 var DeletePersonAPI = NewAPI(http.MethodDelete, "/api/deletePerson", func(id int) (string, error) {
 	err := DeletePersonDB(id)
 	if err != nil {
 		return "", err
 	}
 	return "person deleted", nil
+})
+
+// GetEntriesAPI fetches and returns the entries associated with the given meal id from the database
+var GetEntriesAPI = NewAPI(http.MethodGet, "/api/getEntries", func(mealID int) (Entries, error) {
+	return GetEntriesDB(mealID)
+})
+
+// CreateEntryAPI creates and returns a new entry with the given entry's meal and user id values
+var CreateEntryAPI = NewAPI(http.MethodPost, "/api/createEntry", func(entry Entry) (Entry, error) {
+	return CreateEntryDB(entry.UserID, entry.MealID)
+})
+
+// UpdateEntryAPI updates the given entry in the database to have the given information.
+// It returns a confirmation string if successful and an error if not.
+var UpdateEntryAPI = NewAPI(http.MethodPut, "/api/updateEntry", func(entry Entry) (string, error) {
+	err := UpdateEntryDB(entry)
+	if err != nil {
+		return "", err
+	}
+	return "entry updated", nil
+})
+
+// DeleteEntryAPI deletes the entry with the given id from the database.
+// It returns a confirmation string if successful and an error if not.
+var DeleteEntryAPI = NewAPI(http.MethodDelete, "/api/deleteEntry", func(id int) (string, error) {
+	err := DeleteEntryDB(id)
+	if err != nil {
+		return "", err
+	}
+	return "entry deleted", nil
 })

@@ -9,8 +9,9 @@ func main() {
 	app.Route("/signin", &signIn{})
 	app.Route("/signup", &signUp{})
 	app.Route("/home", &home{})
-	app.Route("/edit", &edit{})
+	app.Route("/meal", &meal{})
 	app.Route("/entries", &entries{})
+	app.Route("/entry", &entry{})
 	app.Route("/people", &people{})
 	app.Route("/person", &person{})
 
