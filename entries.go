@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"strconv"
+	"time"
 
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
 )
@@ -36,6 +37,7 @@ func (e *entries) Render() app.UI {
 		Elements: []app.UI{
 			app.Div().ID("entries-page-action-button-row").Class("action-button-row").Body(
 				app.A().ID("entries-page-back-button").Class("secondary-action-button", "action-button").Href("/meal").Text("Back"),
+				app.Button().ID("entries-page-new-button").Class("primary-action-button", "action-button").Text("New").OnClick(e.New),
 			),
 			app.Hr(),
 			app.Div().ID("entries-page-entries-container").Body(
@@ -54,6 +56,26 @@ func (e *entries) Render() app.UI {
 }
 
 func (e *entries) EntryOnClick(ctx app.Context, event app.Event, entry Entry) {
-	SetCurrentEntry(ctx, entry)
+	SetCurrentEntry(entry, ctx)
+	ctx.Navigate("/entry")
+}
+
+func (e *entries) New(ctx app.Context, event app.Event) {
+	entry, err := CreateEntryAPI.Call(Entry{
+		UserID:      GetCurrentUser(ctx).ID,
+		MealID:      e.meal.ID,
+		Date:        time.Now(),
+		Type:        "Dinner",
+		Source:      "Cooking",
+		Cost:        PersonMap{e.person.ID: 50},
+		Effort:      PersonMap{e.person.ID: 50},
+		Healthiness: PersonMap{e.person.ID: 50},
+		Taste:       PersonMap{e.person.ID: 50},
+	})
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	SetCurrentEntry(entry, ctx)
 	ctx.Navigate("/entry")
 }

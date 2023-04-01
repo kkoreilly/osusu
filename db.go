@@ -78,7 +78,7 @@ func DeleteSessionDB(id string) error {
 
 // GetMealsDB gets the meals from the database that are associated with the given user id
 func GetMealsDB(userID int) (Meals, error) {
-	statement := `SELECT id, name, description, cost, effort, healthiness, taste, type, source, last_done FROM meals WHERE user_id=$1`
+	statement := `SELECT id, name, description FROM meals WHERE user_id=$1`
 	rows, err := db.Query(statement, userID)
 	if err != nil {
 		return nil, err
@@ -87,7 +87,7 @@ func GetMealsDB(userID int) (Meals, error) {
 	var res Meals
 	for rows.Next() {
 		var meal Meal
-		err := rows.Scan(&meal.ID, &meal.Name, &meal.Description, &meal.Cost, &meal.Effort, &meal.Healthiness, &meal.Taste, &meal.Type, &meal.Source, &meal.LastDone)
+		err := rows.Scan(&meal.ID, &meal.Name, &meal.Description)
 		if err != nil {
 			return nil, err
 		}
@@ -98,11 +98,11 @@ func GetMealsDB(userID int) (Meals, error) {
 
 // CreateMealDB creates a meal in the database with the given userID and returns the created meal if successful and an error if not
 func CreateMealDB(userID int) (Meal, error) {
-	statement := `INSERT INTO meals (user_id, last_done)
-	VALUES ($1, $2) RETURNING id, cost, effort, healthiness, taste, type, source`
-	row := db.QueryRow(statement, userID, time.Now())
+	statement := `INSERT INTO meals (user_id)
+	VALUES ($1) RETURNING id`
+	row := db.QueryRow(statement, userID)
 	var meal Meal
-	err := row.Scan(&meal.ID, &meal.Cost, &meal.Effort, &meal.Healthiness, &meal.Taste, &meal.Type, &meal.Source)
+	err := row.Scan(&meal.ID)
 	if err != nil {
 		return Meal{}, err
 	}
@@ -112,9 +112,9 @@ func CreateMealDB(userID int) (Meal, error) {
 // UpdateMealDB updates a meal in the database
 func UpdateMealDB(meal Meal) error {
 	statement := `UPDATE meals
-	SET name = $1, description = $2, cost = $3, effort = $4, healthiness = $5, taste = $6, type = $7, source = $8, last_done = $9
-	WHERE id = $10`
-	_, err := db.Exec(statement, meal.Name, meal.Description, meal.Cost, meal.Effort, meal.Healthiness, meal.Taste, meal.Type, meal.Source, meal.LastDone, meal.ID)
+	SET name = $1, description = $2
+	WHERE id = $3`
+	_, err := db.Exec(statement, meal.Name, meal.Description, meal.ID)
 	return err
 }
 
@@ -199,18 +199,15 @@ func GetEntriesDB(userID int) (Entries, error) {
 	return res, nil
 }
 
-// CreateEntryDB creates and returns a new entry in the database with the given user and meal id
-func CreateEntryDB(userID, mealID int) (Entry, error) {
-	statement := `INSERT INTO entries (user_id, meal_id),
-	VALUES ($1, $2) RETURNING id`
-	row := db.QueryRow(statement, userID, mealID)
-	var entry Entry
+// CreateEntryDB creates and returns a new entry in the database with the given entry's user and meal id values
+func CreateEntryDB(entry Entry) (Entry, error) {
+	statement := `INSERT INTO entries (user_id, meal_id, entry_date)
+	VALUES ($1, $2, $3) RETURNING id`
+	row := db.QueryRow(statement, entry.UserID, entry.MealID, entry.Date)
 	err := row.Scan(&entry.ID)
 	if err != nil {
 		return Entry{}, err
 	}
-	entry.UserID = userID
-	entry.MealID = mealID
 	return entry, nil
 }
 

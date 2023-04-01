@@ -20,10 +20,19 @@ type API[I, O any] struct {
 func NewAPI[I, O any](method string, path string, serverFunc func(data I) (O, error)) *API[I, O] {
 	HandleFunc(method, path, func(w http.ResponseWriter, r *http.Request) {
 		var data I
-		err := json.NewDecoder(r.Body).Decode(&data)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
+		if method == http.MethodGet {
+			urlData := r.URL.Query().Get("data")
+			err := json.Unmarshal([]byte(urlData), &data)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+		} else {
+			err := json.NewDecoder(r.Body).Decode(&data)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
 		}
 		res, err := serverFunc(data)
 		if err != nil {
@@ -50,11 +59,19 @@ func (a *API[I, O]) Call(data I) (O, error) {
 	if err != nil {
 		return *new(O), err
 	}
-	req, err := NewRequest(a.Method, a.Path, bytes.NewBuffer(jsonData))
-	if err != nil {
-		return *new(O), err
+	var req *http.Request
+	if a.Method == http.MethodGet {
+		req, err = NewRequest(a.Method, a.Path+"?data="+string(jsonData), nil)
+		if err != nil {
+			return *new(O), err
+		}
+	} else {
+		req, err = NewRequest(a.Method, a.Path, bytes.NewBuffer(jsonData))
+		if err != nil {
+			return *new(O), err
+		}
+		req.Header.Set("Content-Type", "application/json")
 	}
-	req.Header.Set("Content-Type", "application/json")
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return *new(O), err

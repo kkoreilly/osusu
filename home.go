@@ -69,17 +69,17 @@ func (h *home) Render() app.UI {
 			app.Div().ID("home-page-meals-container").Body(
 				app.Range(h.meals).Slice(func(i int) app.UI {
 					meal := h.meals[i]
-					if meal.Type != h.options.Type || !h.options.Source[meal.Source] {
-						return app.Text("")
-					}
+					// if meal.Type != h.options.Type || !h.options.Source[meal.Source] {
+					// 	return app.Text("")
+					// }
 					si := strconv.Itoa(i)
 					score := meal.Score(h.options)
 					colorH := strconv.Itoa((score * 12) / 10)
 					scoreText := strconv.Itoa(score)
-					_, tasteSet := meal.Taste[h.person.ID]
+					// _, tasteSet := meal.Taste[h.person.ID]
 					return app.Div().ID("home-page-meal-"+si).Class("home-page-meal").Style("--color-h", colorH).Style("--score-percent", scoreText+"%").
 						OnClick(func(ctx app.Context, e app.Event) { h.MealOnClick(ctx, e, meal) }).Body(
-						app.Span().ID("home-page-meal-name-"+si).Class("home-page-meal-name").Text(meal.Name).DataSet("taste-set", tasteSet),
+						app.Span().ID("home-page-meal-name-"+si).Class("home-page-meal-name").Text(meal.Name).DataSet("taste-set", true),
 						app.Span().ID("home-page-meal-score-"+si).Class("home-page-meal-score").Text(scoreText),
 					)
 				}),
@@ -117,7 +117,7 @@ func (h *home) New(ctx app.Context, e app.Event) {
 		log.Println(err)
 		return
 	}
-	meal.Taste[h.person.ID] = 50
+	// meal.Taste[h.person.ID] = 50
 	SetCurrentMeal(meal, ctx)
 	ctx.Navigate("/meal")
 }

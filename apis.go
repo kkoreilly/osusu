@@ -172,7 +172,7 @@ var GetEntriesAPI = NewAPI(http.MethodGet, "/api/getEntries", func(mealID int) (
 
 // CreateEntryAPI creates and returns a new entry with the given entry's meal and user id values
 var CreateEntryAPI = NewAPI(http.MethodPost, "/api/createEntry", func(entry Entry) (Entry, error) {
-	return CreateEntryDB(entry.UserID, entry.MealID)
+	return CreateEntryDB(entry)
 })
 
 // UpdateEntryAPI updates the given entry in the database to have the given information.
