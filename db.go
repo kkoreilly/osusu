@@ -199,6 +199,27 @@ func GetEntriesDB(userID int) (Entries, error) {
 	return res, nil
 }
 
+// GetEntriesForMealDB gets the entries from the database that have the given meal id
+func GetEntriesForMealDB(mealID int) (Entries, error) {
+	statement := `SELECT id, user_id, entry_date, type, source, cost, effort, healthiness, taste FROM entries
+	WHERE meal_id = $1`
+	rows, err := db.Query(statement, mealID)
+	if err != nil {
+		return nil, err
+	}
+	var res Entries
+	for rows.Next() {
+		var entry Entry
+		err := rows.Scan(&entry.ID, &entry.UserID, &entry.Date, &entry.Type, &entry.Source, &entry.Cost, &entry.Effort, &entry.Healthiness, &entry.Taste)
+		if err != nil {
+			return nil, err
+		}
+		entry.MealID = mealID
+		res = append(res, entry)
+	}
+	return res, nil
+}
+
 // CreateEntryDB creates and returns a new entry in the database with the given entry's user and meal id values
 func CreateEntryDB(entry Entry) (Entry, error) {
 	statement := `INSERT INTO entries (user_id, meal_id, entry_date)

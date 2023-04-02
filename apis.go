@@ -165,9 +165,14 @@ var DeletePersonAPI = NewAPI(http.MethodDelete, "/api/deletePerson", func(id int
 	return "person deleted", nil
 })
 
-// GetEntriesAPI fetches and returns the entries associated with the given meal id from the database
-var GetEntriesAPI = NewAPI(http.MethodGet, "/api/getEntries", func(mealID int) (Entries, error) {
-	return GetEntriesDB(mealID)
+// GetEntriesAPI fetches and returns the entries associated with the given user id from the database
+var GetEntriesAPI = NewAPI(http.MethodGet, "/api/getEntries", func(userID int) (Entries, error) {
+	return GetEntriesDB(userID)
+})
+
+// GetEntriesForMealAPI fetches and returns the entries associated with the given meal id from the database
+var GetEntriesForMealAPI = NewAPI(http.MethodGet, "/api/getEntriesForMeal", func(mealID int) (Entries, error) {
+	return GetEntriesForMealDB(mealID)
 })
 
 // CreateEntryAPI creates and returns a new entry with the given entry's meal and user id values

@@ -37,8 +37,8 @@ func (r *RadioChips) Render() app.UI {
 	)
 }
 
-// OnNav is called when the component is loaded, and it sets the value to the default value
-func (r *RadioChips) OnNav(ctx app.Context) {
+// OnInit is called when the component is loaded, and it sets the value to the default value
+func (r *RadioChips) OnInit() {
 	*r.Value = r.Default
 }
 
@@ -76,8 +76,8 @@ func (c *CheckboxChips) Render() app.UI {
 	)
 }
 
-// OnNav is called when the component is loaded, and it sets the value to the default value
-func (c *CheckboxChips) OnNav(ctx app.Context) {
+// OnInit is called when the component is loaded, and it sets the value to the default value
+func (c *CheckboxChips) OnInit() {
 	*c.Value = c.Default
 }
 
@@ -105,8 +105,8 @@ func (c *CheckboxChip) Render() app.UI {
 	)
 }
 
-// OnNav is called when the component is loaded, and it sets the value to the default value
-func (c *CheckboxChip) OnNav(ctx app.Context) {
+// OnInit is called when the component is loaded, and it sets the value to the default value
+func (c *CheckboxChip) OnInit() {
 	*c.Value = c.Default
 }
 

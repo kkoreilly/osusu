@@ -1,0 +1,23 @@
+.entries-page-entry {
+    padding: 10px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    width: clamp(70px, var(--score-percent), calc(100% - 20px));
+    background-color: hsl(var(--color-h), 100%, 50%);
+}
+
+.entries-page-entry:hover {
+    background-color: hsl(var(--color-h), 100%, 40%);
+}
+
+.entries-page-entry-date,
+.entries-page-entry-score {
+    display: inline;
+    margin: 0;
+    padding: 0;
+}
+
+.entries-page-entry[data-missing-data="true"] * {
+    text-decoration: underline;
+}

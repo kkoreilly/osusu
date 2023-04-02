@@ -11,11 +11,12 @@ import (
 
 type home struct {
 	app.Compo
-	meals         Meals
-	person        Person
-	people        People
-	options       Options
-	peopleOptions map[string]bool
+	meals              Meals
+	entriesForEachMeal map[int]Entries // entries for each meal id
+	person             Person
+	people             People
+	options            Options
+	peopleOptions      map[string]bool
 }
 
 func (h *home) Render() app.UI {
@@ -56,6 +57,21 @@ func (h *home) Render() app.UI {
 				return
 			}
 			h.meals = meals
+
+			entries, err := GetEntriesAPI.Call(GetCurrentUser(ctx).ID)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+			h.entriesForEachMeal = make(map[int]Entries)
+			for _, entry := range entries {
+				entries := h.entriesForEachMeal[entry.MealID]
+				if entries == nil {
+					entries = Entries{}
+				}
+				entries = append(entries, entry)
+				h.entriesForEachMeal[entry.MealID] = entries
+			}
 			h.SortMeals()
 		},
 		TitleElement: "Welcome, " + h.person.Name,
@@ -73,7 +89,7 @@ func (h *home) Render() app.UI {
 					// 	return app.Text("")
 					// }
 					si := strconv.Itoa(i)
-					score := meal.Score(h.options)
+					score := meal.Score(h.entriesForEachMeal[meal.ID], h.options)
 					colorH := strconv.Itoa((score * 12) / 10)
 					scoreText := strconv.Itoa(score)
 					// _, tasteSet := meal.Taste[h.person.ID]
@@ -151,7 +167,7 @@ func (h *home) SaveOptions(ctx app.Context, e app.Event) {
 
 func (h *home) SortMeals() {
 	sort.Slice(h.meals, func(i, j int) bool {
-		return h.meals[i].Score(h.options) > h.meals[j].Score(h.options)
+		return h.meals[i].Score(h.entriesForEachMeal[h.meals[i].ID], h.options) > h.meals[j].Score(h.entriesForEachMeal[h.meals[j].ID], h.options)
 	})
 }
 

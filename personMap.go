@@ -12,6 +12,24 @@ import (
 // The key is the person id and the value is their rating.
 type PersonMap map[int]int
 
+// Sum returns the sum of the person map based on the given map specifying whether each of the people is participating and the given inversion.
+// The key of the map is the person id and the value is whether they are participating.
+// If inverted is true, the higher ratings of the people lead to a lower total sum.
+func (p *PersonMap) Sum(peopleParticipating map[int]bool, inverted bool) int {
+	res := 0
+	for i, v := range *p {
+		participating := peopleParticipating[i]
+		// do not invert if the person is participating and we are not inverted or the person is not participating and we are inverted
+		// otherwise, invert
+		if participating && !inverted || !participating && inverted {
+			res += v
+		} else {
+			res += 100 - v
+		}
+	}
+	return res
+}
+
 // Scan scans the provided value onto the PersonMap
 func (p *PersonMap) Scan(value any) error {
 	hStore := &hstore.Hstore{}

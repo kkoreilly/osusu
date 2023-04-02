@@ -2,18 +2,21 @@ package main
 
 import (
 	"log"
+	"sort"
 	"strconv"
 	"time"
 
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
 )
 
+// Entries is a slice of multiple entries
 type Entries []Entry
 
 type entries struct {
 	app.Compo
 	person  Person
 	meal    Meal
+	options Options
 	entries Entries
 }
 
@@ -26,11 +29,15 @@ func (e *entries) Render() app.UI {
 		OnNavFunc: func(ctx app.Context) {
 			e.person = GetCurrentPerson(ctx)
 			e.meal = GetCurrentMeal(ctx)
-			entries, err := GetEntriesAPI.Call(e.meal.ID)
+			e.options = GetOptions(ctx)
+			entries, err := GetEntriesForMealAPI.Call(e.meal.ID)
 			if err != nil {
 				log.Println(err)
 				return
 			}
+			sort.Slice(entries, func(i, j int) bool {
+				return entries[i].Date.After(entries[j].Date)
+			})
 			e.entries = entries
 		},
 		TitleElement: "Entries for " + e.meal.Name,
@@ -44,13 +51,16 @@ func (e *entries) Render() app.UI {
 				app.Range(e.entries).Slice(func(i int) app.UI {
 					entry := e.entries[i]
 					si := strconv.Itoa(i)
-					return app.Div().ID("entries-page-entry-" + si).Class("entries-page-entry").
+					score := entry.Score(e.options)
+					colorH := strconv.Itoa((score * 12) / 10)
+					scoreText := strconv.Itoa(score)
+					return app.Div().ID("entries-page-entry-"+si).Class("entries-page-entry").DataSet("missing-data", true).Style("--color-h", colorH).Style("--score-percent", scoreText+"%").
 						OnClick(func(ctx app.Context, event app.Event) { e.EntryOnClick(ctx, event, entry) }).Body(
-						app.Span().ID("entries-page-entry-date-text" + si).Class("entries-page-entry-date-text").Text(entry.Date.Format("Monday, January 2, 2006")),
+						app.Span().ID("entries-page-entry-date"+si).Class("entries-page-entry-date").Text(entry.Date.Format("Monday, January 2, 2006")),
+						app.Span().ID("entries-page-entry-score"+si).Class("entries-page-entry-score").Text(scoreText),
 					)
 				}),
 			),
-			app.Hr(),
 		},
 	}
 }

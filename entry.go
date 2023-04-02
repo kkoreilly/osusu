@@ -21,9 +21,20 @@ type Entry struct {
 	Taste       PersonMap
 }
 
+// Score produces a score from 0 to 100 for the entry based on its attributes and the given options
+func (e Entry) Score(options Options) int {
+	// average of all attributes
+	sum := options.CostWeight*e.Cost.Sum(options.People, true) + options.EffortWeight*e.Effort.Sum(options.People, true) + options.HealthinessWeight*e.Healthiness.Sum(options.People, false) + options.TasteWeight*e.Taste.Sum(options.People, false)
+	den := len(e.Cost)*options.CostWeight + len(e.Effort)*options.EffortWeight + len(e.Healthiness)*options.HealthinessWeight + len(e.Taste)*options.TasteWeight
+	if den == 0 {
+		return 0
+	}
+	return sum / den
+}
+
 // SetCurrentEntry sets the current entry state value to the given entry
 func SetCurrentEntry(entry Entry, ctx app.Context) {
-	ctx.SetState("currentEntry", entry)
+	ctx.SetState("currentEntry", entry, app.Persist)
 }
 
 // GetCurrentEntry gets and returns the current entry state value
@@ -42,11 +53,12 @@ type entry struct {
 func (e *entry) Render() app.UI {
 	return &Page{
 		ID:                     "entry",
-		Title:                  "Entry",
+		Title:                  "Edit Entry",
 		Description:            "Edit a meal entry",
 		AuthenticationRequired: true,
 		OnNavFunc: func(ctx app.Context) {
 			e.entry = GetCurrentEntry(ctx)
+			log.Println(e.entry.Type, e.entry.Source)
 			e.person = GetCurrentPerson(ctx)
 		},
 		TitleElement: "Edit Entry (" + e.person.Name + ")",
@@ -56,10 +68,10 @@ func (e *entry) Render() app.UI {
 				app.Input().ID("entry-page-date-input").Class("input").Type("date").Value(e.entry.Date.Format("2006-01-02")),
 				NewRadioChips("entry-page-type", "What meal did you eat this for?", "Dinner", &e.entry.Type, mealTypes...),
 				NewRadioChips("entry-page-source", "How did you get this meal?", "Cooking", &e.entry.Source, mealSources...),
-				NewRangeInputPersonMap("entry-page-taste", "How did this taste for you?", &e.entry.Taste, e.person),
-				NewRangeInputPersonMap("entry-page-cost", "How much did this cost for you?", &e.entry.Cost, e.person),
-				NewRangeInputPersonMap("entry-page-effort", "How much effort did this take for you?", &e.entry.Effort, e.person),
-				NewRangeInputPersonMap("entry-page-healthiness", "How healthy was this for you?", &e.entry.Healthiness, e.person),
+				NewRangeInputPersonMap("entry-page-taste", "How tasty do you think this was?", &e.entry.Taste, e.person),
+				NewRangeInputPersonMap("entry-page-cost", "How expensive do you think this was?", &e.entry.Cost, e.person),
+				NewRangeInputPersonMap("entry-page-effort", "How much effort do you think this took?", &e.entry.Effort, e.person),
+				NewRangeInputPersonMap("entry-page-healthiness", "How healthy do you think this was?", &e.entry.Healthiness, e.person),
 				app.Div().ID("entry-page-action-button-row").Class("action-button-row").Body(
 					app.Input().ID("entry-page-delete-button").Class("action-button", "danger-action-button").Type("button").Value("Delete").OnClick(e.InitialDelete),
 					app.A().ID("entry-page-cancel-button").Class("action-button", "secondary-action-button").Href("/entries").Text("Cancel"),
@@ -67,7 +79,7 @@ func (e *entry) Render() app.UI {
 				),
 			),
 			app.Dialog().ID("entry-page-confirm-delete").Body(
-				app.P().ID("entry-page-confirm-delete-text").Text("Are you sure you want to delete this entry?"),
+				app.P().ID("entry-page-confirm-delete-text").Class("confirm-delete-text").Text("Are you sure you want to delete this entry?"),
 				app.Div().ID("entry-page-confirm-delete-action-button-row").Class("action-button-row").Body(
 					app.Button().ID("entry-page-confirm-delete-delete").Class("action-button", "danger-action-button").Text("Yes, Delete").OnClick(e.ConfirmDelete),
 					app.Button().ID("entry-page-confirm-delete-cancel").Class("action-button", "secondary-action-button").Text("No, Cancel").OnClick(e.CancelDelete),
@@ -79,6 +91,8 @@ func (e *entry) Render() app.UI {
 
 func (e *entry) OnSubmit(ctx app.Context, event app.Event) {
 	event.PreventDefault()
+
+	e.entry.Date = time.UnixMilli(int64((app.Window().GetElementByID("entry-page-date-input").Get("valueAsNumber").Int()))).UTC()
 
 	_, err := UpdateEntryAPI.Call(e.entry)
 	if err != nil {

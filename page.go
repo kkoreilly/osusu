@@ -4,6 +4,7 @@ import (
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
 )
 
+// Page is the common page structure that all pages have.
 type Page struct {
 	app.Compo
 	ID                     string
@@ -18,6 +19,7 @@ type Page struct {
 	installAvailable       bool
 }
 
+// Render returns the UI of the page based on its attributes
 func (p *Page) Render() app.UI {
 	width, _ := app.Window().Size()
 	smallScreen := width <= 480
@@ -46,6 +48,7 @@ func (p *Page) Render() app.UI {
 	}...)
 }
 
+// OnNav is called when the page is navigated to. It authenticates the user, sets the title and description, sets the update and install states, and calls the specified OnNav function.
 func (p *Page) OnNav(ctx app.Context) {
 	if Authenticate(p.AuthenticationRequired, ctx) {
 		return
@@ -59,18 +62,22 @@ func (p *Page) OnNav(ctx app.Context) {
 	}
 }
 
+// OnAppUpdate is called when the updatability of the app changes
 func (p *Page) OnAppUpdate(ctx app.Context) {
 	p.updateAvailable = ctx.AppUpdateAvailable()
 }
 
+// OnAppInstallChange is called when the installability of the app changes
 func (p *Page) OnAppInstallChange(ctx app.Context) {
 	p.installAvailable = ctx.IsAppInstallable()
 }
 
+// UpdateApp reloads the page to update it after a new version is loaded
 func (p *Page) UpdateApp(ctx app.Context, e app.Event) {
 	ctx.Reload()
 }
 
+// InstallApp shows the app installation prompt
 func (p *Page) InstallApp(ctx app.Context, e app.Event) {
 	ctx.ShowAppInstallPrompt()
 }

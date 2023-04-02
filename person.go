@@ -40,7 +40,7 @@ func (p *person) Render() app.UI {
 				),
 			),
 			app.Dialog().ID("person-page-confirm-delete").Body(
-				app.P().ID("person-page-confirm-delete-text").Text("Are you sure you want to delete this person?"),
+				app.P().ID("person-page-confirm-delete-text").Class("confirm-delete-text").Text("Are you sure you want to delete this person?"),
 				app.Div().ID("person-page-confirm-delete-action-button-row").Class("action-button-row").Body(
 					app.Button().ID("person-page-confirm-delete-delete").Class("action-button", "danger-action-button").Text("Yes, Delete").OnClick(p.ConfirmDelete),
 					app.Button().ID("person-page-confirm-delete-cancel").Class("action-button", "secondary-action-button").Text("No, Cancel").OnClick(p.CancelDelete),

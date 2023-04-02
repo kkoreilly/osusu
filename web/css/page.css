@@ -8,7 +8,7 @@ body {
 }
 
 .page-top-bar {
-    width: 100vw;
+    width: 100%;
     background-color: var(--amber);
     display: flex;
     justify-content: space-between;
@@ -75,7 +75,7 @@ body {
 }
 
 .page-main {
-    padding-bottom: 50px;
+    padding-bottom: 60px;
 }
 
 .page-footer {
