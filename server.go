@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
@@ -46,7 +47,11 @@ func startServer() {
 		log.Fatal(err)
 	}
 
-	if err := http.ListenAndServe(":8000", nil); err != nil {
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8000"
+	}
+	if err := http.ListenAndServe(":"+port, nil); err != nil {
 		log.Fatal(err)
 	}
 }

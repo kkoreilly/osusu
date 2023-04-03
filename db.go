@@ -14,7 +14,7 @@ var db *sql.DB
 // ConnectToDB connects to the database
 func ConnectToDB() error {
 	var err error
-	db, err = sql.Open("postgres", "user=postgres password=postgres dbname=postgres sslmode=disable")
+	db, err = sql.Open("postgres", "postgresql://postgres:ro8RgPKS5UN6gIcR1Gau@containers-us-west-153.railway.app:7584/railway")
 	return err
 }
 
@@ -222,9 +222,9 @@ func GetEntriesForMealDB(mealID int) (Entries, error) {
 
 // CreateEntryDB creates and returns a new entry in the database with the given entry's user and meal id values
 func CreateEntryDB(entry Entry) (Entry, error) {
-	statement := `INSERT INTO entries (user_id, meal_id, entry_date)
-	VALUES ($1, $2, $3) RETURNING id`
-	row := db.QueryRow(statement, entry.UserID, entry.MealID, entry.Date)
+	statement := `INSERT INTO entries (user_id, meal_id, entry_date, type, source, cost, effort, healthiness, taste)
+	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`
+	row := db.QueryRow(statement, entry.UserID, entry.MealID, entry.Date, entry.Type, entry.Source, entry.Cost, entry.Effort, entry.Healthiness, entry.Taste)
 	err := row.Scan(&entry.ID)
 	if err != nil {
 		return Entry{}, err

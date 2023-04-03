@@ -32,6 +32,11 @@ func (e Entry) Score(options Options) int {
 	return sum / den
 }
 
+// MissingData returns whether the given person is missing data in the given entry
+func (e Entry) MissingData(person Person) bool {
+	return !(e.Cost.HasValueSet(person) && e.Effort.HasValueSet(person) && e.Healthiness.HasValueSet(person) && e.Taste.HasValueSet(person))
+}
+
 // SetCurrentEntry sets the current entry state value to the given entry
 func SetCurrentEntry(entry Entry, ctx app.Context) {
 	ctx.SetState("currentEntry", entry, app.Persist)
@@ -58,8 +63,20 @@ func (e *entry) Render() app.UI {
 		AuthenticationRequired: true,
 		OnNavFunc: func(ctx app.Context) {
 			e.entry = GetCurrentEntry(ctx)
-			log.Println(e.entry.Type, e.entry.Source)
 			e.person = GetCurrentPerson(ctx)
+			// if the person is missing data for this entry, set their value to the average of all other people's ratings
+			if !e.entry.Cost.HasValueSet(e.person) {
+				e.entry.Cost[e.person.ID] = e.entry.Cost.Average()
+			}
+			if !e.entry.Effort.HasValueSet(e.person) {
+				e.entry.Effort[e.person.ID] = e.entry.Effort.Average()
+			}
+			if !e.entry.Healthiness.HasValueSet(e.person) {
+				e.entry.Healthiness[e.person.ID] = e.entry.Healthiness.Average()
+			}
+			if !e.entry.Taste.HasValueSet(e.person) {
+				e.entry.Taste[e.person.ID] = e.entry.Taste.Average()
+			}
 		},
 		TitleElement: "Edit Entry (" + e.person.Name + ")",
 		Elements: []app.UI{

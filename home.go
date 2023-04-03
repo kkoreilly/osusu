@@ -85,17 +85,31 @@ func (h *home) Render() app.UI {
 			app.Div().ID("home-page-meals-container").Body(
 				app.Range(h.meals).Slice(func(i int) app.UI {
 					meal := h.meals[i]
-					// if meal.Type != h.options.Type || !h.options.Source[meal.Source] {
-					// 	return app.Text("")
-					// }
 					si := strconv.Itoa(i)
-					score := meal.Score(h.entriesForEachMeal[meal.ID], h.options)
+					entries := h.entriesForEachMeal[meal.ID]
+
+					// check if at least one entry satisfies the type and source requirements.
+					gotType := false
+					gotSource := false
+					for _, entry := range entries {
+						if entry.Type == h.options.Type {
+							gotType = true
+						}
+						if h.options.Source[entry.Source] {
+							gotSource = true
+						}
+					}
+					if !(gotType && gotSource) {
+						return app.Text("")
+					}
+
+					score := meal.Score(entries, h.options)
 					colorH := strconv.Itoa((score * 12) / 10)
 					scoreText := strconv.Itoa(score)
-					// _, tasteSet := meal.Taste[h.person.ID]
-					return app.Div().ID("home-page-meal-"+si).Class("home-page-meal").Style("--color-h", colorH).Style("--score-percent", scoreText+"%").
+					missingData := entries.MissingData(h.person)
+					return app.Div().ID("home-page-meal-"+si).Class("home-page-meal").DataSet("missing-data", missingData).Style("--color-h", colorH).Style("--score-percent", scoreText+"%").
 						OnClick(func(ctx app.Context, e app.Event) { h.MealOnClick(ctx, e, meal) }).Body(
-						app.Span().ID("home-page-meal-name-"+si).Class("home-page-meal-name").Text(meal.Name).DataSet("taste-set", true),
+						app.Span().ID("home-page-meal-name-"+si).Class("home-page-meal-name").Text(meal.Name),
 						app.Span().ID("home-page-meal-score-"+si).Class("home-page-meal-score").Text(scoreText),
 					)
 				}),

@@ -18,8 +18,9 @@
     padding: 0;
 }
 
-.home-page-meal-name[data-taste-set="false"] {
+.home-page-meal[data-missing-data="true"] * {
     text-decoration: underline;
+    font-weight: bold;
 }
 
 #home-page-options-cost-input {

@@ -14,7 +14,6 @@ type Input[T any] struct {
 	AutoFocus   bool
 	Value       *T
 	ValueFunc   func(app.Value) T
-	// CurrentPerson Person // allows the use of PersonMap as the value
 }
 
 // Render returns the UI of the input component, which includes a label and an input associated with it
@@ -27,13 +26,6 @@ func (i *Input[T]) Render() app.UI {
 			*i.Value = i.ValueFunc(e.Get("target"))
 		})
 	}
-
-	// switch val := any(*i.Value).(type) {
-	// case PersonMap:
-	// 	input = app.Input().ID(i.ID+"-input").Class("input", i.InputClass).Type(i.Type).Placeholder(i.Placeholder).AutoFocus(i.AutoFocus).Value(val[i.CurrentPerson.ID]).OnChange(func(ctx app.Context, e app.Event) {
-	// 		*i.Value = i.ValueFunc(e.Get("target"))
-	// 	})
-	// }
 
 	return app.Div().ID(i.ID+"-input-container").Class("input-container").Body(
 		app.Label().ID(i.ID+"-input-label").Class("input-label").For(i.ID+"-input").Text(i.Label),

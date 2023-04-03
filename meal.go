@@ -39,33 +39,14 @@ func (m Meal) Score(entries Entries, options Options) int {
 	if recencyScore > 100 {
 		recencyScore = 100
 	}
-	sum := 100*entriesSum + options.RecencyWeight*recencyScore
-	den := 100*len(entries) + options.RecencyWeight
+	// add up all of the weights except recency and multiply all of the scores except for recency by them to make the other weights affect how much recency matters
+	weightsToal := options.CostWeight + options.EffortWeight + options.HealthinessWeight + options.TasteWeight
+	sum := weightsToal*entriesSum + options.RecencyWeight*recencyScore
+	den := weightsToal*len(entries) + options.RecencyWeight
 	if den == 0 {
 		return 0
 	}
 	return sum / den
-	// // average of all attributes
-	// var tasteSum int
-	// for i, v := range m.Taste {
-	// 	use := options.People[i]
-	// 	// invert the person's rating if they are not participating
-	// 	if use {
-	// 		tasteSum += v
-	// 	} else {
-	// 		tasteSum += 100 - v
-	// 	}
-	// }
-	// recencyScore := int(2 * time.Now().Truncate(time.Hour*24).UTC().Sub(m.LastDone) / (time.Hour * 24))
-	// if recencyScore > 100 {
-	// 	recencyScore = 100
-	// }
-	// sum := options.CostWeight*(100-m.Cost) + options.EffortWeight*(100-m.Effort) + options.HealthinessWeight*m.Healthiness + options.TasteWeight*tasteSum + options.RecencyWeight*recencyScore
-	// den := options.CostWeight + options.EffortWeight + options.HealthinessWeight + len(m.Taste)*options.TasteWeight + options.RecencyWeight
-	// if den == 0 {
-	// 	return 0
-	// }
-	// return sum / den
 }
 
 // SetCurrentMeal sets the current meal state value to the given meal, using the given context
@@ -92,7 +73,6 @@ type meal struct {
 }
 
 func (m *meal) Render() app.UI {
-	// taste := e.meal.Taste[e.person.ID]
 	return &Page{
 		ID:                     "meal",
 		Title:                  "Edit Meal",
@@ -107,14 +87,6 @@ func (m *meal) Render() app.UI {
 			app.Form().ID("meal-page-form").Class("form").OnSubmit(m.OnSubmit).Body(
 				NewTextInput("meal-page-name", "What is the name of this meal?", "Meal Name", true, &m.meal.Name),
 				NewTextarea("meal-page-description", "Description/Notes:", "Meal description/notes", false, &m.meal.Description),
-				// app.Label().ID("meal-page-last-done-label").Class("input-label").For("meal-page-last-done-input").Text("When did you last eat this?"),
-				// app.Input().ID("meal-page-last-done-input").Class("input").Type("date").Value(e.meal.LastDone.Format("2006-01-02")),
-				// NewRadioChips("meal-page-type", "What meals can you eat this for?", "Dinner", &e.meal.Type, mealTypes...),
-				// NewRadioChips("meal-page-source", "How can you get this?", "Cooking", &e.meal.Source, mealSources...),
-				// NewRangeInput("meal-page-taste", "How does this taste?", &taste),
-				// NewRangeInput("meal-page-cost", "How much does this cost?", &e.meal.Cost),
-				// NewRangeInput("meal-page-effort", "How much effort does this take?", &e.meal.Effort),
-				// NewRangeInput("meal-page-healthiness", "How healthy is this?", &e.meal.Healthiness),
 				app.Div().ID("meal-page-action-button-row").Class("action-button-row").Body(
 					app.Input().ID("meal-page-delete-button").Class("action-button", "danger-action-button").Type("button").Value("Delete").OnClick(m.InitialDelete),
 					app.A().ID("meal-page-cancel-button").Class("action-button", "secondary-action-button").Href("/home").Text("Cancel"),
@@ -135,9 +107,6 @@ func (m *meal) Render() app.UI {
 
 func (m *meal) OnSubmit(ctx app.Context, event app.Event) {
 	event.PreventDefault()
-
-	// m.meal.Taste[m.person.ID] = app.Window().GetElementByID("meal-page-taste-input").Get("valueAsNumber").Int()
-	// m.meal.LastDone = time.UnixMilli(int64((app.Window().GetElementByID("meal-page-last-done-input").Get("valueAsNumber").Int()))).UTC()
 
 	_, err := UpdateMealAPI.Call(m.meal)
 	if err != nil {

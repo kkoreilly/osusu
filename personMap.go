@@ -30,6 +30,24 @@ func (p *PersonMap) Sum(peopleParticipating map[int]bool, inverted bool) int {
 	return res
 }
 
+// Average returns a simple average of the values of the person map
+func (p *PersonMap) Average() int {
+	if len(*p) < 1 {
+		return 0
+	}
+	res := 0
+	for _, v := range *p {
+		res += v
+	}
+	return res / len(*p)
+}
+
+// HasValueSet returns whether the given person has a value set for them in the person map
+func (p *PersonMap) HasValueSet(person Person) bool {
+	_, ok := (*p)[person.ID]
+	return ok
+}
+
 // Scan scans the provided value onto the PersonMap
 func (p *PersonMap) Scan(value any) error {
 	hStore := &hstore.Hstore{}

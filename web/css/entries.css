@@ -20,4 +20,5 @@
 
 .entries-page-entry[data-missing-data="true"] * {
     text-decoration: underline;
+    font-weight: bold;
 }
