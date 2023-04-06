@@ -56,7 +56,6 @@ func (e *entries) Render() app.UI {
 				app.A().ID("entries-page-back-button").Class("secondary-action-button", "action-button").Href("/meal").Text("Back"),
 				app.Button().ID("entries-page-new-button").Class("primary-action-button", "action-button").Text("New").OnClick(e.New),
 			),
-			app.Hr(),
 			app.Div().ID("entries-page-entries-container").Body(
 				app.Range(e.entries).Slice(func(i int) app.UI {
 					entry := e.entries[i]

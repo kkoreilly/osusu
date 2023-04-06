@@ -4,7 +4,6 @@ import (
 	"log"
 	"sort"
 	"strconv"
-	"time"
 
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
 )
@@ -77,11 +76,9 @@ func (h *home) Render() app.UI {
 		TitleElement: "Welcome, " + h.person.Name,
 		Elements: []app.UI{
 			app.Div().ID("home-page-action-button-row").Class("action-button-row").Body(
-				app.Button().ID("home-page-sign-out-button").Class("danger-action-button", "action-button").Text("Sign Out").OnClick(h.InitialSignOut),
 				app.Button().ID("home-page-options-button").Class("secondary-action-button", "action-button").Text("Options").OnClick(h.ShowOptions),
 				app.Button().ID("home-page-new-button").Class("primary-action-button", "action-button").Text("New").OnClick(h.New),
 			),
-			app.Hr(),
 			app.Div().ID("home-page-meals-container").Body(
 				app.Range(h.meals).Slice(func(i int) app.UI {
 					meal := h.meals[i]
@@ -130,13 +127,6 @@ func (h *home) Render() app.UI {
 					),
 				),
 			),
-			app.Dialog().ID("home-page-confirm-sign-out").Body(
-				app.P().ID("home-page-confirm-sign-out-text").Text("Are you sure you want to sign out?"),
-				app.Div().ID("home-page-confirm-sign-out-action-button-row").Class("action-button-row").Body(
-					app.Button().ID("home-page-confirm-sign-out-sign-out").Class("action-button", "danger-action-button").Text("Yes, Sign Out").OnClick(h.ConfirmSignOut),
-					app.Button().ID("edit-page-confirm-sign-out-cancel").Class("action-button", "secondary-action-button").Text("No, Cancel").OnClick(h.CancelSignOut),
-				),
-			),
 		},
 	}
 }
@@ -183,31 +173,4 @@ func (h *home) SortMeals() {
 	sort.Slice(h.meals, func(i, j int) bool {
 		return h.meals[i].Score(h.entriesForEachMeal[h.meals[i].ID], h.options) > h.meals[j].Score(h.entriesForEachMeal[h.meals[j].ID], h.options)
 	})
-}
-
-func (h *home) InitialSignOut(ctx app.Context, event app.Event) {
-	event.PreventDefault()
-	app.Window().GetElementByID("home-page-confirm-sign-out").Call("showModal")
-}
-
-func (h *home) ConfirmSignOut(ctx app.Context, event app.Event) {
-	event.PreventDefault()
-	user := GetCurrentUser(ctx)
-	if user.Session != "" {
-		_, err := SignOutAPI.Call(GetCurrentUser(ctx))
-		if err != nil {
-			log.Println(err)
-			return
-		}
-	}
-	// if no error, we are no longer authenticated
-	authenticated = time.UnixMilli(0)
-	ctx.LocalStorage().Del("currentUser")
-
-	ctx.Navigate("/signin")
-}
-
-func (h *home) CancelSignOut(ctx app.Context, event app.Event) {
-	event.PreventDefault()
-	app.Window().GetElementByID("home-page-confirm-sign-out").Call("close")
 }

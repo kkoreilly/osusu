@@ -38,6 +38,7 @@ func startServer() {
 			"/web/css/people.css",
 			"/web/css/input.css",
 			"/web/css/chips.css",
+			"/web/css/account.css",
 		},
 		AutoUpdateInterval: 10 * time.Second,
 	})

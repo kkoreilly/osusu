@@ -14,7 +14,7 @@ var db *sql.DB
 // ConnectToDB connects to the database
 func ConnectToDB() error {
 	var err error
-	db, err = sql.Open("postgres", "postgresql://postgres:ro8RgPKS5UN6gIcR1Gau@containers-us-west-153.railway.app:7584/railway")
+	db, err = sql.Open("postgres", "user=postgres password=postgres dbname=postgres sslmode=disable")
 	return err
 }
 
@@ -50,6 +50,24 @@ func SignInDB(user User) (User, error) {
 		return User{}, err
 	}
 	return user, nil
+}
+
+// UpdateUsernameDB updates the username of the given user in the database to its username value
+func UpdateUsernameDB(user User) error {
+	statement := `UPDATE users
+	SET username = $1
+	WHERE id = $2`
+	_, err := db.Exec(statement, user.Username, user.ID)
+	return err
+}
+
+// UpdatePasswordDB updates the password of the given user in the database to its password value
+func UpdatePasswordDB(user User) error {
+	statement := `UPDATE users
+	SET password = $1
+	WHERE id = $2`
+	_, err := db.Exec(statement, user.Password, user.ID)
+	return err
 }
 
 // CreateSessionDB creates a new session in the database with the given session id and user id

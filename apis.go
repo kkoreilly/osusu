@@ -71,6 +71,38 @@ var SignInAPI = NewAPI(http.MethodPost, "/api/signIn", func(user User) (User, er
 	return user, nil
 })
 
+// UpdateUsernameAPI updates the username of the given user to be the username value of the provided user.
+// It returns a confirmation string if successful and an error if not.
+var UpdateUsernameAPI = NewAPI(http.MethodPut, "/api/updateUsername", func(user User) (string, error) {
+	if user.Username == "" {
+		return "", errors.New("username must not be empty")
+	}
+	err := UpdateUsernameDB(user)
+	if err != nil {
+		return "", err
+	}
+	return "updated username", nil
+})
+
+// UpdatePasswordAPI updates the password of the given user to be the password value of the provided user.
+// It returns a confirmation string if successful and an error if not.
+var UpdatePasswordAPI = NewAPI(http.MethodPut, "/api/updatePassword", func(user User) (string, error) {
+	if user.Password == "" {
+		return "", errors.New("password must not be empty")
+	}
+	// encrypt password
+	hash, err := bcrypt.GenerateFromPassword([]byte(user.Password), 14)
+	if err != nil {
+		return "", err
+	}
+	user.Password = string(hash)
+	err = UpdatePasswordDB(user)
+	if err != nil {
+		return "", err
+	}
+	return "updated password", nil
+})
+
 // AuthenticateSessionAPI checks whether the given user has a valid session id.
 // It returns a confirmation string if so and an error if not.
 var AuthenticateSessionAPI = NewAPI(http.MethodPost, "/api/authenticateSession", func(user User) (string, error) {
