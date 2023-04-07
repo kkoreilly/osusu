@@ -60,6 +60,24 @@ body {
     background-color: var(--dark-amber);
 }
 
+.page-top-bar-account-button {
+    width: 50px;
+    height: 50px;
+    padding: 0;
+    border-radius: 50%;
+    background-color: hsl(228, 92%, 50%);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 10px;
+    margin-left: 10px;
+}
+
+.page-top-bar-account-button:hover {
+    background-color: hsl(228, 92%, 40%);
+}
+
 .page-title {
     text-align: center;
     font-size: 40px;

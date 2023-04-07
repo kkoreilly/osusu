@@ -13,13 +13,6 @@ type Meal struct {
 	UserID      int
 	Name        string
 	Description string
-	// Cost        int
-	// Effort      int
-	// Healthiness int
-	// Taste       PersonMap
-	// Type        string
-	// Source      string
-	// LastDone    time.Time
 }
 
 // Meals is a slice that represents multiple meals

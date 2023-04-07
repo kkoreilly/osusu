@@ -16,7 +16,7 @@ func (s *signUp) Render() app.UI {
 	return &Page{
 		ID:                     "sign-up",
 		Title:                  "Sign Up",
-		Description:            "Sign up to MealRec",
+		Description:            "Sign up to Satisfi",
 		AuthenticationRequired: false,
 		TitleElement:           "Sign Up",
 		Elements: []app.UI{

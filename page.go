@@ -1,6 +1,8 @@
 package main
 
 import (
+	"unicode"
+
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
 )
 
@@ -19,6 +21,8 @@ type Page struct {
 	isStatusError          bool
 	updateAvailable        bool
 	installAvailable       bool
+	user                   User
+	person                 Person
 }
 
 // CurrentPage is the current page the user is on
@@ -28,18 +32,24 @@ var CurrentPage *Page
 func (p *Page) Render() app.UI {
 	width, _ := app.Window().Size()
 	smallScreen := width <= 480
+	nameFirstLetter := "-"
+	if len(p.person.Name) > 0 {
+		nameFirstLetter = string(unicode.ToUpper(rune(p.person.Name[0])))
+	}
 	return app.Div().ID(p.ID + "-page-container").Class("page-container").Body([]app.UI{
 		app.Header().ID(p.ID+"-page-header").Class("page-header").Body(
 			app.Div().ID(p.ID+"-page-top-bar").Class("page-top-bar").Body(
-				app.A().ID(p.ID+"-page-top-bar-icon-link").Class("page-top-bar-icon-link").Href("/").Title("Navigate to the MealRec Start/Home Page").Body(
+				app.A().ID(p.ID+"-page-top-bar-icon-link").Class("page-top-bar-icon-link").Href("/").Title("Navigate to the Satisfi Start/Home Page").Body(
 					app.Img().ID(p.ID+"-page-top-bar-icon-img").Class("page-top-bar-icon-img").Src("/web/images/icon-192.png"),
-					app.If(!smallScreen, app.Span().ID(p.ID+"-page-top-bar-icon-text").Class("page-top-bar-icon-text").Text("MealRec")),
+					app.If(!smallScreen, app.Span().ID(p.ID+"-page-top-bar-icon-text").Class("page-top-bar-icon-text").Text("Satisfi")),
 				),
 
 				app.Div().ID(p.ID+"-page-top-bar-buttons").Class("page-top-bar-buttons").Body(
-					app.If(p.updateAvailable, app.Button().ID(p.ID+"-page-top-bar-update-button").Class("page-top-bar-button", "page-top-bar-update-button").Text("Update").Title("Update to the Latest Version of MealRec").OnClick(p.UpdateApp)),
-					app.If(p.installAvailable, app.Button().ID(p.ID+"-page-top-bar-install-button").Class("page-top-bar-button", "page-top-bar-install-button").Text("Install").Title("Install MealRec to Your Device").OnClick(p.InstallApp)),
-					app.A().ID(p.ID+"-page-top-bar-account-button").Class("page-top-bar-button", "page-top-bar-account-button").Href("/account").Text("Account").Title("View and Change Account Information"),
+					app.If(p.updateAvailable, app.Button().ID(p.ID+"-page-top-bar-update-button").Class("page-top-bar-button", "page-top-bar-update-button").Text("Update").Title("Update to the Latest Version of Satisfi").OnClick(p.UpdateApp)),
+					app.If(p.installAvailable, app.Button().ID(p.ID+"-page-top-bar-install-button").Class("page-top-bar-button", "page-top-bar-install-button").Text("Install").Title("Install Satisfi to Your Device").OnClick(p.InstallApp)),
+					app.A().ID(p.ID+"-page-top-bar-account-button").Class("page-top-bar-button", "page-top-bar-account-button").Href("/account").Text("Account").Title("View and Change Account Information").Body(
+						app.Span().ID(p.ID+"-page-top-bar-account-button-text").Class("page-top-bar-account-button-text").Text(nameFirstLetter),
+					),
 				),
 			),
 			app.Dialog().ID(p.ID+"-page-status").Class("page-status").DataSet("is-error", p.isStatusError).Body(
@@ -53,7 +63,7 @@ func (p *Page) Render() app.UI {
 			p.Elements...,
 		),
 		app.Footer().ID(p.ID+"-page-footer").Class("page-footer").Body(
-			app.Span().Text("Copyright © 2023, MealRec"),
+			app.Span().Text("Copyright © 2023, Satisfi"),
 			app.A().Href("https://www.flaticon.com/free-icons/pizza").Title("pizza icons").Text("Pizza icons created by Freepik - Flaticon"),
 		),
 	}...)
@@ -77,10 +87,18 @@ func (p *Page) OnNav(ctx app.Context) {
 		return
 	}
 	CurrentPage = p
-	ctx.Page().SetTitle("MealRec | " + p.Title)
+	ctx.Page().SetTitle("Satisfi | " + p.Title)
 	ctx.Page().SetDescription(p.Description)
 	p.updateAvailable = ctx.AppUpdateAvailable()
 	p.installAvailable = ctx.IsAppInstallable()
+	p.user = GetCurrentUser(ctx)
+	p.person = GetCurrentPerson(ctx)
+	// if not signed in but person still set, clear person
+	if p.user == (User{}) && p.person != (Person{}) {
+		p.person = Person{}
+		SetCurrentPerson(p.person, ctx)
+	}
+
 	if p.OnNavFunc != nil {
 		p.OnNavFunc(ctx)
 	}

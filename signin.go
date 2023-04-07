@@ -16,7 +16,7 @@ func (s *signIn) Render() app.UI {
 	return &Page{
 		ID:                     "sign-in",
 		Title:                  "Sign In",
-		Description:            "Sign into MealRec",
+		Description:            "Sign into Satisfi",
 		AuthenticationRequired: false,
 		TitleElement:           "Sign In",
 		Elements: []app.UI{

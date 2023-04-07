@@ -9,7 +9,8 @@ import (
 
 type account struct {
 	app.Compo
-	user User
+	user   User
+	person Person
 }
 
 func (a *account) Render() app.UI {
@@ -20,8 +21,10 @@ func (a *account) Render() app.UI {
 		AuthenticationRequired: true,
 		OnNavFunc: func(ctx app.Context) {
 			a.user = GetCurrentUser(ctx)
+			a.person = GetCurrentPerson(ctx)
 		},
-		TitleElement: "Account",
+		TitleElement:    "Account",
+		SubtitleElement: "You are currently signed into " + a.user.Username + " as " + a.person.Name + ".",
 		Elements: []app.UI{
 			app.Div().ID("acount-page-top-action-button-row").Class("action-button-row").Body(
 				app.Button().ID("account-page-sign-out-button").Class("danger-action-button", "action-button").Text("Sign Out").OnClick(a.InitialSignOut),
@@ -68,6 +71,7 @@ func (a *account) ConfirmSignOut(ctx app.Context, event app.Event) {
 	// if no error, we are no longer authenticated
 	authenticated = time.UnixMilli(0)
 	ctx.LocalStorage().Del("currentUser")
+	ctx.LocalStorage().Del("currentPerson")
 
 	ctx.Navigate("/signin")
 }

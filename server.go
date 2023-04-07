@@ -21,8 +21,8 @@ const (
 
 func startServer() {
 	http.Handle("/", &app.Handler{
-		Name:  "MealRec",
-		Title: "MealRec",
+		Name:  "Satisfi",
+		Title: "Satisfi",
 		Icon: app.Icon{
 			Default: "/web/images/icon-192.png",
 			Large:   "/web/images/icon-512.png",

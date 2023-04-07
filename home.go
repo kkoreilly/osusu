@@ -26,7 +26,7 @@ func (h *home) Render() app.UI {
 	return &Page{
 		ID:                     "home",
 		Title:                  "Home",
-		Description:            "MealRec home",
+		Description:            "Satisfi home",
 		AuthenticationRequired: true,
 		OnNavFunc: func(ctx app.Context) {
 			h.person = GetCurrentPerson(ctx)
