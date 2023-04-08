@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"time"
 
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
@@ -103,7 +102,7 @@ func (m *meal) OnSubmit(ctx app.Context, event app.Event) {
 
 	_, err := UpdateMealAPI.Call(m.meal)
 	if err != nil {
-		log.Println(err)
+		CurrentPage.ShowStatus(err.Error(), StatusTypeNegative)
 		return
 	}
 	SetCurrentMeal(m.meal, ctx)
@@ -116,7 +115,7 @@ func (m *meal) ViewEntries(ctx app.Context, event app.Event) {
 
 	_, err := UpdateMealAPI.Call(m.meal)
 	if err != nil {
-		log.Println(err)
+		CurrentPage.ShowStatus(err.Error(), StatusTypeNegative)
 		return
 	}
 	SetCurrentMeal(m.meal, ctx)
@@ -134,7 +133,7 @@ func (m *meal) ConfirmDelete(ctx app.Context, event app.Event) {
 
 	_, err := DeleteMealAPI.Call(m.meal.ID)
 	if err != nil {
-		log.Println(err)
+		CurrentPage.ShowStatus(err.Error(), StatusTypeNegative)
 		return
 	}
 	SetCurrentMeal(Meal{}, ctx)

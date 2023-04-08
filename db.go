@@ -144,6 +144,14 @@ func DeleteMealDB(id int) error {
 	return err
 }
 
+// DeleteMealEntriesDB deletes the entries associated with the given meal id from the database
+func DeleteMealEntriesDB(mealID int) error {
+	statement := `DELETE FROM entries
+	WHERE meal_id = $1`
+	_, err := db.Exec(statement, mealID)
+	return err
+}
+
 // GetPeopleDB gets all of the people from the database that are associated with the given user id
 func GetPeopleDB(userID int) (People, error) {
 	statement := `SELECT id, name FROM people WHERE user_id=$1`
@@ -194,6 +202,12 @@ func DeletePersonDB(id int) error {
 	WHERE id = $1`
 	_, err := db.Exec(statement, id)
 	return err
+}
+
+// DeletePersonEntries deletes the entry ratings associated with the given person id
+func DeletePersonEntries(personID int) error {
+	// TODO
+	return nil
 }
 
 // GetEntriesDB gets the entries from the database that have the given user id

@@ -1,4 +1,4 @@
-module github.com/kplat1/mealrec
+module github.com/kplat1/satisfi
 
 go 1.19
 

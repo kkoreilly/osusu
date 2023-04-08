@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"sort"
 	"strconv"
 	"time"
@@ -42,7 +41,7 @@ func (e *entries) Render() app.UI {
 			e.options = GetOptions(ctx)
 			entries, err := GetEntriesForMealAPI.Call(e.meal.ID)
 			if err != nil {
-				log.Println(err)
+				CurrentPage.ShowStatus(err.Error(), StatusTypeNegative)
 				return
 			}
 			sort.Slice(entries, func(i, j int) bool {
@@ -64,7 +63,7 @@ func (e *entries) Render() app.UI {
 					colorH := strconv.Itoa((score * 12) / 10)
 					scoreText := strconv.Itoa(score)
 					missingData := entry.MissingData(e.person)
-					return app.Div().ID("entries-page-entry-"+si).Class("entries-page-entry").DataSet("missing-data", missingData).Style("--color-h", colorH).Style("--score-percent", scoreText+"%").
+					return app.Button().ID("entries-page-entry-"+si).Class("entries-page-entry").DataSet("missing-data", missingData).Style("--color-h", colorH).Style("--score-percent", scoreText+"%").
 						OnClick(func(ctx app.Context, event app.Event) { e.EntryOnClick(ctx, event, entry) }).Body(
 						app.Span().ID("entries-page-entry-date"+si).Class("entries-page-entry-date").Text(entry.Date.Format("Monday, January 2, 2006")),
 						app.Span().ID("entries-page-entry-score"+si).Class("entries-page-entry-score").Text(scoreText),
@@ -110,7 +109,7 @@ func (e *entries) New(ctx app.Context, event app.Event) {
 
 	entry, err := CreateEntryAPI.Call(newEntry)
 	if err != nil {
-		log.Println(err)
+		CurrentPage.ShowStatus(err.Error(), StatusTypeNegative)
 		return
 	}
 	SetCurrentEntry(entry, ctx)

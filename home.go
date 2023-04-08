@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"sort"
 	"strconv"
 
@@ -33,7 +32,7 @@ func (h *home) Render() app.UI {
 
 			people, err := GetPeopleAPI.Call(GetCurrentUser(ctx).ID)
 			if err != nil {
-				log.Println(err)
+				CurrentPage.ShowStatus(err.Error(), StatusTypeNegative)
 				return
 			}
 			h.people = people
@@ -52,14 +51,14 @@ func (h *home) Render() app.UI {
 
 			meals, err := GetMealsAPI.Call(GetCurrentUser(ctx).ID)
 			if err != nil {
-				log.Println(err)
+				CurrentPage.ShowStatus(err.Error(), StatusTypeNegative)
 				return
 			}
 			h.meals = meals
 
 			entries, err := GetEntriesAPI.Call(GetCurrentUser(ctx).ID)
 			if err != nil {
-				log.Println(err)
+				CurrentPage.ShowStatus(err.Error(), StatusTypeNegative)
 				return
 			}
 			h.entriesForEachMeal = make(map[int]Entries)
@@ -104,7 +103,7 @@ func (h *home) Render() app.UI {
 					colorH := strconv.Itoa((score * 12) / 10)
 					scoreText := strconv.Itoa(score)
 					missingData := entries.MissingData(h.person)
-					return app.Div().ID("home-page-meal-"+si).Class("home-page-meal").DataSet("missing-data", missingData).Style("--color-h", colorH).Style("--score-percent", scoreText+"%").
+					return app.Button().ID("home-page-meal-"+si).Class("home-page-meal").DataSet("missing-data", missingData).Style("--color-h", colorH).Style("--score-percent", scoreText+"%").
 						OnClick(func(ctx app.Context, e app.Event) { h.MealOnClick(ctx, e, meal) }).Body(
 						app.Span().ID("home-page-meal-name-"+si).Class("home-page-meal-name").Text(meal.Name),
 						app.Span().ID("home-page-meal-score-"+si).Class("home-page-meal-score").Text(scoreText),
@@ -134,7 +133,7 @@ func (h *home) Render() app.UI {
 func (h *home) New(ctx app.Context, e app.Event) {
 	meal, err := CreateMealAPI.Call(GetCurrentUser(ctx).ID)
 	if err != nil {
-		log.Println(err)
+		CurrentPage.ShowStatus(err.Error(), StatusTypeNegative)
 		return
 	}
 	// meal.Taste[h.person.ID] = 50

@@ -2,7 +2,7 @@
 
 build:
 	GOARCH=wasm GOOS=js go build -o web/app.wasm
-	go build -o ./mealrec
+	go build -o ./satisfi
 
 run: build
-	./mealrec
+	./satisfi

@@ -1,8 +1,6 @@
 package main
 
 import (
-	"log"
-
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
 )
 
@@ -59,7 +57,7 @@ func (p *person) OnSubmit(ctx app.Context, e app.Event) {
 	if p.person.Name != originalName {
 		_, err := UpdatePersonAPI.Call(p.person)
 		if err != nil {
-			log.Println(err)
+			CurrentPage.ShowStatus(err.Error(), StatusTypeNegative)
 			return
 		}
 		SetCurrentPerson(p.person, ctx)
@@ -78,7 +76,7 @@ func (p *person) ConfirmDelete(ctx app.Context, event app.Event) {
 
 	_, err := DeletePersonAPI.Call(p.person.ID)
 	if err != nil {
-		log.Println(err)
+		CurrentPage.ShowStatus(err.Error(), StatusTypeNegative)
 		return
 	}
 	SetCurrentPerson(Person{}, ctx)

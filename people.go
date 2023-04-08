@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"strconv"
 
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
@@ -24,7 +23,7 @@ func (p *people) Render() app.UI {
 		OnNavFunc: func(ctx app.Context) {
 			people, err := GetPeopleAPI.Call(GetCurrentUser(ctx).ID)
 			if err != nil {
-				log.Println(err)
+				CurrentPage.ShowStatus(err.Error(), StatusTypeNegative)
 				return
 			}
 			p.people = people
@@ -48,7 +47,7 @@ func (p *people) Render() app.UI {
 func (p *people) New(ctx app.Context, e app.Event) {
 	person, err := CreatePersonAPI.Call(GetCurrentUser(ctx).ID)
 	if err != nil {
-		log.Println(err)
+		CurrentPage.ShowStatus(err.Error(), StatusTypeNegative)
 		return
 	}
 	SetCurrentPerson(person, ctx)

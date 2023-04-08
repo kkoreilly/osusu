@@ -122,7 +122,7 @@ body {
     margin: 0;
     padding: 0;
     border: none;
-    background-color: hsl(120, 73%, 60%);
+    background-color: hsl(0, 0%, 60%);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -150,17 +150,25 @@ body {
 }
 
 .page-status-close-button:hover {
-    background-color: hsl(120, 73%, 40%);
+    background-color: hsl(0, 0%, 50%);
 }
 
-.page-status[data-is-error="true"] {
+.page-status[data-status-type="negative"] {
     background-color: red;
 }
 
-.page-status[data-is-error="true"] * {
+.page-status[data-status-type="negative"] * {
     color: white;
 }
 
-.page-status[data-is-error="true"] .page-status-close-button:hover {
-    background-color: hsl(0, 100%, 30%)
+.page-status[data-status-type="negative"] .page-status-close-button:hover {
+    background-color: hsl(0, 100%, 30%);
+}
+
+.page-status[data-status-type="positive"] {
+    background-color: hsl(120, 73%, 60%);
+}
+
+.page-status[data-status-type="positive"] .page-status-close-button:hover {
+    background-color: hsl(120, 73%, 40%);
 }

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"time"
 
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
@@ -64,7 +63,7 @@ func (a *account) ConfirmSignOut(ctx app.Context, event app.Event) {
 	if user.Session != "" {
 		_, err := SignOutAPI.Call(GetCurrentUser(ctx))
 		if err != nil {
-			log.Println(err)
+			CurrentPage.ShowStatus(err.Error(), StatusTypeNegative)
 			return
 		}
 	}
@@ -85,20 +84,29 @@ func (a *account) ChangeUsername(ctx app.Context, event app.Event) {
 	event.PreventDefault()
 	_, err := UpdateUsernameAPI.Call(a.user)
 	if err != nil {
-		CurrentPage.ShowStatus(err.Error(), true)
+		CurrentPage.ShowStatus(err.Error(), StatusTypeNegative)
 		return
 	}
-	CurrentPage.ShowStatus("Username Updated!", false)
+	CurrentPage.ShowStatus("Username Updated!", StatusTypePositive)
 	SetCurrentUser(a.user, ctx)
 }
 
 func (a *account) ChangePassword(ctx app.Context, event app.Event) {
 	event.PreventDefault()
-	_, err := UpdatePasswordAPI.Call(a.user)
-	if err != nil {
-		CurrentPage.ShowStatus(err.Error(), true)
-		return
-	}
-	CurrentPage.ShowStatus("Password Updated!", false)
-	SetCurrentUser(a.user, ctx)
+
+	CurrentPage.ShowStatus("Loading...", StatusTypeNeutral)
+
+	ctx.Defer(func(ctx app.Context) {
+		_, err := UpdatePasswordAPI.Call(a.user)
+		if err != nil {
+			CurrentPage.ShowStatus(err.Error(), StatusTypeNegative)
+			a.Update()
+			a.user.Password = ""
+			return
+		}
+		CurrentPage.ShowStatus("Password Updated!", StatusTypePositive)
+		a.Update()
+		a.user.Password = ""
+		SetCurrentUser(a.user, ctx)
+	})
 }

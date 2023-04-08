@@ -18,7 +18,7 @@ type Page struct {
 	SubtitleElement        string
 	Elements               []app.UI
 	statusText             string
-	isStatusError          bool
+	statusType             StatusType
 	updateAvailable        bool
 	installAvailable       bool
 	user                   User
@@ -52,7 +52,7 @@ func (p *Page) Render() app.UI {
 					),
 				),
 			),
-			app.Dialog().ID(p.ID+"-page-status").Class("page-status").DataSet("is-error", p.isStatusError).Body(
+			app.Dialog().ID(p.ID+"-page-status").Class("page-status").DataSet("status-type", p.statusType).Body(
 				app.Span().ID(p.ID+"-page-status-text").Class("page-status-text").Text(p.statusText),
 				app.Button().ID(p.ID+"-page-status-close-button").Class("page-status-close-button").Text("✕").OnClick(p.ClosePageStatus),
 			),
@@ -69,10 +69,10 @@ func (p *Page) Render() app.UI {
 	}...)
 }
 
-// ShowStatus shows the page status dialog with the given status text in the given error mode
-func (p *Page) ShowStatus(text string, isError bool) {
+// ShowStatus shows the page status dialog with the given status text with the given status type
+func (p *Page) ShowStatus(text string, statusType StatusType) {
 	p.statusText = text
-	p.isStatusError = isError
+	p.statusType = statusType
 	app.Window().GetElementByID(p.ID + "-page-status").Call("show")
 }
 

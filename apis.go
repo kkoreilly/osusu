@@ -160,7 +160,11 @@ var UpdateMealAPI = NewAPI(http.MethodPut, "/api/updateMeal", func(meal Meal) (s
 // DeleteMealAPI deletes the given meal from the database.
 // It returns a confirmation string if successful and an error if not.
 var DeleteMealAPI = NewAPI(http.MethodDelete, "/api/deleteMeal", func(id int) (string, error) {
-	err := DeleteMealDB(id)
+	err := DeleteMealEntriesDB(id)
+	if err != nil {
+		return "", err
+	}
+	err = DeleteMealDB(id)
 	if err != nil {
 		return "", err
 	}

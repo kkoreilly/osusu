@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"time"
 
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
@@ -113,7 +112,7 @@ func (e *entry) OnSubmit(ctx app.Context, event app.Event) {
 
 	_, err := UpdateEntryAPI.Call(e.entry)
 	if err != nil {
-		log.Println(err)
+		CurrentPage.ShowStatus(err.Error(), StatusTypeNegative)
 		return
 	}
 	SetCurrentEntry(e.entry, ctx)
@@ -131,7 +130,7 @@ func (e *entry) ConfirmDelete(ctx app.Context, event app.Event) {
 
 	_, err := DeleteEntryAPI.Call(e.entry.ID)
 	if err != nil {
-		log.Println(err)
+		CurrentPage.ShowStatus(err.Error(), StatusTypeNegative)
 		return
 	}
 	SetCurrentEntry(Entry{}, ctx)
