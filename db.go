@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"errors"
+	"os"
 	"time"
 
 	"github.com/lib/pq"
@@ -15,7 +16,7 @@ var db *sql.DB
 // ConnectToDB connects to the database
 func ConnectToDB() error {
 	var err error
-	db, err = sql.Open("postgres", "user=postgres password=postgres dbname=postgres sslmode=disable")
+	db, err = sql.Open("postgres", os.Getenv("DATABASE_URL"))
 	return err
 }
 

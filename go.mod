@@ -1,4 +1,4 @@
-module github.com/kplat1/satisfi
+module github.com/kplat1/osusu
 
 go 1.19
 

@@ -39,14 +39,14 @@ func (p *Page) Render() app.UI {
 	return app.Div().ID(p.ID + "-page-container").Class("page-container").Body([]app.UI{
 		app.Header().ID(p.ID+"-page-header").Class("page-header").Body(
 			app.Div().ID(p.ID+"-page-top-bar").Class("page-top-bar").Body(
-				app.A().ID(p.ID+"-page-top-bar-icon-link").Class("page-top-bar-icon-link").Href("/").Title("Navigate to the Satisfi Start/Home Page").Body(
+				app.A().ID(p.ID+"-page-top-bar-icon-link").Class("page-top-bar-icon-link").Href("/").Title("Navigate to the Osusu Start/Home Page").Body(
 					app.Img().ID(p.ID+"-page-top-bar-icon-img").Class("page-top-bar-icon-img").Src("/web/images/icon-192.png"),
-					app.If(!smallScreen, app.Span().ID(p.ID+"-page-top-bar-icon-text").Class("page-top-bar-icon-text").Text("Satisfi")),
+					app.If(!smallScreen, app.Span().ID(p.ID+"-page-top-bar-icon-text").Class("page-top-bar-icon-text").Text("Osusu")),
 				),
 
 				app.Div().ID(p.ID+"-page-top-bar-buttons").Class("page-top-bar-buttons").Body(
-					app.If(p.updateAvailable, app.Button().ID(p.ID+"-page-top-bar-update-button").Class("page-top-bar-button", "page-top-bar-update-button").Text("Update").Title("Update to the Latest Version of Satisfi").OnClick(p.UpdateApp)),
-					app.If(p.installAvailable, app.Button().ID(p.ID+"-page-top-bar-install-button").Class("page-top-bar-button", "page-top-bar-install-button").Text("Install").Title("Install Satisfi to Your Device").OnClick(p.InstallApp)),
+					app.If(p.updateAvailable, app.Button().ID(p.ID+"-page-top-bar-update-button").Class("page-top-bar-button", "page-top-bar-update-button").Text("Update").Title("Update to the Latest Version of Osusu").OnClick(p.UpdateApp)),
+					app.If(p.installAvailable, app.Button().ID(p.ID+"-page-top-bar-install-button").Class("page-top-bar-button", "page-top-bar-install-button").Text("Install").Title("Install Osusu to Your Device").OnClick(p.InstallApp)),
 					app.A().ID(p.ID+"-page-top-bar-account-button").Class("page-top-bar-button", "page-top-bar-account-button").Href("/account").Text("Account").Title("View and Change Account Information").Body(
 						app.Span().ID(p.ID+"-page-top-bar-account-button-text").Class("page-top-bar-account-button-text").Text(nameFirstLetter),
 					),
@@ -63,7 +63,7 @@ func (p *Page) Render() app.UI {
 			p.Elements...,
 		),
 		app.Footer().ID(p.ID+"-page-footer").Class("page-footer").Body(
-			app.Span().Text("Copyright © 2023, Satisfi"),
+			app.Span().Text("Copyright © 2023, Osusu"),
 			app.A().Href("https://www.flaticon.com/free-icons/pizza").Title("pizza icons").Text("Pizza icons created by Freepik - Flaticon"),
 		),
 	}...)
@@ -87,7 +87,7 @@ func (p *Page) OnNav(ctx app.Context) {
 		return
 	}
 	CurrentPage = p
-	ctx.Page().SetTitle("Satisfi | " + p.Title)
+	ctx.Page().SetTitle("Osusu | " + p.Title)
 	ctx.Page().SetDescription(p.Description)
 	p.updateAvailable = ctx.AppUpdateAvailable()
 	p.installAvailable = ctx.IsAppInstallable()

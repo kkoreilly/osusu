@@ -10,7 +10,7 @@ import (
 const TemporarySessionLength = 3 * time.Hour
 
 // RememberMeSessionLength is how long the user's session will be saved with remember me
-const RememberMeSessionLength = 30 * 24 * time.Hour
+const RememberMeSessionLength = 90 * 24 * time.Hour
 
 // authenticated is when, if ever, the user has already been authenticated in this session of the app. This information is used to skip unnecessary additional authentication requests in the same session.
 var authenticated time.Time

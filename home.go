@@ -29,7 +29,7 @@ func (h *home) Render() app.UI {
 	return &Page{
 		ID:                     "home",
 		Title:                  "Home",
-		Description:            "Satisfi home",
+		Description:            "Osusu home",
 		AuthenticationRequired: true,
 		OnNavFunc: func(ctx app.Context) {
 			h.user = GetCurrentUser(ctx)
@@ -55,6 +55,7 @@ func (h *home) Render() app.UI {
 				h.options = DefaultOptions(h.user)
 			}
 			h.options = h.options.RemoveInvalidCuisines(h.user.Cuisines)
+			SetOptions(h.options, ctx)
 			h.peopleOptions = make(map[string]bool)
 			for _, p := range h.people {
 				if _, ok := h.options.People[p.ID]; !ok {
@@ -111,19 +112,21 @@ func (h *home) Render() app.UI {
 						return app.Text("")
 					}
 
-					// check if at least one entry satisfies the type and source requirements.
-					gotType := false
-					gotSource := false
-					for _, entry := range entries {
-						if entry.Type == h.options.Type {
-							gotType = true
+					// check if at least one entry satisfies the type and source requirements if there is at least one entry.
+					if len(entries) > 0 {
+						gotType := false
+						gotSource := false
+						for _, entry := range entries {
+							if entry.Type == h.options.Type {
+								gotType = true
+							}
+							if h.options.Source[entry.Source] {
+								gotSource = true
+							}
 						}
-						if h.options.Source[entry.Source] {
-							gotSource = true
+						if !(gotType && gotSource) {
+							return app.Text("")
 						}
-					}
-					if !(gotType && gotSource) {
-						return app.Text("")
 					}
 
 					score := meal.Score(entries, h.options)
