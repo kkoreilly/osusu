@@ -71,6 +71,21 @@ var SignInAPI = NewAPI(http.MethodPost, "/api/signIn", func(user User) (User, er
 	return user, nil
 })
 
+// GetUserCuisinesAPI gets the cuisines of the user with the given user id.
+var GetUserCuisinesAPI = NewAPI(http.MethodGet, "/api/getUserCuisines", func(userID int) ([]string, error) {
+	return GetUserCuisinesDB(userID)
+})
+
+// UpdateUserCuisinesAPI updates the cuisines of the given user to be the cuisines value of the provided user.
+// It returns a confirmation string if successful and an error if not.
+var UpdateUserCuisinesAPI = NewAPI(http.MethodPut, "/api/updateUserCuisines", func(user User) (string, error) {
+	err := UpdateUserCuisinesDB(user)
+	if err != nil {
+		return "", err
+	}
+	return "updated user cuisines", nil
+})
+
 // UpdateUsernameAPI updates the username of the given user to be the username value of the provided user.
 // It returns a confirmation string if successful and an error if not.
 var UpdateUsernameAPI = NewAPI(http.MethodPut, "/api/updateUsername", func(user User) (string, error) {

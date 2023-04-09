@@ -50,11 +50,12 @@ func NewRadioChips(id string, label string, defaultValue string, value *string, 
 // CheckboxChips is a component that has multiple chips, of which any number can be selected
 type CheckboxChips struct {
 	app.Compo
-	ID      string
-	Label   string
-	Default map[string]bool
-	Value   *map[string]bool
-	Options []string
+	ID       string
+	Label    string
+	Default  map[string]bool
+	Value    *map[string]bool
+	Options  []string
+	OnChange func(ctx app.Context, e app.Event, val string)
 }
 
 // Render returns the UI of the CheckboxChips component, which has multiple checkbox chips
@@ -67,13 +68,24 @@ func (c *CheckboxChips) Render() app.UI {
 				val := c.Options[i]
 				return app.Label().ID(c.ID+"-chip-label-"+si).Class("chip-label").For(c.ID+"-chip-input-"+si).DataSet("checked", (*c.Value)[val]).Body(
 					app.Input().ID(c.ID+"-chip-input-"+si).Class("chip-input").Type("checkbox").Name(c.ID).Checked((*c.Value)[val]).OnChange(func(ctx app.Context, e app.Event) {
+						// need to get val again to get updated value
+						val := c.Options[i]
 						(*c.Value)[val] = e.Get("target").Get("checked").Bool()
+						if c.OnChange != nil {
+							c.OnChange(ctx, e, val)
+						}
 					}),
 					app.Text(val),
 				)
 			}),
 		),
 	)
+}
+
+// SetOnChange sets the on change function of the checkbox chips to the given value and returns the update checkbox chips
+func (c *CheckboxChips) SetOnChange(onChangeFunc func(ctx app.Context, e app.Event, val string)) *CheckboxChips {
+	c.OnChange = onChangeFunc
+	return c
 }
 
 // OnInit is called when the component is loaded, and it sets the value to the default value

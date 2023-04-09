@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/lib/pq"
 	_ "github.com/lib/pq"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -21,9 +22,9 @@ func ConnectToDB() error {
 // CreateUserDB creates a user in the database and returns the created user if successful and an error if not
 func CreateUserDB(user User) (User, error) {
 	statement := `INSERT INTO users (username, password)
-	VALUES ($1, $2) RETURNING id`
+	VALUES ($1, $2) RETURNING id, cuisines`
 	row := db.QueryRow(statement, user.Username, user.Password)
-	err := row.Scan(&user.ID)
+	err := row.Scan(&user.ID, pq.Array(&user.Cuisines))
 	if err != nil {
 		return User{}, err
 	}
@@ -32,10 +33,10 @@ func CreateUserDB(user User) (User, error) {
 
 // SignInDB checks whether a specific user can sign into the database and returns the user if they can and an error if they can't
 func SignInDB(user User) (User, error) {
-	statement := `SELECT id, password FROM users WHERE username=$1`
+	statement := `SELECT id, password, cuisines FROM users WHERE username=$1`
 	row := db.QueryRow(statement, user.Username)
 	var password string
-	err := row.Scan(&user.ID, &password)
+	err := row.Scan(&user.ID, &password, pq.Array(&user.Cuisines))
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return User{}, errors.New("no user with the given username exists")
@@ -50,6 +51,27 @@ func SignInDB(user User) (User, error) {
 		return User{}, err
 	}
 	return user, nil
+}
+
+// GetUserCuisinesDB gets the cuisines value of the user with the given id from the database
+func GetUserCuisinesDB(userID int) ([]string, error) {
+	statement := `SELECT cuisines FROM users WHERE id = $1`
+	row := db.QueryRow(statement, userID)
+	var cuisines []string
+	err := row.Scan(pq.Array(&cuisines))
+	if err != nil {
+		return nil, err
+	}
+	return cuisines, nil
+}
+
+// UpdateUserCuisinesDB updates the cuisines value of the given user in the database to its cuisines value
+func UpdateUserCuisinesDB(user User) error {
+	statement := `UPDATE users
+	SET cuisines = $1
+	WHERE id = $2`
+	_, err := db.Exec(statement, pq.Array(user.Cuisines), user.ID)
+	return err
 }
 
 // UpdateUsernameDB updates the username of the given user in the database to its username value
@@ -96,7 +118,7 @@ func DeleteSessionDB(id string) error {
 
 // GetMealsDB gets the meals from the database that are associated with the given user id
 func GetMealsDB(userID int) (Meals, error) {
-	statement := `SELECT id, name, description FROM meals WHERE user_id=$1`
+	statement := `SELECT id, name, description, cuisine FROM meals WHERE user_id=$1`
 	rows, err := db.Query(statement, userID)
 	if err != nil {
 		return nil, err
@@ -105,7 +127,7 @@ func GetMealsDB(userID int) (Meals, error) {
 	var res Meals
 	for rows.Next() {
 		var meal Meal
-		err := rows.Scan(&meal.ID, &meal.Name, &meal.Description)
+		err := rows.Scan(&meal.ID, &meal.Name, &meal.Description, pq.Array(&meal.Cuisine))
 		if err != nil {
 			return nil, err
 		}
@@ -130,9 +152,9 @@ func CreateMealDB(userID int) (Meal, error) {
 // UpdateMealDB updates a meal in the database
 func UpdateMealDB(meal Meal) error {
 	statement := `UPDATE meals
-	SET name = $1, description = $2
-	WHERE id = $3`
-	_, err := db.Exec(statement, meal.Name, meal.Description, meal.ID)
+	SET name = $1, description = $2, cuisine = $3
+	WHERE id = $4`
+	_, err := db.Exec(statement, meal.Name, meal.Description, pq.Array(meal.Cuisine), meal.ID)
 	return err
 }
 

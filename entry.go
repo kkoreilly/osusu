@@ -36,6 +36,32 @@ func (e Entry) MissingData(person Person) bool {
 	return !(e.Cost.HasValueSet(person) && e.Effort.HasValueSet(person) && e.Healthiness.HasValueSet(person) && e.Taste.HasValueSet(person))
 }
 
+// FixMissingData fixes any missing data for the given person for the given entry by setting their values to the average of everyone else's ratings and returning the updated entry
+func (e Entry) FixMissingData(person Person) Entry {
+	if !e.Cost.HasValueSet(person) {
+		e.Cost[person.ID] = e.Cost.Average()
+	}
+	if !e.Effort.HasValueSet(person) {
+		e.Effort[person.ID] = e.Effort.Average()
+	}
+	if !e.Healthiness.HasValueSet(person) {
+		e.Healthiness[person.ID] = e.Healthiness.Average()
+	}
+	if !e.Taste.HasValueSet(person) {
+		e.Taste[person.ID] = e.Taste.Average()
+	}
+	return e
+}
+
+// RemoveInvalid returns the entry with all invalid entries associated with nonexistent people removed
+func (e Entry) RemoveInvalid(people People) Entry {
+	e.Cost.RemoveInvalid(people)
+	e.Effort.RemoveInvalid(people)
+	e.Healthiness.RemoveInvalid(people)
+	e.Taste.RemoveInvalid(people)
+	return e
+}
+
 // SetCurrentEntry sets the current entry state value to the given entry
 func SetCurrentEntry(entry Entry, ctx app.Context) {
 	ctx.SetState("currentEntry", entry, app.Persist)
@@ -62,20 +88,14 @@ func (e *entry) Render() app.UI {
 		AuthenticationRequired: true,
 		OnNavFunc: func(ctx app.Context) {
 			e.entry = GetCurrentEntry(ctx)
+			people, err := GetPeopleAPI.Call(GetCurrentUser(ctx).ID)
+			if err != nil {
+				CurrentPage.ShowStatus(err.Error(), StatusTypeNegative)
+				return
+			}
+			e.entry = e.entry.RemoveInvalid(people)
 			e.person = GetCurrentPerson(ctx)
-			// if the person is missing data for this entry, set their value to the average of all other people's ratings
-			if !e.entry.Cost.HasValueSet(e.person) {
-				e.entry.Cost[e.person.ID] = e.entry.Cost.Average()
-			}
-			if !e.entry.Effort.HasValueSet(e.person) {
-				e.entry.Effort[e.person.ID] = e.entry.Effort.Average()
-			}
-			if !e.entry.Healthiness.HasValueSet(e.person) {
-				e.entry.Healthiness[e.person.ID] = e.entry.Healthiness.Average()
-			}
-			if !e.entry.Taste.HasValueSet(e.person) {
-				e.entry.Taste[e.person.ID] = e.entry.Taste.Average()
-			}
+			e.entry = e.entry.FixMissingData(e.person)
 		},
 		TitleElement: "Edit Entry (" + e.person.Name + ")",
 		Elements: []app.UI{

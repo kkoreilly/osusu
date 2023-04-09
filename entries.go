@@ -44,10 +44,21 @@ func (e *entries) Render() app.UI {
 				CurrentPage.ShowStatus(err.Error(), StatusTypeNegative)
 				return
 			}
+			e.entries = entries
 			sort.Slice(entries, func(i, j int) bool {
+				// prioritize entries with missing data, then date
+				entryI := e.entries[i]
+				iMissingData := entryI.MissingData(e.person)
+				entryJ := e.entries[j]
+				jMissingData := entryJ.MissingData(e.person)
+				if iMissingData && !jMissingData {
+					return true
+				}
+				if !iMissingData && jMissingData {
+					return false
+				}
 				return entries[i].Date.After(entries[j].Date)
 			})
-			e.entries = entries
 		},
 		TitleElement: "Entries for " + e.meal.Name,
 		Elements: []app.UI{
@@ -65,7 +76,7 @@ func (e *entries) Render() app.UI {
 					missingData := entry.MissingData(e.person)
 					return app.Button().ID("entries-page-entry-"+si).Class("entries-page-entry").DataSet("missing-data", missingData).Style("--color-h", colorH).Style("--score-percent", scoreText+"%").
 						OnClick(func(ctx app.Context, event app.Event) { e.EntryOnClick(ctx, event, entry) }).Body(
-						app.Span().ID("entries-page-entry-date"+si).Class("entries-page-entry-date").Text(entry.Date.Format("Monday, January 2, 2006")),
+						app.Span().ID("entries-page-entry-date"+si).Class("entries-page-entry-date").Text(entry.Date.Format("1/2/2006")),
 						app.Span().ID("entries-page-entry-score"+si).Class("entries-page-entry-score").Text(scoreText),
 					)
 				}),
@@ -92,18 +103,20 @@ func (e *entries) New(ctx app.Context, event app.Event) {
 		Taste:       PersonMap{e.person.ID: 50},
 	}
 	// if there are previous entries, copy the values from the latest (the entries are already sorted with the latest first by OnNav)
+	// we only copy the person map values for the person creating the new entry.
 	if len(e.entries) > 0 {
 		previousEntry := e.entries[0]
+		previousEntry = previousEntry.FixMissingData(e.person)
 		newEntry = Entry{
 			UserID:      GetCurrentUser(ctx).ID,
 			MealID:      e.meal.ID,
 			Date:        time.Now(),
 			Type:        previousEntry.Type,
 			Source:      previousEntry.Source,
-			Cost:        previousEntry.Cost,
-			Effort:      previousEntry.Effort,
-			Healthiness: previousEntry.Healthiness,
-			Taste:       previousEntry.Taste,
+			Cost:        PersonMap{e.person.ID: previousEntry.Cost[e.person.ID]},
+			Effort:      PersonMap{e.person.ID: previousEntry.Effort[e.person.ID]},
+			Healthiness: PersonMap{e.person.ID: previousEntry.Healthiness[e.person.ID]},
+			Taste:       PersonMap{e.person.ID: previousEntry.Taste[e.person.ID]},
 		}
 	}
 

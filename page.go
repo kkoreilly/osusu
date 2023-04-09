@@ -32,7 +32,7 @@ var CurrentPage *Page
 func (p *Page) Render() app.UI {
 	width, _ := app.Window().Size()
 	smallScreen := width <= 480
-	nameFirstLetter := "-"
+	nameFirstLetter := ""
 	if len(p.person.Name) > 0 {
 		nameFirstLetter = string(unicode.ToUpper(rune(p.person.Name[0])))
 	}
@@ -94,7 +94,7 @@ func (p *Page) OnNav(ctx app.Context) {
 	p.user = GetCurrentUser(ctx)
 	p.person = GetCurrentPerson(ctx)
 	// if not signed in but person still set, clear person
-	if p.user == (User{}) && p.person != (Person{}) {
+	if p.user.Username == "" && p.person != (Person{}) {
 		p.person = Person{}
 		SetCurrentPerson(p.person, ctx)
 	}

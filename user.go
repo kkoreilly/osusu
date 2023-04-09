@@ -9,6 +9,7 @@ type User struct {
 	ID         int
 	Username   string
 	Password   string
+	Cuisines   []string
 	Session    string // session id, not part of user in user database, but stored locally
 	RememberMe bool   // also not part of user database, but used to transmit whether to save session
 }

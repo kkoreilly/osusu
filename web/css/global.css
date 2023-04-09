@@ -19,7 +19,7 @@
 
 .action-button {
     cursor: pointer;
-    border-radius: 7%;
+    border-radius: 7px;
     font-size: 20px;
     padding: 20px;
     text-decoration: none;
@@ -76,6 +76,10 @@
     flex-direction: column;
     align-items: center;
     row-gap: 10px;
+    margin: 10px;
+    width: min(80vw, 700px);
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .status-text {

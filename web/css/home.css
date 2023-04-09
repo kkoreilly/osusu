@@ -3,10 +3,11 @@
     cursor: pointer;
     display: flex;
     justify-content: space-between;
-    width: clamp(70px, var(--score-percent), calc(100% - 20px));
+    width: clamp(70px, var(--score-percent), calc(100%));
     background-color: hsl(var(--color-h), 100%, 50%);
     border: none;
     font-size: medium;
+    column-gap: 5px;
 }
 
 .home-page-meal:hover {

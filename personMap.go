@@ -48,6 +48,21 @@ func (p *PersonMap) HasValueSet(person Person) bool {
 	return ok
 }
 
+// RemoveInvalid removes entries from the person map that are associated with nonexistent people
+func (p *PersonMap) RemoveInvalid(people People) {
+	for personID := range *p {
+		got := false
+		for _, person := range people {
+			if personID == person.ID {
+				got = true
+			}
+		}
+		if !got {
+			delete(*p, personID)
+		}
+	}
+}
+
 // Scan scans the provided value onto the PersonMap
 func (p *PersonMap) Scan(value any) error {
 	hStore := &hstore.Hstore{}
