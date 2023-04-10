@@ -8,6 +8,8 @@
     border: none;
     font-size: medium;
     column-gap: 5px;
+    color: black;
+    margin: 0;
 }
 
 .home-page-meal:hover {

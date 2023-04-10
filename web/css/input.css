@@ -23,7 +23,7 @@
 .input-range {
     -webkit-appearance: none;
     appearance: none;
-    height: 25px;
+    height: 35px;
     background-color: lightgray;
     padding: 0;
     overflow: hidden;
@@ -40,8 +40,8 @@
 .input-range::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 25px;
-    height: 25px;
+    width: 35px;
+    height: 35px;
     background-color: var(--thumb-color);
     cursor: ew-resize;
     box-shadow: -100vw 0 0 100vw var(--progress-color);
@@ -50,8 +50,8 @@
 .input-range::-moz-range-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 25px;
-    height: 25px;
+    width: 35px;
+    height: 35px;
     background-color: var(--thumb-color);
     cursor: ew-resize;
     border: none;
@@ -60,7 +60,7 @@
 
 .input-range::-moz-range-progress {
     background-color: var(--progress-color);
-    height: 25px;
+    height: 35px;
 }
 
 .input-textarea {

@@ -27,7 +27,7 @@ func startServer() {
 			Default: "/web/images/icon-192.png",
 			Large:   "/web/images/icon-512.png",
 		},
-		Description: "An app for getting recommendations on what meals to eat",
+		Description: "Osusu is an app for getting recommendations on what meals to eat in a group based on the ratings of each member of the group, and the cost, effort, healthiness, and recency of the meal.",
 		Styles: []string{
 			"https://fonts.googleapis.com/css?family=Roboto",
 			"/web/css/global.css",

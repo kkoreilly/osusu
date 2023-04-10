@@ -9,6 +9,8 @@
     font-size: medium;
     column-gap: 5px;
     flex-wrap: wrap;
+    color: black;
+    margin: 0;
 }
 
 .entries-page-entry:hover {
