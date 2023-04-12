@@ -24,8 +24,9 @@ func startServer() {
 		Name:  "Osusu",
 		Title: "Osusu",
 		Icon: app.Icon{
-			Default: "/web/images/icon-192.png",
-			Large:   "/web/images/icon-512.png",
+			Default:    "/web/images/icon-192.png",
+			Large:      "/web/images/icon-512.png",
+			AppleTouch: "/web/images/icon-apple-touch.png",
 		},
 		Description: "Osusu is an app for getting recommendations on what meals to eat in a group based on the ratings of each member of the group, and the cost, effort, healthiness, and recency of the meal.",
 		Styles: []string{
