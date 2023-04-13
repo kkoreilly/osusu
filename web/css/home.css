@@ -28,6 +28,15 @@
     font-weight: bold;
 }
 
+#home-page-options {
+    padding: 0;
+}
+
+#home-page-options-form {
+    padding: 1em;
+    margin: 0;
+}
+
 #home-page-options-cost-input {
     --thumb-color: orange;
     --progress-color: hsl(39, 100%, 70%);

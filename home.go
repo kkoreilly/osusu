@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"sort"
 	"strconv"
 
@@ -90,8 +91,8 @@ func (h *home) Render() app.UI {
 		TitleElement: "Welcome, " + h.person.Name,
 		Elements: []app.UI{
 			app.Div().ID("home-page-action-button-row").Class("action-button-row").Body(
-				app.Button().ID("home-page-options-button").Class("secondary-action-button", "action-button").Text("Options").OnClick(h.ShowOptions),
-				app.Button().ID("home-page-new-button").Class("primary-action-button", "action-button").Text("New").OnClick(h.New),
+				app.Button().ID("home-page-new-button").Class("secondary-action-button", "action-button").Text("New Meal").OnClick(h.New),
+				app.Button().ID("home-page-options-button").Class("primary-action-button", "action-button").Text("Search").OnClick(h.ShowOptions),
 			),
 			app.Div().ID("home-page-meals-container").Body(
 				app.Range(h.meals).Slice(func(i int) app.UI {
@@ -140,10 +141,10 @@ func (h *home) Render() app.UI {
 					)
 				}),
 			),
-			app.Dialog().ID("home-page-options").Body(
-				app.Form().ID("home-page-options-form").Class("form").OnSubmit(h.SaveOptions).Body(
-					NewCheckboxChips("home-page-options", "Who are you eating with?", map[string]bool{}, &h.peopleOptions, peopleString...),
+			app.Dialog().ID("home-page-options").OnClick(h.OptionsOnClick).Body(
+				app.Form().ID("home-page-options-form").Class("form").OnSubmit(h.SaveOptions).OnClick(h.OptionsFormOnClick).Body(
 					NewRadioChips("home-page-options-type", "What meal are you eating?", "Dinner", &h.options.Type, mealTypes...),
+					NewCheckboxChips("home-page-options", "Who are you eating with?", map[string]bool{}, &h.peopleOptions, peopleString...),
 					NewCheckboxChips("home-page-options-source", "What meal sources are okay?", map[string]bool{"Cooking": true, "Dine-In": true, "Takeout": true}, &h.options.Source, mealSources...),
 					NewCheckboxChips("home-page-options-cuisine", "What cuisines are okay?", map[string]bool{"American": true}, &h.options.Cuisine, append(cuisines, "+")...).SetOnChange(h.CuisinesOnChange),
 					newCuisinesDialog("home-page", h.CuisinesDialogOnSave),
@@ -155,12 +156,23 @@ func (h *home) Render() app.UI {
 
 					app.Div().ID("home-page-options-action-button-row").Class("action-button-row").Body(
 						app.Input().ID("home-page-options-cancel-button").Class("secondary-action-button", "action-button").Type("button").Value("Cancel").OnClick(h.CancelOptions),
-						app.Input().ID("home-page-options-save-button").Class("primary-action-button", "action-button").Type("submit").Value("Save"),
+						app.Input().ID("home-page-options-save-button").Class("primary-action-button", "action-button").Type("submit").Value("Search"),
 					),
 				),
 			),
 		},
 	}
+}
+
+func (h *home) OptionsOnClick(ctx app.Context, e app.Event) {
+	// if the options dialog on click event is triggered, close the options because the dialog includes the whole page and a separate event will cancel this if they actually clicked on the dialog
+	h.SaveOptions(ctx, e)
+}
+
+func (h *home) OptionsFormOnClick(ctx app.Context, e app.Event) {
+	log.Println("options form on click")
+	// cancel the closing of the dialog if they actually
+	e.Call("stopPropagation")
 }
 
 func (h *home) New(ctx app.Context, e app.Event) {
@@ -183,6 +195,7 @@ func (h *home) ShowOptions(ctx app.Context, e app.Event) {
 }
 
 func (h *home) CancelOptions(ctx app.Context, e app.Event) {
+	h.options = GetOptions(ctx)
 	app.Window().GetElementByID("home-page-options").Call("close")
 }
 

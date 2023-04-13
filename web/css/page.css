@@ -1,5 +1,11 @@
-body {
+body,
+html,
+.page-container,
+.page-header,
+.page-main,
+.page-footer {
     margin: 0;
+    padding: 0;
 }
 
 .page-container {
