@@ -2,16 +2,17 @@
     font-family: 'Roboto', sans-serif;
 }
 
+/* 1rem = 10px on desktop, 8px on mobile by default */
 :root {
     --amber: hsl(49, 95%, 55%);
     --dark-amber: hsl(49, 95%, 40%);
     --amaranth: hsl(341, 83%, 53%);
-    font-size: 125%;
+    font-size: 62.5%;
 }
 
 @media only screen and (max-width: 400px) {
     :root {
-        font-size: 100%;
+        font-size: 50%;
     }
 }
 
