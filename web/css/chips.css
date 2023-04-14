@@ -58,7 +58,7 @@
     cursor: pointer;
     display: flex;
     border-radius: 100px;
-    background-color: yellow;
+    background-color: hsl(39, 77%, 83%);
     flex-wrap: wrap;
     -webkit-user-select: none;
     -ms-user-select: none;

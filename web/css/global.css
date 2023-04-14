@@ -6,6 +6,13 @@
     --amber: hsl(49, 95%, 55%);
     --dark-amber: hsl(49, 95%, 40%);
     --amaranth: hsl(341, 83%, 53%);
+    font-size: 125%;
+}
+
+@media only screen and (max-width: 400px) {
+    :root {
+        font-size: 100%;
+    }
 }
 
 .action-button-row {
@@ -20,7 +27,7 @@
 .action-button {
     cursor: pointer;
     border-radius: 7px;
-    font-size: 20px;
+    font-size: 1rem;
     padding: 20px;
     text-decoration: none;
 }
@@ -66,12 +73,12 @@
 }
 
 .confirm-delete-text {
-    font-size: 20px;
+    font-size: 1rem;
     text-align: center;
     font-weight: bold;
 }
 
-dialog {
+dialog:modal {
     border: 2px solid black;
     border-radius: 20px;
     max-height: 70vh;
@@ -89,7 +96,7 @@ dialog {
 }
 
 .status-text {
-    font-size: 20px;
+    font-size: 1rem;
     text-align: center;
     font-weight: bold;
 }
