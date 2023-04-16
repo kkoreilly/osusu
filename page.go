@@ -13,6 +13,7 @@ type Page struct {
 	Title                  string
 	Description            string
 	AuthenticationRequired bool
+	PreOnNavFunc           func(ctx app.Context)
 	OnNavFunc              func(ctx app.Context)
 	TitleElement           string
 	SubtitleElement        string
@@ -76,18 +77,32 @@ func (p *Page) ShowStatus(text string, statusType StatusType) {
 	app.Window().GetElementByID(p.ID + "-page-status").Call("show")
 }
 
+// ShowErrorStatus is a shorthand for ShowStatus(err.Error(), StatusTypeNegative)
+func (p *Page) ShowErrorStatus(err error) {
+	p.ShowStatus(err.Error(), StatusTypeNegative)
+}
+
 // ClosePageStatus closes the page status dialog
 func (p *Page) ClosePageStatus(ctx app.Context, event app.Event) {
 	app.Window().GetElementByID(p.ID + "-page-status").Call("close")
 }
 
-// OnNav is called when the page is navigated to. It authenticates the user, sets the title and description, sets the update and install states, and calls the specified OnNav function.
+// UpdatePageTitle updates the title of the page to the value set in the page's Title field
+func (p *Page) UpdatePageTitle(ctx app.Context) {
+	ctx.Page().SetTitle("Osusu | " + p.Title)
+}
+
+// OnNav is called when the page is navigated to. It calls the specified PreOnNav function, authenticates the user, sets the title and description, sets the update and install states, and calls the specified OnNav function. The specified PreOnNav function is called before all other steps, including authentication.
 func (p *Page) OnNav(ctx app.Context) {
+	if p.PreOnNavFunc != nil {
+		p.PreOnNavFunc(ctx)
+	}
+
 	if Authenticate(p.AuthenticationRequired, ctx) {
 		return
 	}
 	CurrentPage = p
-	ctx.Page().SetTitle("Osusu | " + p.Title)
+	p.UpdatePageTitle(ctx)
 	ctx.Page().SetDescription(p.Description)
 	p.updateAvailable = ctx.AppUpdateAvailable()
 	p.installAvailable = ctx.IsAppInstallable()

@@ -6,7 +6,7 @@ import (
 
 // User is a struct that represents a user in the users database
 type User struct {
-	ID         int
+	ID         int64
 	Username   string
 	Password   string
 	Cuisines   []string

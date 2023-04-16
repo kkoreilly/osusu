@@ -42,7 +42,7 @@ func (a *account) Render() app.UI {
 				),
 			),
 			app.Dialog().ID("account-page-confirm-sign-out").Body(
-				app.P().ID("account-page-confirm-sign-out-text").Class("confirm-delete-text").Text("Are you sure you want to sign out?"),
+				app.Span().ID("account-page-confirm-sign-out-text").Class("confirm-delete-text").Text("Are you sure you want to sign out?"),
 				app.Div().ID("account-page-confirm-sign-out-action-button-row").Class("action-button-row").Body(
 					app.Button().ID("account-page-confirm-sign-out-sign-out").Class("action-button", "danger-action-button").Text("Yes, Sign Out").OnClick(a.ConfirmSignOut),
 					app.Button().ID("account-page-confirm-sign-out-cancel").Class("action-button", "secondary-action-button").Text("No, Cancel").OnClick(a.CancelSignOut),
@@ -63,7 +63,7 @@ func (a *account) ConfirmSignOut(ctx app.Context, event app.Event) {
 	if user.Session != "" {
 		_, err := SignOutAPI.Call(GetCurrentUser(ctx))
 		if err != nil {
-			CurrentPage.ShowStatus(err.Error(), StatusTypeNegative)
+			CurrentPage.ShowErrorStatus(err)
 			return
 		}
 	}
@@ -84,7 +84,7 @@ func (a *account) ChangeUsername(ctx app.Context, event app.Event) {
 	event.PreventDefault()
 	_, err := UpdateUsernameAPI.Call(a.user)
 	if err != nil {
-		CurrentPage.ShowStatus(err.Error(), StatusTypeNegative)
+		CurrentPage.ShowErrorStatus(err)
 		return
 	}
 	CurrentPage.ShowStatus("Username Updated!", StatusTypePositive)
@@ -99,7 +99,7 @@ func (a *account) ChangePassword(ctx app.Context, event app.Event) {
 	ctx.Defer(func(ctx app.Context) {
 		_, err := UpdatePasswordAPI.Call(a.user)
 		if err != nil {
-			CurrentPage.ShowStatus(err.Error(), StatusTypeNegative)
+			CurrentPage.ShowErrorStatus(err)
 			a.Update()
 			a.user.Password = ""
 			return

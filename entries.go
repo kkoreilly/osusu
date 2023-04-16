@@ -41,7 +41,7 @@ func (e *entries) Render() app.UI {
 			e.options = GetOptions(ctx)
 			entries, err := GetEntriesForMealAPI.Call(e.meal.ID)
 			if err != nil {
-				CurrentPage.ShowStatus(err.Error(), StatusTypeNegative)
+				CurrentPage.ShowErrorStatus(err)
 				return
 			}
 			e.entries = entries
@@ -122,7 +122,7 @@ func (e *entries) New(ctx app.Context, event app.Event) {
 
 	entry, err := CreateEntryAPI.Call(newEntry)
 	if err != nil {
-		CurrentPage.ShowStatus(err.Error(), StatusTypeNegative)
+		CurrentPage.ShowErrorStatus(err)
 		return
 	}
 	SetCurrentEntry(entry, ctx)

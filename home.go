@@ -11,7 +11,7 @@ import (
 type home struct {
 	app.Compo
 	meals              Meals
-	entriesForEachMeal map[int]Entries // entries for each meal id
+	entriesForEachMeal map[int64]Entries // entries for each meal id
 	user               User
 	person             Person
 	people             People
@@ -36,7 +36,7 @@ func (h *home) Render() app.UI {
 			h.user = GetCurrentUser(ctx)
 			cuisines, err := GetUserCuisinesAPI.Call(h.user.ID)
 			if err != nil {
-				CurrentPage.ShowStatus(err.Error(), StatusTypeNegative)
+				CurrentPage.ShowErrorStatus(err)
 				return
 			}
 			h.user.Cuisines = cuisines
@@ -46,7 +46,7 @@ func (h *home) Render() app.UI {
 
 			people, err := GetPeopleAPI.Call(h.user.ID)
 			if err != nil {
-				CurrentPage.ShowStatus(err.Error(), StatusTypeNegative)
+				CurrentPage.ShowErrorStatus(err)
 				return
 			}
 			h.people = people
@@ -67,17 +67,17 @@ func (h *home) Render() app.UI {
 
 			meals, err := GetMealsAPI.Call(h.user.ID)
 			if err != nil {
-				CurrentPage.ShowStatus(err.Error(), StatusTypeNegative)
+				CurrentPage.ShowErrorStatus(err)
 				return
 			}
 			h.meals = meals
 
 			entries, err := GetEntriesAPI.Call(h.user.ID)
 			if err != nil {
-				CurrentPage.ShowStatus(err.Error(), StatusTypeNegative)
+				CurrentPage.ShowErrorStatus(err)
 				return
 			}
-			h.entriesForEachMeal = make(map[int]Entries)
+			h.entriesForEachMeal = make(map[int64]Entries)
 			for _, entry := range entries {
 				entries := h.entriesForEachMeal[entry.MealID]
 				if entries == nil {
@@ -178,7 +178,7 @@ func (h *home) OptionsFormOnClick(ctx app.Context, e app.Event) {
 func (h *home) New(ctx app.Context, e app.Event) {
 	meal, err := CreateMealAPI.Call(GetCurrentUser(ctx).ID)
 	if err != nil {
-		CurrentPage.ShowStatus(err.Error(), StatusTypeNegative)
+		CurrentPage.ShowErrorStatus(err)
 		return
 	}
 	SetCurrentMeal(meal, ctx)

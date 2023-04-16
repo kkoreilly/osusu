@@ -39,7 +39,7 @@ html,
 }
 
 .page-top-bar-icon-text {
-    font-size: 1.5rem;
+    font-size: 2rem;
     color: black;
     font-weight: bold;
 }
@@ -55,7 +55,7 @@ html,
     padding: 17.25px;
     border: none;
     background-color: var(--amber);
-    font-size: 1.5rem;
+    font-size: 2rem;
     font-weight: bold;
     cursor: pointer;
     color: black;
@@ -80,21 +80,26 @@ html,
     margin-left: 10px;
 }
 
+.page-top-bar-account-button>* {
+    font-size: 2rem;
+}
+
 .page-top-bar-account-button:hover {
     background-color: hsl(228, 92%, 40%);
 }
 
 .page-title {
     text-align: center;
-    font-size: 2rem;
+    font-size: 3.2rem;
     width: min(80vw, 700px);
     margin-left: auto;
     margin-right: auto;
 }
 
-.page-subtitle {
+.page-subtitle,
+.centered-text {
     text-align: center;
-    font-size: 1rem;
+    font-size: 1.6rem;
     width: min(80vw, 700px);
     margin-left: auto;
     margin-right: auto;
@@ -119,7 +124,7 @@ html,
 
 .page-footer * {
     color: white;
-    font-size: 0.75rem;
+    font-size: 1rem;
 }
 
 .page-status[open] {
@@ -135,7 +140,7 @@ html,
 }
 
 .page-status-text {
-    font-size: 1rem;
+    font-size: 1.6rem;
     text-align: center;
     font-weight: bold;
     color: black;
@@ -147,7 +152,7 @@ html,
 .page-status-close-button {
     border: none;
     background-color: inherit;
-    font-size: 1rem;
+    font-size: 1.6rem;
     font-weight: bold;
     cursor: pointer;
     padding: 10px;

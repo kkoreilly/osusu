@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"crypto/subtle"
+	"encoding/base64"
 	"encoding/hex"
 	"log"
 	"net/http"
@@ -48,6 +49,7 @@ func startServer() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	CreateTablesDB()
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -97,4 +99,14 @@ func GenerateSessionID() (string, error) {
 		return "", err
 	}
 	return hex.EncodeToString(b), nil
+}
+
+// GenerateGroupCode generates a group code
+func GenerateGroupCode() (string, error) {
+	b := make([]byte, 8)
+	_, err := rand.Read(b)
+	if err != nil {
+		return "", err
+	}
+	return base64.RawURLEncoding.EncodeToString(b), nil
 }

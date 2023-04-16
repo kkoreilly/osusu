@@ -48,7 +48,7 @@ func (s *signUp) OnSubmit(ctx app.Context, e app.Event) {
 	ctx.Defer(func(ctx app.Context) {
 		user, err := SignUpAPI.Call(s.user)
 		if err != nil {
-			CurrentPage.ShowStatus(err.Error(), StatusTypeNegative)
+			CurrentPage.ShowErrorStatus(err)
 			s.Update()
 			return
 		}

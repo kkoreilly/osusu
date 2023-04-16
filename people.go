@@ -23,7 +23,7 @@ func (p *people) Render() app.UI {
 		OnNavFunc: func(ctx app.Context) {
 			people, err := GetPeopleAPI.Call(GetCurrentUser(ctx).ID)
 			if err != nil {
-				CurrentPage.ShowStatus(err.Error(), StatusTypeNegative)
+				CurrentPage.ShowErrorStatus(err)
 				return
 			}
 			p.people = people
@@ -47,7 +47,7 @@ func (p *people) Render() app.UI {
 func (p *people) New(ctx app.Context, e app.Event) {
 	person, err := CreatePersonAPI.Call(GetCurrentUser(ctx).ID)
 	if err != nil {
-		CurrentPage.ShowStatus(err.Error(), StatusTypeNegative)
+		CurrentPage.ShowErrorStatus(err)
 		return
 	}
 	SetCurrentPerson(person, ctx)

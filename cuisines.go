@@ -68,7 +68,7 @@ func (c *cuisinesDialog) Save(ctx app.Context, e app.Event) {
 	}
 	_, err := UpdateUserCuisinesAPI.Call(c.user)
 	if err != nil {
-		CurrentPage.ShowStatus(err.Error(), StatusTypeNegative)
+		CurrentPage.ShowErrorStatus(err)
 		return
 	}
 	SetCurrentUser(c.user, ctx)

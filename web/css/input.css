@@ -6,12 +6,12 @@
 }
 
 .input-label {
-    font-size: 1rem;
+    font-size: 1.6rem;
     text-align: center;
 }
 
 .input {
-    font-size: 1rem;
+    font-size: 1.6rem;
     padding: 10px;
     width: min(70vw, 700px);
     height: 30px;

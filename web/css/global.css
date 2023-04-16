@@ -1,18 +1,19 @@
 * {
     font-family: 'Roboto', sans-serif;
+    font-size: 1.6rem;
 }
 
-/* 1rem = 10px on desktop, 8px on mobile by default */
+/* 1rem = 10px on mobile, 12px on desktop by default */
 :root {
     --amber: hsl(49, 95%, 55%);
     --dark-amber: hsl(49, 95%, 40%);
     --amaranth: hsl(341, 83%, 53%);
-    font-size: 62.5%;
+    font-size: 75%;
 }
 
 @media only screen and (max-width: 400px) {
     :root {
-        font-size: 50%;
+        font-size: 62.5%;
     }
 }
 
@@ -28,7 +29,7 @@
 .action-button {
     cursor: pointer;
     border-radius: 7px;
-    font-size: 1rem;
+    font-size: 1.6rem;
     padding: 20px;
     text-decoration: none;
 }
@@ -74,7 +75,7 @@
 }
 
 .confirm-delete-text {
-    font-size: 1rem;
+    font-size: 1.6rem;
     text-align: center;
     font-weight: bold;
 }
@@ -97,7 +98,7 @@ dialog:modal {
 }
 
 .status-text {
-    font-size: 1rem;
+    font-size: 1.6rem;
     text-align: center;
     font-weight: bold;
 }

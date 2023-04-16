@@ -10,12 +10,12 @@ import (
 
 // A PersonMap holds information about what different people rate something.
 // The key is the person id and the value is their rating.
-type PersonMap map[int]int
+type PersonMap map[int64]int
 
 // Sum returns the sum of the person map based on the given map specifying whether each of the people is participating and the given inversion.
 // The key of the map is the person id and the value is whether they are participating.
 // If inverted is true, the higher ratings of the people lead to a lower total sum.
-func (p *PersonMap) Sum(peopleParticipating map[int]bool, inverted bool) int {
+func (p *PersonMap) Sum(peopleParticipating map[int64]bool, inverted bool) int {
 	res := 0
 	for i, v := range *p {
 		participating := peopleParticipating[i]
@@ -72,7 +72,7 @@ func (p *PersonMap) Scan(value any) error {
 	}
 	res := make(PersonMap)
 	for k, v := range hStore.Map {
-		kInt, err := strconv.Atoi(k)
+		kInt, err := strconv.ParseInt(k, 10, 64)
 		if err != nil {
 			return nil
 		}
@@ -90,7 +90,7 @@ func (p *PersonMap) Scan(value any) error {
 func (p PersonMap) Value() (driver.Value, error) {
 	newMap := map[string]sql.NullString{}
 	for k, v := range p {
-		kString := strconv.Itoa(k)
+		kString := strconv.FormatInt(k, 10)
 		vString := strconv.Itoa(v)
 		vNullString := sql.NullString{String: vString, Valid: vString != ""}
 		newMap[kString] = vNullString

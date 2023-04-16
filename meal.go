@@ -8,8 +8,8 @@ import (
 
 // Meal is a struct that represents the data of a meal
 type Meal struct {
-	ID          int
-	UserID      int
+	ID          int64
+	UserID      int64
 	Name        string
 	Description string
 	Cuisine     []string
@@ -98,7 +98,7 @@ func (m *meal) Render() app.UI {
 
 			cuisines, err := GetUserCuisinesAPI.Call(m.user.ID)
 			if err != nil {
-				CurrentPage.ShowStatus(err.Error(), StatusTypeNegative)
+				CurrentPage.ShowErrorStatus(err)
 				return
 			}
 			m.user.Cuisines = cuisines
@@ -131,7 +131,7 @@ func (m *meal) Render() app.UI {
 			),
 
 			app.Dialog().ID("meal-page-confirm-delete").Body(
-				app.P().ID("meal-page-confirm-delete-text").Class("confirm-delete-text").Text("Are you sure you want to delete this meal?"),
+				app.Span().ID("meal-page-confirm-delete-text").Class("confirm-delete-text").Text("Are you sure you want to delete this meal?"),
 				app.Div().ID("meal-page-confirm-delete-action-button-row").Class("action-button-row").Body(
 					app.Button().ID("meal-page-confirm-delete-delete").Class("action-button", "danger-action-button").Text("Yes, Delete").OnClick(m.ConfirmDelete),
 					app.Button().ID("meal-page-confirm-delete-cancel").Class("action-button", "secondary-action-button").Text("No, Cancel").OnClick(m.CancelDelete),
@@ -166,7 +166,7 @@ func (m *meal) OnSubmit(ctx app.Context, event app.Event) {
 
 	_, err := UpdateMealAPI.Call(m.meal)
 	if err != nil {
-		CurrentPage.ShowStatus(err.Error(), StatusTypeNegative)
+		CurrentPage.ShowErrorStatus(err)
 		return
 	}
 	SetCurrentMeal(m.meal, ctx)
@@ -186,7 +186,7 @@ func (m *meal) ViewEntries(ctx app.Context, event app.Event) {
 
 	_, err := UpdateMealAPI.Call(m.meal)
 	if err != nil {
-		CurrentPage.ShowStatus(err.Error(), StatusTypeNegative)
+		CurrentPage.ShowErrorStatus(err)
 		return
 	}
 	SetCurrentMeal(m.meal, ctx)
@@ -204,7 +204,7 @@ func (m *meal) ConfirmDelete(ctx app.Context, event app.Event) {
 
 	_, err := DeleteMealAPI.Call(m.meal.ID)
 	if err != nil {
-		CurrentPage.ShowStatus(err.Error(), StatusTypeNegative)
+		CurrentPage.ShowErrorStatus(err)
 		return
 	}
 	SetCurrentMeal(Meal{}, ctx)

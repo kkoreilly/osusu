@@ -8,9 +8,9 @@ import (
 
 // Entry is an entry with information about how a meal was at a certain point in time
 type Entry struct {
-	ID          int
-	UserID      int
-	MealID      int
+	ID          int64
+	UserID      int64
+	MealID      int64
 	Date        time.Time
 	Type        string
 	Source      string
@@ -90,7 +90,7 @@ func (e *entry) Render() app.UI {
 			e.entry = GetCurrentEntry(ctx)
 			people, err := GetPeopleAPI.Call(GetCurrentUser(ctx).ID)
 			if err != nil {
-				CurrentPage.ShowStatus(err.Error(), StatusTypeNegative)
+				CurrentPage.ShowErrorStatus(err)
 				return
 			}
 			e.entry = e.entry.RemoveInvalid(people)
@@ -115,7 +115,7 @@ func (e *entry) Render() app.UI {
 				),
 			),
 			app.Dialog().ID("entry-page-confirm-delete").Body(
-				app.P().ID("entry-page-confirm-delete-text").Class("confirm-delete-text").Text("Are you sure you want to delete this entry?"),
+				app.Span().ID("entry-page-confirm-delete-text").Class("confirm-delete-text").Text("Are you sure you want to delete this entry?"),
 				app.Div().ID("entry-page-confirm-delete-action-button-row").Class("action-button-row").Body(
 					app.Button().ID("entry-page-confirm-delete-delete").Class("action-button", "danger-action-button").Text("Yes, Delete").OnClick(e.ConfirmDelete),
 					app.Button().ID("entry-page-confirm-delete-cancel").Class("action-button", "secondary-action-button").Text("No, Cancel").OnClick(e.CancelDelete),
@@ -132,7 +132,7 @@ func (e *entry) OnSubmit(ctx app.Context, event app.Event) {
 
 	_, err := UpdateEntryAPI.Call(e.entry)
 	if err != nil {
-		CurrentPage.ShowStatus(err.Error(), StatusTypeNegative)
+		CurrentPage.ShowErrorStatus(err)
 		return
 	}
 	SetCurrentEntry(e.entry, ctx)
@@ -150,7 +150,7 @@ func (e *entry) ConfirmDelete(ctx app.Context, event app.Event) {
 
 	_, err := DeleteEntryAPI.Call(e.entry.ID)
 	if err != nil {
-		CurrentPage.ShowStatus(err.Error(), StatusTypeNegative)
+		CurrentPage.ShowErrorStatus(err)
 		return
 	}
 	SetCurrentEntry(Entry{}, ctx)

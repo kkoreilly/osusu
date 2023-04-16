@@ -8,6 +8,8 @@ func main() {
 	app.Route("/", &start{})
 	app.Route("/signin", &signIn{})
 	app.Route("/signup", &signUp{})
+	app.Route("/groups", &groups{})
+	app.Route("/group", &group{})
 	app.Route("/home", &home{})
 	app.Route("/meal", &meal{})
 	app.Route("/entries", &entries{})

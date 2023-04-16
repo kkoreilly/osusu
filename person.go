@@ -6,9 +6,9 @@ import (
 
 // Person represents the data of a person
 type Person struct {
-	ID     int
+	ID     int64
+	UserID int64
 	Name   string
-	UserID int
 }
 
 type person struct {
@@ -38,7 +38,7 @@ func (p *person) Render() app.UI {
 				),
 			),
 			app.Dialog().ID("person-page-confirm-delete").Body(
-				app.P().ID("person-page-confirm-delete-text").Class("confirm-delete-text").Text("Are you sure you want to delete this person?"),
+				app.Span().ID("person-page-confirm-delete-text").Class("confirm-delete-text").Text("Are you sure you want to delete this person?"),
 				app.Div().ID("person-page-confirm-delete-action-button-row").Class("action-button-row").Body(
 					app.Button().ID("person-page-confirm-delete-delete").Class("action-button", "danger-action-button").Text("Yes, Delete").OnClick(p.ConfirmDelete),
 					app.Button().ID("person-page-confirm-delete-cancel").Class("action-button", "secondary-action-button").Text("No, Cancel").OnClick(p.CancelDelete),
@@ -57,7 +57,7 @@ func (p *person) OnSubmit(ctx app.Context, e app.Event) {
 	if p.person.Name != originalName {
 		_, err := UpdatePersonAPI.Call(p.person)
 		if err != nil {
-			CurrentPage.ShowStatus(err.Error(), StatusTypeNegative)
+			CurrentPage.ShowErrorStatus(err)
 			return
 		}
 		SetCurrentPerson(p.person, ctx)
@@ -76,7 +76,7 @@ func (p *person) ConfirmDelete(ctx app.Context, event app.Event) {
 
 	_, err := DeletePersonAPI.Call(p.person.ID)
 	if err != nil {
-		CurrentPage.ShowStatus(err.Error(), StatusTypeNegative)
+		CurrentPage.ShowErrorStatus(err)
 		return
 	}
 	SetCurrentPerson(Person{}, ctx)
