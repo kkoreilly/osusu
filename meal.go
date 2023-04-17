@@ -125,13 +125,13 @@ func (m *meal) Render() app.UI {
 				app.Div().ID("meal-page-action-button-row").Class("action-button-row").Body(
 					app.Input().ID("meal-page-delete-button").Class("action-button", "danger-action-button").Type("button").Value("Delete").OnClick(m.InitialDelete),
 					app.A().ID("meal-page-cancel-button").Class("action-button", "secondary-action-button").Href("/home").Text("Cancel"),
-					app.Input().ID("meal-page-entries-button").Class("action-button", "tertiary-action-button").Type("button").Value("View Entries").OnClick(m.ViewEntries),
+					// app.Input().ID("meal-page-entries-button").Class("action-button", "tertiary-action-button").Type("button").Value("View Entries").OnClick(m.ViewEntries),
 					app.Input().ID("meal-page-save-button").Class("action-button", "primary-action-button").Type("submit").Value("Save"),
 				),
 			),
 
 			app.Dialog().ID("meal-page-confirm-delete").Body(
-				app.Span().ID("meal-page-confirm-delete-text").Class("confirm-delete-text").Text("Are you sure you want to delete this meal?"),
+				app.P().ID("meal-page-confirm-delete-text").Class("confirm-delete-text").Text("Are you sure you want to delete this meal?"),
 				app.Div().ID("meal-page-confirm-delete-action-button-row").Class("action-button-row").Body(
 					app.Button().ID("meal-page-confirm-delete-delete").Class("action-button", "danger-action-button").Text("Yes, Delete").OnClick(m.ConfirmDelete),
 					app.Button().ID("meal-page-confirm-delete-cancel").Class("action-button", "secondary-action-button").Text("No, Cancel").OnClick(m.CancelDelete),

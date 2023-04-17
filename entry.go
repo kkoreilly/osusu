@@ -1,6 +1,7 @@
 package main
 
 import (
+	"sort"
 	"time"
 
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
@@ -18,6 +19,42 @@ type Entry struct {
 	Effort      PersonMap
 	Healthiness PersonMap
 	Taste       PersonMap
+}
+
+// NewEntry returns a new entry for the given user, meal, and person with the given existing entries for the meal
+func NewEntry(user User, meal Meal, person Person, entries Entries) Entry {
+	newEntry := Entry{
+		UserID:      user.ID,
+		MealID:      meal.ID,
+		Date:        time.Now(),
+		Type:        "Dinner",
+		Source:      "Cooking",
+		Cost:        PersonMap{person.ID: 50},
+		Effort:      PersonMap{person.ID: 50},
+		Healthiness: PersonMap{person.ID: 50},
+		Taste:       PersonMap{person.ID: 50},
+	}
+	// if there are previous entries, copy the values from the latest (the entries are already sorted with the latest first by OnNav)
+	// we only copy the person map values for the person creating the new entry.
+	if len(entries) > 0 {
+		sort.Slice(entries, func(i, j int) bool {
+			return entries[i].Date.After(entries[j].Date)
+		})
+		previousEntry := entries[0]
+		previousEntry = previousEntry.FixMissingData(person)
+		newEntry = Entry{
+			UserID:      user.ID,
+			MealID:      meal.ID,
+			Date:        time.Now(),
+			Type:        previousEntry.Type,
+			Source:      previousEntry.Source,
+			Cost:        PersonMap{person.ID: previousEntry.Cost[person.ID]},
+			Effort:      PersonMap{person.ID: previousEntry.Effort[person.ID]},
+			Healthiness: PersonMap{person.ID: previousEntry.Healthiness[person.ID]},
+			Taste:       PersonMap{person.ID: previousEntry.Taste[person.ID]},
+		}
+	}
+	return newEntry
 }
 
 // Score produces a score from 0 to 100 for the entry based on its attributes and the given options
@@ -115,7 +152,7 @@ func (e *entry) Render() app.UI {
 				),
 			),
 			app.Dialog().ID("entry-page-confirm-delete").Body(
-				app.Span().ID("entry-page-confirm-delete-text").Class("confirm-delete-text").Text("Are you sure you want to delete this entry?"),
+				app.P().ID("entry-page-confirm-delete-text").Class("confirm-delete-text").Text("Are you sure you want to delete this entry?"),
 				app.Div().ID("entry-page-confirm-delete-action-button-row").Class("action-button-row").Body(
 					app.Button().ID("entry-page-confirm-delete-delete").Class("action-button", "danger-action-button").Text("Yes, Delete").OnClick(e.ConfirmDelete),
 					app.Button().ID("entry-page-confirm-delete-cancel").Class("action-button", "secondary-action-button").Text("No, Cancel").OnClick(e.CancelDelete),

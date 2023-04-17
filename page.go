@@ -15,6 +15,7 @@ type Page struct {
 	AuthenticationRequired bool
 	PreOnNavFunc           func(ctx app.Context)
 	OnNavFunc              func(ctx app.Context)
+	OnClick                func(ctx app.Context, e app.Event)
 	TitleElement           string
 	SubtitleElement        string
 	Elements               []app.UI
@@ -37,7 +38,7 @@ func (p *Page) Render() app.UI {
 	if len(p.person.Name) > 0 {
 		nameFirstLetter = string(unicode.ToUpper(rune(p.person.Name[0])))
 	}
-	return app.Div().ID(p.ID + "-page-container").Class("page-container").Body([]app.UI{
+	return app.Div().ID(p.ID + "-page-container").Class("page-container").OnClick(p.OnClick).Body([]app.UI{
 		app.Header().ID(p.ID+"-page-header").Class("page-header").Body(
 			app.Div().ID(p.ID+"-page-top-bar").Class("page-top-bar").Body(
 				app.A().ID(p.ID+"-page-top-bar-icon-link").Class("page-top-bar-icon-link").Href("/").Title("Navigate to the Osusu Start/Home Page").Body(
@@ -62,10 +63,6 @@ func (p *Page) Render() app.UI {
 		),
 		app.Main().ID(p.ID + "-page-main").Class("page-main").Body(
 			p.Elements...,
-		),
-		app.Footer().ID(p.ID+"-page-footer").Class("page-footer").Body(
-			app.Span().Text("Copyright © 2023, Osusu"),
-			app.A().Href("https://www.flaticon.com/free-icons/pizza").Title("pizza icons").Text("Pizza icons created by Freepik - Flaticon"),
 		),
 	}...)
 }

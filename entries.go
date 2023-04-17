@@ -3,7 +3,6 @@ package main
 import (
 	"sort"
 	"strconv"
-	"time"
 
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
 )
@@ -63,7 +62,7 @@ func (e *entries) Render() app.UI {
 		TitleElement: "Entries for " + e.meal.Name,
 		Elements: []app.UI{
 			app.Div().ID("entries-page-action-button-row").Class("action-button-row").Body(
-				app.A().ID("entries-page-back-button").Class("secondary-action-button", "action-button").Href("/meal").Text("Back"),
+				app.A().ID("entries-page-back-button").Class("secondary-action-button", "action-button").Href("/home").Text("Back"),
 				app.Button().ID("entries-page-new-button").Class("primary-action-button", "action-button").Text("New").OnClick(e.New),
 			),
 			app.Div().ID("entries-page-entries-container").Body(
@@ -91,36 +90,7 @@ func (e *entries) EntryOnClick(ctx app.Context, event app.Event, entry Entry) {
 }
 
 func (e *entries) New(ctx app.Context, event app.Event) {
-	newEntry := Entry{
-		UserID:      GetCurrentUser(ctx).ID,
-		MealID:      e.meal.ID,
-		Date:        time.Now(),
-		Type:        "Dinner",
-		Source:      "Cooking",
-		Cost:        PersonMap{e.person.ID: 50},
-		Effort:      PersonMap{e.person.ID: 50},
-		Healthiness: PersonMap{e.person.ID: 50},
-		Taste:       PersonMap{e.person.ID: 50},
-	}
-	// if there are previous entries, copy the values from the latest (the entries are already sorted with the latest first by OnNav)
-	// we only copy the person map values for the person creating the new entry.
-	if len(e.entries) > 0 {
-		previousEntry := e.entries[0]
-		previousEntry = previousEntry.FixMissingData(e.person)
-		newEntry = Entry{
-			UserID:      GetCurrentUser(ctx).ID,
-			MealID:      e.meal.ID,
-			Date:        time.Now(),
-			Type:        previousEntry.Type,
-			Source:      previousEntry.Source,
-			Cost:        PersonMap{e.person.ID: previousEntry.Cost[e.person.ID]},
-			Effort:      PersonMap{e.person.ID: previousEntry.Effort[e.person.ID]},
-			Healthiness: PersonMap{e.person.ID: previousEntry.Healthiness[e.person.ID]},
-			Taste:       PersonMap{e.person.ID: previousEntry.Taste[e.person.ID]},
-		}
-	}
-
-	entry, err := CreateEntryAPI.Call(newEntry)
+	entry, err := CreateEntryAPI.Call(NewEntry(GetCurrentUser(ctx), e.meal, e.person, e.entries))
 	if err != nil {
 		CurrentPage.ShowErrorStatus(err)
 		return

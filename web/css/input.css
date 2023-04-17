@@ -6,15 +6,17 @@
 }
 
 .input-label {
-    font-size: 1.6rem;
+    font-size: 1rem;
     text-align: center;
 }
 
 .input {
-    font-size: 1.6rem;
-    padding: 10px;
+    font-size: 1rem;
+    padding: 0.75rem;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
     width: min(70vw, 700px);
-    height: 30px;
+    height: 1rem;
     border-radius: 10px;
     border: 1px solid black;
 }
@@ -22,7 +24,7 @@
 .input-range {
     -webkit-appearance: none;
     appearance: none;
-    height: 35px;
+    height: 2rem;
     background-color: lightgray;
     padding: 0;
     overflow: hidden;
@@ -39,8 +41,8 @@
 .input-range::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 35px;
-    height: 35px;
+    width: 2rem;
+    height: 2rem;
     background-color: var(--thumb-color);
     cursor: ew-resize;
     box-shadow: -100vw 0 0 100vw var(--progress-color);
@@ -49,8 +51,8 @@
 .input-range::-moz-range-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 35px;
-    height: 35px;
+    width: 2rem;
+    height: 2rem;
     background-color: var(--thumb-color);
     cursor: ew-resize;
     border: none;
@@ -59,10 +61,10 @@
 
 .input-range::-moz-range-progress {
     background-color: var(--progress-color);
-    height: 35px;
+    height: 2rem;
 }
 
 .input-textarea {
     resize: none;
-    height: 100px;
+    height: 6rem;
 }

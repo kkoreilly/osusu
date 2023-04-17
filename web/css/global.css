@@ -1,57 +1,57 @@
 * {
     font-family: 'Roboto', sans-serif;
-    font-size: 1.6rem;
+    font-size: 1rem;
 }
 
-/* 1rem = 10px on mobile, 12px on desktop by default */
+/* 1rem = 16px on mobile, 18px on desktop by default */
 :root {
     --amber: hsl(49, 95%, 55%);
     --dark-amber: hsl(49, 95%, 40%);
     --amaranth: hsl(341, 83%, 53%);
-    font-size: 75%;
+    font-size: 100%;
 }
 
-@media only screen and (max-width: 400px) {
+@media only screen and (min-width: 400px) {
     :root {
-        font-size: 62.5%;
+        font-size: 100%;
     }
 }
 
 .action-button-row {
     display: flex;
     justify-content: center;
-    column-gap: 20px;
-    row-gap: 20px;
+    column-gap: 1rem;
+    row-gap: 1rem;
     flex-wrap: wrap;
     padding-bottom: 20px;
 }
 
 .action-button {
     cursor: pointer;
-    border-radius: 7px;
-    font-size: 1.6rem;
-    padding: 20px;
+    border-radius: 5px;
+    font-size: 1rem;
+    padding: 1rem;
     text-decoration: none;
 }
 
 .primary-action-button {
     border: none;
-    color: white;
-    background-color: hsl(228, 92%, 50%);
+    color: black;
+    background-color: hsl(195, 53%, 79%);
 }
 
 .primary-action-button:hover {
-    background-color: hsl(228, 92%, 40%);
+    background-color: hsl(195, 53%, 50%);
 }
 
 .danger-action-button {
     border: none;
-    color: white;
-    background-color: hsl(0, 100%, 60%);
+    color: black;
+    background-color: hsl(0, 100%, 80%);
 }
 
 .danger-action-button:hover {
-    background-color: hsl(0, 100%, 40%);
+    background-color: hsl(0, 100%, 70%);
 }
 
 .secondary-action-button {
@@ -61,23 +61,22 @@
 }
 
 .secondary-action-button:hover {
-    background-color: hsl(48, 92%, 70%);
+    background-color: hsl(48, 92%, 60%);
 }
 
 .tertiary-action-button {
     border: none;
     color: black;
-    background-color: hsl(120, 73%, 50%);
+    background-color: hsl(120, 73%, 75%);
 }
 
 .tertiary-action-button:hover {
-    background-color: hsl(120, 73%, 40%);
+    background-color: hsl(120, 73%, 45%);
 }
 
 .confirm-delete-text {
-    font-size: 1.6rem;
+    font-size: 1rem;
     text-align: center;
-    font-weight: bold;
 }
 
 dialog:modal {
@@ -98,7 +97,7 @@ dialog:modal {
 }
 
 .status-text {
-    font-size: 1.6rem;
+    font-size: 1rem;
     text-align: center;
     font-weight: bold;
 }

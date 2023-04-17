@@ -88,58 +88,73 @@ func (h *home) Render() app.UI {
 			}
 			h.SortMeals()
 		},
+		OnClick:      h.PageOnClick,
 		TitleElement: "Welcome, " + h.person.Name,
 		Elements: []app.UI{
 			app.Div().ID("home-page-action-button-row").Class("action-button-row").Body(
 				app.Button().ID("home-page-new-button").Class("secondary-action-button", "action-button").Text("New Meal").OnClick(h.New),
 				app.Button().ID("home-page-options-button").Class("primary-action-button", "action-button").Text("Search").OnClick(h.ShowOptions),
 			),
-			app.Div().ID("home-page-meals-container").Body(
-				app.Range(h.meals).Slice(func(i int) app.UI {
-					meal := h.meals[i]
-					si := strconv.Itoa(i)
-					entries := h.entriesForEachMeal[meal.ID]
+			app.Table().ID("home-page-meals-table").Body(
+				app.THead().ID("home-page-meals-table-header").Body(
+					app.Tr().ID("home-page-meals-table-header-row").Body(
+						app.Th().ID("home-page-meals-table-header-name").Text("Name"),
+						app.Th().ID("home-page-meals-table-header-score").Text("Score"),
+					),
+				),
+				app.TBody().ID("home-page-meals-table-body").Body(
+					app.Range(h.meals).Slice(func(i int) app.UI {
+						meal := h.meals[i]
+						si := strconv.Itoa(i)
+						entries := h.entriesForEachMeal[meal.ID]
 
-					// check if at least one cuisine satisfies a cuisine requirement
-					gotCuisine := false
-					for _, mealCuisine := range meal.Cuisine {
-						for optionCuisine, value := range h.options.Cuisine {
-							if value && mealCuisine == optionCuisine {
-								gotCuisine = true
+						// check if at least one cuisine satisfies a cuisine requirement
+						gotCuisine := false
+						for _, mealCuisine := range meal.Cuisine {
+							for optionCuisine, value := range h.options.Cuisine {
+								if value && mealCuisine == optionCuisine {
+									gotCuisine = true
+								}
 							}
 						}
-					}
-					if !gotCuisine {
-						return app.Text("")
-					}
-
-					// check if at least one entry satisfies the type and source requirements if there is at least one entry.
-					if len(entries) > 0 {
-						gotType := false
-						gotSource := false
-						for _, entry := range entries {
-							if entry.Type == h.options.Type {
-								gotType = true
-							}
-							if h.options.Source[entry.Source] {
-								gotSource = true
-							}
-						}
-						if !(gotType && gotSource) {
+						if !gotCuisine {
 							return app.Text("")
 						}
-					}
 
-					score := meal.Score(entries, h.options)
-					colorH := strconv.Itoa((score * 12) / 10)
-					scoreText := strconv.Itoa(score)
-					missingData := entries.MissingData(h.person)
-					return app.Button().ID("home-page-meal-"+si).Class("home-page-meal").DataSet("missing-data", missingData).Style("--color-h", colorH).Style("--score-percent", scoreText+"%").
-						OnClick(func(ctx app.Context, e app.Event) { h.MealOnClick(ctx, e, meal) }).Body(
-						app.Span().ID("home-page-meal-name-"+si).Class("home-page-meal-name").Text(meal.Name),
-						app.Span().ID("home-page-meal-score-"+si).Class("home-page-meal-score").Text(scoreText),
-					)
-				}),
+						// check if at least one entry satisfies the type and source requirements if there is at least one entry.
+						if len(entries) > 0 {
+							gotType := false
+							gotSource := false
+							for _, entry := range entries {
+								if entry.Type == h.options.Type {
+									gotType = true
+								}
+								if h.options.Source[entry.Source] {
+									gotSource = true
+								}
+							}
+							if !(gotType && gotSource) {
+								return app.Text("")
+							}
+						}
+
+						score := meal.Score(entries, h.options)
+						colorH := strconv.Itoa((score * 12) / 10)
+						scoreText := strconv.Itoa(score)
+						missingData := entries.MissingData(h.person)
+						return app.Tr().ID("home-page-meal-"+si).Class("home-page-meal").DataSet("missing-data", missingData).Style("--color-h", colorH).Style("--score-percent", scoreText+"%").
+							OnClick(func(ctx app.Context, e app.Event) { h.MealOnClick(ctx, e, meal) }).Body(
+							app.Td().ID("home-page-meal-name-"+si).Class("home-page-meal-name").Text(meal.Name),
+							app.Td().ID("home-page-meal-score-"+si).Class("home-page-meal-score").Text(scoreText),
+						)
+					}),
+				),
+			),
+			app.Dialog().ID("home-page-meal-dialog").OnClick(h.MealDialogOnClick).Body(
+				app.Button().ID("home-page-meal-dialog-new-entry-button").Class("action-button", "primary-action-button").Text("New Entry").OnClick(h.NewEntryOnClick),
+				app.Button().ID("home-page-meal-dialog-view-entries-button").Class("action-button", "secondary-action-button").Text("View Entries").OnClick(h.ViewEntriesOnClick),
+				app.Button().ID("home-page-meal-dialog-edit-meal-button").Class("action-button", "tertiary-action-button").Text("Edit Meal").OnClick(h.EditMealOnClick),
+				app.Button().ID("home-page-meal-dialog-delete-meal-button").Class("action-button", "danger-action-button").Text("Delete Meal").OnClick(h.DeleteMealOnClick),
 			),
 			app.Dialog().ID("home-page-options").OnClick(h.OptionsOnClick).Body(
 				app.Form().ID("home-page-options-form").Class("form").OnSubmit(h.SaveOptions).OnClick(h.OptionsFormOnClick).Body(
@@ -185,9 +200,48 @@ func (h *home) New(ctx app.Context, e app.Event) {
 	ctx.Navigate("/meal")
 }
 
+func (h *home) PageOnClick(ctx app.Context, e app.Event) {
+	// close meal dialog on page click (this will be stopped by another event if someone clicks on the meal dialog itself)
+	app.Window().GetElementByID("home-page-meal-dialog").Call("close")
+}
+
 func (h *home) MealOnClick(ctx app.Context, e app.Event, meal Meal) {
+	e.Call("stopPropagation")
 	SetCurrentMeal(meal, ctx)
+	x, y := e.Get("pageX").Int(), e.Get("pageY").Int()
+	dialog := app.Window().GetElementByID("home-page-meal-dialog")
+	dialog.Get("style").Set("top", strconv.Itoa(y)+"px")
+	dialog.Get("style").Set("left", strconv.Itoa(x)+"px")
+	dialog.Call("show")
+	// ctx.Navigate("/meal")
+}
+
+func (h *home) MealDialogOnClick(ctx app.Context, e app.Event) {
+	// stop the meal dialog from being closed by the page on click event
+	e.Call("stopPropagation")
+}
+
+func (h *home) NewEntryOnClick(ctx app.Context, e app.Event) {
+	currentMeal := GetCurrentMeal(ctx)
+	entry, err := CreateEntryAPI.Call(NewEntry(h.user, currentMeal, h.person, h.entriesForEachMeal[currentMeal.ID]))
+	if err != nil {
+		CurrentPage.ShowErrorStatus(err)
+		return
+	}
+	SetCurrentEntry(entry, ctx)
+	ctx.Navigate("/entry")
+}
+
+func (h *home) ViewEntriesOnClick(ctx app.Context, e app.Event) {
+	ctx.Navigate("/entries")
+}
+
+func (h *home) EditMealOnClick(ctx app.Context, e app.Event) {
 	ctx.Navigate("/meal")
+}
+
+func (h *home) DeleteMealOnClick(ctx app.Context, e app.Event) {
+
 }
 
 func (h *home) ShowOptions(ctx app.Context, e app.Event) {

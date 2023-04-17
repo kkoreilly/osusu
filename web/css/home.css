@@ -1,31 +1,75 @@
+#home-page-meals-table {
+    width: 100%;
+    table-layout: fixed;
+    border-spacing: 0;
+    border: none;
+}
+
+#home-page-meals-table-header {
+    position: sticky;
+    top: 0;
+    background-color: white;
+}
+
+#home-page-meals-table-header-name,
+#home-page-meals-table-header-score {
+    padding: 1rem;
+    border-bottom: 1px solid gray;
+}
+
+#home-page-meals-table-header-score {
+    width: 5rem;
+}
+
 .home-page-meal {
     padding: 10px;
     cursor: pointer;
-    display: flex;
-    justify-content: space-between;
-    width: clamp(70px, var(--score-percent), calc(100%));
-    background-color: hsl(var(--color-h), 100%, 50%);
+    /* display: flex; */
+    /* justify-content: space-between; */
+    /* width: clamp(70px, var(--score-percent), calc(100%)); */
+    width: 100%;
+    /* background-color: hsl(var(--color-h), 70%, 70%); */
+    background: linear-gradient(90deg, hsl(var(--color-h), 100%, 70%, 90%) 0% calc(var(--score-percent) - 5%), hsl(0, 0%, 90%) calc(var(--score-percent) + 5%));
     border: none;
-    font-size: 1.6rem;
-    column-gap: 5px;
+    font-size: 1rem;
+    column-gap: 20px;
     color: black;
     margin: 0;
 }
 
 .home-page-meal:hover {
-    background-color: hsl(var(--color-h), 100%, 40%);
+    background: linear-gradient(90deg, hsl(var(--color-h), 100%, 40%) 0% calc(var(--score-percent) - 5%), hsl(0, 0%, 70%) calc(var(--score-percent) + 5%));
 }
 
 .home-page-meal-name,
 .home-page-meal-score {
-    display: inline;
+    /* display: inline; */
     margin: 0;
-    padding: 0;
+    padding: 0.75rem;
+    border-bottom: 0.5px solid gray;
+}
+
+.home-page-meal-score {
+    text-align: center;
 }
 
 .home-page-meal[data-missing-data="true"] * {
     text-decoration: underline;
     font-weight: bold;
+}
+
+#home-page-meal-dialog[open] {
+    position: absolute;
+    margin: 0;
+    border: 1px solid gray;
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+    padding: 8px;
+}
+
+#home-page-meal-dialog>.action-button {
+    border-radius: 0;
 }
 
 #home-page-options {
