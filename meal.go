@@ -68,6 +68,18 @@ func GetCurrentMeal(ctx app.Context) Meal {
 	return meal
 }
 
+// SetIsMealNew sets the state value specifying whether the current meal is new
+func SetIsMealNew(isMealNew bool, ctx app.Context) {
+	ctx.SetState("isMealNew", isMealNew, app.Persist)
+}
+
+// GetIsMealNew gets the state value specifying whether the current meal is new
+func GetIsMealNew(ctx app.Context) bool {
+	var isMealNew bool
+	ctx.GetState("isMealNew", &isMealNew)
+	return isMealNew
+}
+
 var (
 	mealTypes   = []string{"Breakfast", "Lunch", "Dinner"}
 	mealSources = []string{"Cooking", "Dine-In", "Takeout"}
@@ -76,25 +88,31 @@ var (
 
 type meal struct {
 	app.Compo
-	user    User
-	meal    Meal
-	person  Person
-	cuisine map[string]bool
+	user      User
+	person    Person
+	meal      Meal
+	isMealNew bool
+	cuisine   map[string]bool
 }
 
 func (m *meal) Render() app.UI {
 	// need to copy to separate array from because append modifies the underlying array
 	var cuisines = make([]string, len(m.user.Cuisines))
 	copy(cuisines, m.user.Cuisines)
+	titleText := "Edit Meal"
+	if m.isMealNew {
+		titleText = "Create Meal"
+	}
 	return &Page{
 		ID:                     "meal",
-		Title:                  "Edit Meal",
+		Title:                  titleText,
 		Description:            "Edit a meal",
 		AuthenticationRequired: true,
 		OnNavFunc: func(ctx app.Context) {
 			m.user = GetCurrentUser(ctx)
 			m.person = GetCurrentPerson(ctx)
 			m.meal = GetCurrentMeal(ctx)
+			m.isMealNew = GetIsMealNew(ctx)
 
 			cuisines, err := GetUserCuisinesAPI.Call(m.user.ID)
 			if err != nil {
@@ -115,7 +133,7 @@ func (m *meal) Render() app.UI {
 				m.cuisine[cuisine] = true
 			}
 		},
-		TitleElement: "Edit Meal",
+		TitleElement: titleText,
 		Elements: []app.UI{
 			app.Form().ID("meal-page-form").Class("form").OnSubmit(m.OnSubmit).Body(
 				NewTextInput("meal-page-name", "What is the name of this meal?", "Meal Name", true, &m.meal.Name),
@@ -123,7 +141,7 @@ func (m *meal) Render() app.UI {
 				NewCheckboxChips("meal-page-cuisine", "Cuisines:", map[string]bool{"American": true}, &m.cuisine, append(cuisines, "+")...).SetOnChange(m.CuisinesOnChange),
 				newCuisinesDialog("meal-page", m.CuisinesDialogOnSave),
 				app.Div().ID("meal-page-action-button-row").Class("action-button-row").Body(
-					app.Input().ID("meal-page-delete-button").Class("action-button", "danger-action-button").Type("button").Value("Delete").OnClick(m.InitialDelete),
+					// app.Input().ID("meal-page-delete-button").Class("action-button", "danger-action-button").Type("button").Value("Delete").OnClick(m.InitialDelete),
 					app.A().ID("meal-page-cancel-button").Class("action-button", "secondary-action-button").Href("/home").Text("Cancel"),
 					// app.Input().ID("meal-page-entries-button").Class("action-button", "tertiary-action-button").Type("button").Value("View Entries").OnClick(m.ViewEntries),
 					app.Input().ID("meal-page-save-button").Class("action-button", "primary-action-button").Type("submit").Value("Save"),

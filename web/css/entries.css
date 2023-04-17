@@ -1,4 +1,4 @@
-.entries-page-entry {
+/* .entries-page-entry {
     padding: 10px;
     cursor: pointer;
     display: flex;
@@ -11,18 +11,18 @@
     flex-wrap: wrap;
     color: black;
     margin: 0;
-}
+} */
 
-.entries-page-entry:hover {
+/* .entries-page-entry:hover {
     background-color: hsl(var(--color-h), 100%, 40%);
-}
+} */
 
-.entries-page-entry-date,
+/* .entries-page-entry-date,
 .entries-page-entry-score {
     display: inline;
     margin: 0;
     padding: 0;
-}
+} */
 
 .entries-page-entry[data-missing-data="true"] * {
     text-decoration: underline;
