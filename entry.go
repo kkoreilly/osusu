@@ -111,20 +111,44 @@ func GetCurrentEntry(ctx app.Context) Entry {
 	return entry
 }
 
+// SetIsEntryNew sets the state value specifying whether the current entry is new
+func SetIsEntryNew(isEntryNew bool, ctx app.Context) {
+	ctx.SetState("isEntryNew", isEntryNew, app.Persist)
+}
+
+// GetIsEntryNew returns the state value specifying whether the current entry is new
+func GetIsEntryNew(ctx app.Context) bool {
+	var isEntryNew bool
+	ctx.GetState("isEntryNew", &isEntryNew)
+	return isEntryNew
+}
+
 type entry struct {
 	app.Compo
-	entry  Entry
-	person Person
+	entry      Entry
+	isEntryNew bool
+	person     Person
 }
 
 func (e *entry) Render() app.UI {
+	titleText := "Edit Entry"
+	saveButtonText := "Save"
+	if e.isEntryNew {
+		titleText = "Create Entry"
+		saveButtonText = "Create"
+	}
 	return &Page{
 		ID:                     "entry",
-		Title:                  "Edit Entry",
-		Description:            "Edit a meal entry",
+		Title:                  titleText,
+		Description:            "View, edit, or create a meal entry.",
 		AuthenticationRequired: true,
 		OnNavFunc: func(ctx app.Context) {
 			e.entry = GetCurrentEntry(ctx)
+			e.isEntryNew = GetIsEntryNew(ctx)
+			if e.isEntryNew {
+				CurrentPage.Title = "Create Entry"
+				CurrentPage.UpdatePageTitle(ctx)
+			}
 			people, err := GetPeopleAPI.Call(GetCurrentUser(ctx).ID)
 			if err != nil {
 				CurrentPage.ShowErrorStatus(err)
@@ -134,7 +158,7 @@ func (e *entry) Render() app.UI {
 			e.person = GetCurrentPerson(ctx)
 			e.entry = e.entry.FixMissingData(e.person)
 		},
-		TitleElement: "Edit Entry (" + e.person.Name + ")",
+		TitleElement: titleText,
 		Elements: []app.UI{
 			app.Form().ID("entry-page-form").Class("form").OnSubmit(e.OnSubmit).Body(
 				app.Label().ID("entry-page-date-label").Class("input-label").For("entry-page-date-input").Text("When did you eat this?"),
@@ -146,9 +170,11 @@ func (e *entry) Render() app.UI {
 				NewRangeInputPersonMap("entry-page-effort", "How much effort do you think this took?", &e.entry.Effort, e.person),
 				NewRangeInputPersonMap("entry-page-healthiness", "How healthy do you think this was?", &e.entry.Healthiness, e.person),
 				app.Div().ID("entry-page-action-button-row").Class("action-button-row").Body(
-					app.Input().ID("entry-page-delete-button").Class("action-button", "danger-action-button").Type("button").Value("Delete").OnClick(e.InitialDelete),
-					app.A().ID("entry-page-cancel-button").Class("action-button", "secondary-action-button").Href("/entries").Text("Cancel"),
-					app.Input().ID("entry-page-save-button").Class("action-button", "primary-action-button").Type("submit").Value("Save"),
+					app.If(!e.isEntryNew,
+						app.Input().ID("entry-page-delete-button").Class("action-button", "danger-action-button").Type("button").Value("Delete").OnClick(e.InitialDelete),
+					),
+					app.Input().ID("entry-page-cancel-button").Class("action-button", "secondary-action-button").Type("button").Value("Cancel").OnClick(Back),
+					app.Input().ID("entry-page-save-button").Class("action-button", "primary-action-button").Type("submit").Value(saveButtonText),
 				),
 			),
 			app.Dialog().ID("entry-page-confirm-delete").Body(
@@ -167,6 +193,16 @@ func (e *entry) OnSubmit(ctx app.Context, event app.Event) {
 
 	e.entry.Date = time.UnixMilli(int64((app.Window().GetElementByID("entry-page-date-input").Get("valueAsNumber").Int()))).UTC()
 
+	if e.isEntryNew {
+		entry, err := CreateEntryAPI.Call(e.entry)
+		if err != nil {
+			CurrentPage.ShowErrorStatus(err)
+			return
+		}
+		e.entry = entry
+		SetCurrentEntry(e.entry, ctx)
+		Back(ctx, event)
+	}
 	_, err := UpdateEntryAPI.Call(e.entry)
 	if err != nil {
 		CurrentPage.ShowErrorStatus(err)

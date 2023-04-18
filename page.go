@@ -135,3 +135,8 @@ func (p *Page) UpdateApp(ctx app.Context, e app.Event) {
 func (p *Page) InstallApp(ctx app.Context, e app.Event) {
 	ctx.ShowAppInstallPrompt()
 }
+
+// Back navigates to the previous page in history. The context and event values are not used, but they allow this function to be used as an event handler
+func Back(ctx app.Context, e app.Event) {
+	app.Window().Get("history").Call("back")
+}

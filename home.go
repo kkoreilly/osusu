@@ -31,7 +31,7 @@ func (h *home) Render() app.UI {
 	return &Page{
 		ID:                     "home",
 		Title:                  "Home",
-		Description:            "Osusu home",
+		Description:            "View, sort, and filter your meals.",
 		AuthenticationRequired: true,
 		OnNavFunc: func(ctx app.Context) {
 			h.user = GetCurrentUser(ctx)
@@ -178,7 +178,6 @@ func (h *home) Render() app.UI {
 					NewRangeInput("home-page-options-cost", "How important is cost?", &h.options.CostWeight),
 					NewRangeInput("home-page-options-effort", "How important is effort?", &h.options.EffortWeight),
 					NewRangeInput("home-page-options-healthiness", "How important is healthiness?", &h.options.HealthinessWeight),
-
 					app.Div().ID("home-page-options-action-button-row").Class("action-button-row").Body(
 						app.Input().ID("home-page-options-cancel-button").Class("secondary-action-button", "action-button").Type("button").Value("Cancel").OnClick(h.CancelOptions),
 						app.Input().ID("home-page-options-save-button").Class("primary-action-button", "action-button").Type("submit").Value("Search"),
@@ -201,12 +200,8 @@ func (h *home) OptionsFormOnClick(ctx app.Context, e app.Event) {
 }
 
 func (h *home) New(ctx app.Context, e app.Event) {
-	meal, err := CreateMealAPI.Call(GetCurrentUser(ctx).ID)
-	if err != nil {
-		CurrentPage.ShowErrorStatus(err)
-		return
-	}
-	SetCurrentMeal(meal, ctx)
+	SetIsMealNew(true, ctx)
+	SetCurrentMeal(Meal{}, ctx)
 	ctx.Navigate("/meal")
 }
 
@@ -246,11 +241,8 @@ func (h *home) MealDialogOnClick(ctx app.Context, e app.Event) {
 }
 
 func (h *home) NewEntryOnClick(ctx app.Context, e app.Event) {
-	entry, err := CreateEntryAPI.Call(NewEntry(h.user, h.currentMeal, h.person, h.entriesForEachMeal[h.currentMeal.ID]))
-	if err != nil {
-		CurrentPage.ShowErrorStatus(err)
-		return
-	}
+	entry := NewEntry(h.user, h.currentMeal, h.person, h.entriesForEachMeal[h.currentMeal.ID])
+	SetIsEntryNew(true, ctx)
 	SetCurrentEntry(entry, ctx)
 	ctx.Navigate("/entry")
 }
@@ -260,6 +252,7 @@ func (h *home) ViewEntriesOnClick(ctx app.Context, e app.Event) {
 }
 
 func (h *home) EditMealOnClick(ctx app.Context, e app.Event) {
+	SetIsMealNew(false, ctx)
 	ctx.Navigate("/meal")
 }
 

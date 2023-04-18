@@ -93,16 +93,14 @@ func (e *entries) Render() app.UI {
 }
 
 func (e *entries) EntryOnClick(ctx app.Context, event app.Event, entry Entry) {
+	SetIsEntryNew(false, ctx)
 	SetCurrentEntry(entry, ctx)
 	ctx.Navigate("/entry")
 }
 
 func (e *entries) New(ctx app.Context, event app.Event) {
-	entry, err := CreateEntryAPI.Call(NewEntry(GetCurrentUser(ctx), e.meal, e.person, e.entries))
-	if err != nil {
-		CurrentPage.ShowErrorStatus(err)
-		return
-	}
+	entry := NewEntry(GetCurrentUser(ctx), e.meal, e.person, e.entries)
+	SetIsEntryNew(true, ctx)
 	SetCurrentEntry(entry, ctx)
 	ctx.Navigate("/entry")
 }

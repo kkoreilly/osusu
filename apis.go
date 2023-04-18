@@ -192,9 +192,9 @@ var GetMealsAPI = NewAPI(http.MethodGet, "/api/getMeals", func(userID int64) (Me
 	return GetMealsDB(userID)
 })
 
-// CreateMealAPI creates and returns a new meal under the given user id.
-var CreateMealAPI = NewAPI(http.MethodPost, "/api/createMeal", func(userID int64) (Meal, error) {
-	return CreateMealDB(userID)
+// CreateMealAPI creates and returns a new meal with the given information.
+var CreateMealAPI = NewAPI(http.MethodPost, "/api/createMeal", func(meal Meal) (Meal, error) {
+	return CreateMealDB(meal)
 })
 
 // UpdateMealAPI updates the given meal in the database to have the values of the given meal.

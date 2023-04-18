@@ -191,12 +191,11 @@ func GetMealsDB(userID int64) (Meals, error) {
 	return res, nil
 }
 
-// CreateMealDB creates a meal in the database with the given userID and returns the created meal if successful and an error if not
-func CreateMealDB(userID int64) (Meal, error) {
-	statement := `INSERT INTO meals (user_id)
-	VALUES ($1) RETURNING id`
-	row := db.QueryRow(statement, userID)
-	var meal Meal
+// CreateMealDB creates a meal in the database with the given information and returns the created meal if successful and an error if not
+func CreateMealDB(meal Meal) (Meal, error) {
+	statement := `INSERT INTO meals (user_id, name, description, cuisine)
+	VALUES ($1, $2, $3, $4) RETURNING id`
+	row := db.QueryRow(statement, meal.UserID, meal.Name, meal.Description, pq.Array(meal.Cuisine))
 	err := row.Scan(&meal.ID)
 	if err != nil {
 		return Meal{}, err

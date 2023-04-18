@@ -100,19 +100,26 @@ func (m *meal) Render() app.UI {
 	var cuisines = make([]string, len(m.user.Cuisines))
 	copy(cuisines, m.user.Cuisines)
 	titleText := "Edit Meal"
+	saveButtonText := "Save"
 	if m.isMealNew {
 		titleText = "Create Meal"
+		saveButtonText = "Create"
 	}
 	return &Page{
 		ID:                     "meal",
 		Title:                  titleText,
-		Description:            "Edit a meal",
+		Description:            "Edit, view, or create a meal.",
 		AuthenticationRequired: true,
 		OnNavFunc: func(ctx app.Context) {
 			m.user = GetCurrentUser(ctx)
 			m.person = GetCurrentPerson(ctx)
 			m.meal = GetCurrentMeal(ctx)
 			m.isMealNew = GetIsMealNew(ctx)
+
+			if m.isMealNew {
+				CurrentPage.Title = "Create Meal"
+				CurrentPage.UpdatePageTitle(ctx)
+			}
 
 			cuisines, err := GetUserCuisinesAPI.Call(m.user.ID)
 			if err != nil {
@@ -136,7 +143,7 @@ func (m *meal) Render() app.UI {
 		TitleElement: titleText,
 		Elements: []app.UI{
 			app.Form().ID("meal-page-form").Class("form").OnSubmit(m.OnSubmit).Body(
-				NewTextInput("meal-page-name", "What is the name of this meal?", "Meal Name", true, &m.meal.Name),
+				NewTextInput("meal-page-name", "Name:", "Meal Name", true, &m.meal.Name),
 				NewTextarea("meal-page-description", "Description/Notes:", "Meal description/notes", false, &m.meal.Description),
 				NewCheckboxChips("meal-page-cuisine", "Cuisines:", map[string]bool{"American": true}, &m.cuisine, append(cuisines, "+")...).SetOnChange(m.CuisinesOnChange),
 				newCuisinesDialog("meal-page", m.CuisinesDialogOnSave),
@@ -144,10 +151,9 @@ func (m *meal) Render() app.UI {
 					// app.Input().ID("meal-page-delete-button").Class("action-button", "danger-action-button").Type("button").Value("Delete").OnClick(m.InitialDelete),
 					app.A().ID("meal-page-cancel-button").Class("action-button", "secondary-action-button").Href("/home").Text("Cancel"),
 					// app.Input().ID("meal-page-entries-button").Class("action-button", "tertiary-action-button").Type("button").Value("View Entries").OnClick(m.ViewEntries),
-					app.Input().ID("meal-page-save-button").Class("action-button", "primary-action-button").Type("submit").Value("Save"),
+					app.Input().ID("meal-page-save-button").Class("action-button", "primary-action-button").Type("submit").Value(saveButtonText),
 				),
 			),
-
 			app.Dialog().ID("meal-page-confirm-delete").Body(
 				app.P().ID("meal-page-confirm-delete-text").Class("confirm-delete-text").Text("Are you sure you want to delete this meal?"),
 				app.Div().ID("meal-page-confirm-delete-action-button-row").Class("action-button-row").Body(
@@ -182,11 +188,32 @@ func (m *meal) OnSubmit(ctx app.Context, event app.Event) {
 		}
 	}
 
+	if m.isMealNew {
+		m.meal.UserID = GetCurrentUser(ctx).ID
+		meal, err := CreateMealAPI.Call(m.meal)
+		if err != nil {
+			CurrentPage.ShowErrorStatus(err)
+			return
+		}
+		m.meal = meal
+		SetCurrentMeal(m.meal, ctx)
+		entries, err := GetEntriesForMealAPI.Call(m.meal.ID)
+		if err != nil {
+			CurrentPage.ShowErrorStatus(err)
+			return
+		}
+		entry := NewEntry(m.user, m.meal, m.person, entries)
+		SetIsEntryNew(true, ctx)
+		SetCurrentEntry(entry, ctx)
+		ctx.Navigate("/entry")
+		return
+	}
 	_, err := UpdateMealAPI.Call(m.meal)
 	if err != nil {
 		CurrentPage.ShowErrorStatus(err)
 		return
 	}
+
 	SetCurrentMeal(m.meal, ctx)
 
 	ctx.Navigate("/home")
