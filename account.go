@@ -8,37 +8,43 @@ import (
 
 type account struct {
 	app.Compo
-	user   User
-	person Person
+	group Group
+	user  User
 }
 
 func (a *account) Render() app.UI {
+	viewGroupText := "View Group"
+	if a.user.ID == a.group.Owner {
+		viewGroupText = "Edit Group"
+	}
 	return &Page{
 		ID:                     "account",
 		Title:                  "Account",
 		Description:            "View and change account information",
 		AuthenticationRequired: true,
 		OnNavFunc: func(ctx app.Context) {
+			SetReturnURL("/account", ctx)
+			a.group = GetCurrentGroup(ctx)
 			a.user = GetCurrentUser(ctx)
-			a.person = GetCurrentPerson(ctx)
 		},
 		TitleElement:    "Account",
-		SubtitleElement: "You are currently signed into " + a.user.Username + " as " + a.person.Name + ".",
+		SubtitleElement: "You are currently signed into " + a.user.Username + " with the name " + a.user.Name + " and the group " + a.group.Name + ".",
 		Elements: []app.UI{
 			app.Div().ID("acount-page-top-action-button-row").Class("action-button-row").Body(
 				app.Button().ID("account-page-sign-out-button").Class("danger-action-button", "action-button").Text("Sign Out").OnClick(a.InitialSignOut),
-				app.A().ID("account-page-change-person-button").Class("secondary-action-button", "action-button").Href("/people").Text("Change Person"),
+				app.A().ID("account-page-change-group-button").Class("secondary-action-button", "action-button").Href("/groups").Text("Change Group"),
+				app.Button().ID("account-page-view-group-button").Class("primary-action-button", "action-button").Text(viewGroupText).OnClick(a.ViewGroup),
 			),
 			app.Form().ID("account-page-username-form").Class("form").OnSubmit(a.ChangeUsername).Body(
 				NewTextInput("account-page-username", "Change Your Username:", "", false, &a.user.Username),
 				app.Div().ID("account-page-username-action-button-row").Class("action-button-row").Body(
-					app.Input().ID("account-page-username-save-button").Class("primary-action-button", "action-button").Type("submit").Value("Save Username"),
+					app.Button().ID("account-page-username-save-button").Class("primary-action-button", "action-button").Type("submit").Text("Save Username"),
 				),
 			),
 			app.Form().ID("account-page-password-form").Class("form").OnSubmit(a.ChangePassword).Body(
 				NewTextInput("account-page-password", "Change Your Password:", "••••••••", false, &a.user.Password).SetType("password"),
 				app.Div().ID("account-page-password-action-button-row").Class("action-button-row").Body(
-					app.Input().ID("account-page-password-save-button").Class("tertiary-action-button", "action-button").Type("submit").Value("Save Password"),
+					app.Button().ID("account-page-password-save-button").Class("tertiary-action-button", "action-button").Type("submit").Text("Save Password"),
 				),
 			),
 			app.Dialog().ID("account-page-confirm-sign-out").Body(
@@ -52,13 +58,13 @@ func (a *account) Render() app.UI {
 	}
 }
 
-func (a *account) InitialSignOut(ctx app.Context, event app.Event) {
-	event.PreventDefault()
+func (a *account) InitialSignOut(ctx app.Context, e app.Event) {
+	e.PreventDefault()
 	app.Window().GetElementByID("account-page-confirm-sign-out").Call("showModal")
 }
 
-func (a *account) ConfirmSignOut(ctx app.Context, event app.Event) {
-	event.PreventDefault()
+func (a *account) ConfirmSignOut(ctx app.Context, e app.Event) {
+	e.PreventDefault()
 	user := GetCurrentUser(ctx)
 	if user.Session != "" {
 		_, err := SignOutAPI.Call(GetCurrentUser(ctx))
@@ -70,18 +76,18 @@ func (a *account) ConfirmSignOut(ctx app.Context, event app.Event) {
 	// if no error, we are no longer authenticated
 	authenticated = time.UnixMilli(0)
 	ctx.LocalStorage().Del("currentUser")
-	ctx.LocalStorage().Del("currentPerson")
+	ctx.LocalStorage().Del("currentGroup")
 
 	ctx.Navigate("/signin")
 }
 
-func (a *account) CancelSignOut(ctx app.Context, event app.Event) {
-	event.PreventDefault()
+func (a *account) CancelSignOut(ctx app.Context, e app.Event) {
+	e.PreventDefault()
 	app.Window().GetElementByID("account-page-confirm-sign-out").Call("close")
 }
 
-func (a *account) ChangeUsername(ctx app.Context, event app.Event) {
-	event.PreventDefault()
+func (a *account) ChangeUsername(ctx app.Context, e app.Event) {
+	e.PreventDefault()
 	_, err := UpdateUsernameAPI.Call(a.user)
 	if err != nil {
 		CurrentPage.ShowErrorStatus(err)
@@ -91,8 +97,8 @@ func (a *account) ChangeUsername(ctx app.Context, event app.Event) {
 	SetCurrentUser(a.user, ctx)
 }
 
-func (a *account) ChangePassword(ctx app.Context, event app.Event) {
-	event.PreventDefault()
+func (a *account) ChangePassword(ctx app.Context, e app.Event) {
+	e.PreventDefault()
 
 	CurrentPage.ShowStatus("Loading...", StatusTypeNeutral)
 
@@ -109,4 +115,9 @@ func (a *account) ChangePassword(ctx app.Context, event app.Event) {
 		a.user.Password = ""
 		SetCurrentUser(a.user, ctx)
 	})
+}
+
+func (a *account) ViewGroup(ctx app.Context, e app.Event) {
+	SetIsGroupNew(false, ctx)
+	ctx.Navigate("/group")
 }

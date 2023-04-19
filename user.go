@@ -9,10 +9,14 @@ type User struct {
 	ID         int64
 	Username   string
 	Password   string
+	Name       string
 	Cuisines   []string
 	Session    string // session id, not part of user in user database, but stored locally
 	RememberMe bool   // also not part of user database, but used to transmit whether to save session
 }
+
+// Users is a slice of users
+type Users []User
 
 // SetCurrentUser sets the value of the current user in local storage
 func SetCurrentUser(user User, ctx app.Context) {

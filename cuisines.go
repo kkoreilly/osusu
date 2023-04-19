@@ -17,13 +17,13 @@ func (c *cuisinesDialog) Render() app.UI {
 	return app.Dialog().ID(c.ID+"-cuisines-dialog").Class("cuisines-dialog").Body(
 		app.Form().ID(c.ID+"-cuisines-dialog-new-cuisine-form").Class("form").OnSubmit(c.NewCuisine).Body(
 			NewTextInput(c.ID+"-cuisines-dialog-new-name", "New Cuisine Name:", "New Cuisine Name", false, &c.newCuisineName),
-			app.Input().ID(c.ID+"-cuisines-dialog-new-button").Class("action-button", "tertiary-action-button").Type("submit").Value("Make New Cuisine"),
+			app.Button().ID(c.ID+"-cuisines-dialog-new-button").Class("action-button", "tertiary-action-button").Type("submit").Text("Make New Cuisine"),
 		),
 		app.Form().ID(c.ID+"-cuisines-dialog-form").Class("form").OnSubmit(c.Save).Body(
 			NewCheckboxChips(c.ID+"-cuisines-dialog-checkbox-chips", "What cuisine options should be available?", map[string]bool{}, &c.cuisines, c.user.Cuisines...),
 			app.Div().ID(c.ID+"-cuisines-dialog-action-button-row").Class("action-button-row").Body(
-				app.Input().ID(c.ID+"-cuisines-dialog-cancel-button").Class("action-button", "secondary-action-button").Type("button").Value("Cancel").OnClick(c.Cancel),
-				app.Input().ID(c.ID+"-cuisines-dialog-save-button").Class("action-button", "primary-action-button").Type("submit").Value("Save"),
+				app.Button().ID(c.ID+"-cuisines-dialog-cancel-button").Class("action-button", "secondary-action-button").Type("button").Text("Cancel").OnClick(c.Cancel),
+				app.Button().ID(c.ID+"-cuisines-dialog-save-button").Class("action-button", "primary-action-button").Type("submit").Text("Save"),
 			),
 		),
 	)

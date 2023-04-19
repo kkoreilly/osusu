@@ -33,7 +33,7 @@ func (s *signIn) Render() app.UI {
 				),
 				app.Div().ID("sign-in-page-action-button-row").Class("action-button-row").Body(
 					app.A().ID("sign-in-page-cancel").Class("action-button", "secondary-action-button").Href("/").Text("Cancel").Title("Cancel the Sign In and Navigate to the Start"),
-					app.Input().ID("sign-in-page-submit").Class("action-button", "primary-action-button").Name("submit").Type("submit").Value("Sign In"),
+					app.Button().ID("sign-in-page-submit").Class("action-button", "primary-action-button").Name("submit").Type("submit").Text("Sign In"),
 				),
 			),
 		},
@@ -55,6 +55,6 @@ func (s *signIn) OnSubmit(ctx app.Context, e app.Event) {
 		// if no error, we are now authenticated
 		authenticated = time.Now()
 		SetCurrentUser(user, ctx)
-		ctx.Navigate("/people")
+		ctx.Navigate("/groups")
 	})
 }

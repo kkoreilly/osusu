@@ -51,8 +51,10 @@ type group struct {
 
 func (g *group) Render() app.UI {
 	titleText := "Edit Group"
+	saveButtonText := "Save"
 	if g.isGroupNew {
 		titleText = "Create Group"
+		saveButtonText = "Create"
 	}
 	cancelButtonText := "Cancel"
 	if !g.isOwner {
@@ -73,12 +75,10 @@ func (g *group) Render() app.UI {
 			}
 			g.user = GetCurrentUser(ctx)
 			g.isOwner = g.isGroupNew || g.user.ID == g.group.Owner
-			g.isGroupNew = false
-			g.isOwner = false
 		},
 		TitleElement: titleText,
 		Elements: []app.UI{
-			app.Form().ID("group-page-form").Class("form").Body(
+			app.Form().ID("group-page-form").Class("form").OnSubmit(g.OnSubmit).Body(
 				app.If(g.isOwner,
 					NewTextInput("group-page-name", "Name:", "Group Name", true, &g.group.Name),
 				).Else(
@@ -92,17 +92,39 @@ func (g *group) Render() app.UI {
 				),
 				app.Div().ID("group-page-action-button-row").Class("action-button-row").Body(
 					app.If(g.isOwner && !g.isGroupNew,
-						app.Button().ID("group-page-delete-button").Class("action-button", "danger-action-button").Text("Delete"),
+						app.Button().ID("group-page-delete-button").Class("action-button", "danger-action-button").Type("button").Text("Delete"),
 					),
-					app.Button().ID("grou-page-cancel-button").Class("action-button", "secondary-action-button").Text(cancelButtonText),
-					app.If(g.isOwner && !g.isGroupNew,
-						app.Button().ID("group-page-save-button").Class("action-button", "primary-action-button").Text("Save"),
-					),
-					app.If(g.isGroupNew,
-						app.Button().ID("group-page-create-button").Class("action-button", "primary-action-button").Text("Create"),
+					app.Button().ID("group-page-cancel-button").Class("action-button", "secondary-action-button").Type("button").Text(cancelButtonText).OnClick(ReturnToReturnURL),
+					app.If(g.isOwner,
+						app.Button().ID("group-page-save-button").Class("action-button", "primary-action-button").Type("submit").Text(saveButtonText),
 					),
 				),
 			),
 		},
 	}
+}
+
+func (g *group) OnSubmit(ctx app.Context, e app.Event) {
+	e.PreventDefault()
+
+	if g.isGroupNew {
+		g.group.Owner = g.user.ID
+		g.group.Members = []int64{g.user.ID}
+		group, err := CreateGroupAPI.Call(g.group)
+		if err != nil {
+			CurrentPage.ShowErrorStatus(err)
+			return
+		}
+		g.group = group
+		SetCurrentGroup(g.group, ctx)
+		ReturnToReturnURL(ctx, e)
+		return
+	}
+	_, err := UpdateGroupAPI.Call(g.group)
+	if err != nil {
+		CurrentPage.ShowErrorStatus(err)
+		return
+	}
+	SetCurrentGroup(g.group, ctx)
+	ReturnToReturnURL(ctx, e)
 }

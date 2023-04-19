@@ -110,7 +110,7 @@ html,
     margin: 0;
     padding: 0;
     border: none;
-    background-color: hsl(0, 0%, 60%);
+    background-color: hsl(0, 0%, 70%);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -138,19 +138,15 @@ html,
 }
 
 .page-status-close-button:hover {
-    background-color: hsl(0, 0%, 50%);
+    background-color: hsl(0, 0%, 60%);
 }
 
 .page-status[data-status-type="negative"] {
-    background-color: red;
-}
-
-.page-status[data-status-type="negative"] * {
-    color: white;
+    background-color: hsl(0, 100%, 80%);
 }
 
 .page-status[data-status-type="negative"] .page-status-close-button:hover {
-    background-color: hsl(0, 100%, 30%);
+    background-color: hsl(0, 100%, 70%);
 }
 
 .page-status[data-status-type="positive"] {

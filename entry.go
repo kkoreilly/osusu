@@ -10,29 +10,29 @@ import (
 // Entry is an entry with information about how a meal was at a certain point in time
 type Entry struct {
 	ID          int64
-	UserID      int64
+	GroupID     int64
 	MealID      int64
 	Date        time.Time
 	Type        string
 	Source      string
-	Cost        PersonMap
-	Effort      PersonMap
-	Healthiness PersonMap
-	Taste       PersonMap
+	Cost        UserMap
+	Effort      UserMap
+	Healthiness UserMap
+	Taste       UserMap
 }
 
-// NewEntry returns a new entry for the given user, meal, and person with the given existing entries for the meal
-func NewEntry(user User, meal Meal, person Person, entries Entries) Entry {
+// NewEntry returns a new entry for the given group, user, and meal with the given existing entries for the meal
+func NewEntry(group Group, user User, meal Meal, entries Entries) Entry {
 	newEntry := Entry{
-		UserID:      user.ID,
+		GroupID:     group.ID,
 		MealID:      meal.ID,
 		Date:        time.Now(),
 		Type:        "Dinner",
 		Source:      "Cooking",
-		Cost:        PersonMap{person.ID: 50},
-		Effort:      PersonMap{person.ID: 50},
-		Healthiness: PersonMap{person.ID: 50},
-		Taste:       PersonMap{person.ID: 50},
+		Cost:        UserMap{user.ID: 50},
+		Effort:      UserMap{user.ID: 50},
+		Healthiness: UserMap{user.ID: 50},
+		Taste:       UserMap{user.ID: 50},
 	}
 	// if there are previous entries, copy the values from the latest (the entries are already sorted with the latest first by OnNav)
 	// we only copy the person map values for the person creating the new entry.
@@ -41,17 +41,17 @@ func NewEntry(user User, meal Meal, person Person, entries Entries) Entry {
 			return entries[i].Date.After(entries[j].Date)
 		})
 		previousEntry := entries[0]
-		previousEntry = previousEntry.FixMissingData(person)
+		previousEntry = previousEntry.FixMissingData(user)
 		newEntry = Entry{
-			UserID:      user.ID,
+			GroupID:     group.ID,
 			MealID:      meal.ID,
 			Date:        time.Now(),
 			Type:        previousEntry.Type,
 			Source:      previousEntry.Source,
-			Cost:        PersonMap{person.ID: previousEntry.Cost[person.ID]},
-			Effort:      PersonMap{person.ID: previousEntry.Effort[person.ID]},
-			Healthiness: PersonMap{person.ID: previousEntry.Healthiness[person.ID]},
-			Taste:       PersonMap{person.ID: previousEntry.Taste[person.ID]},
+			Cost:        UserMap{user.ID: previousEntry.Cost[user.ID]},
+			Effort:      UserMap{user.ID: previousEntry.Effort[user.ID]},
+			Healthiness: UserMap{user.ID: previousEntry.Healthiness[user.ID]},
+			Taste:       UserMap{user.ID: previousEntry.Taste[user.ID]},
 		}
 	}
 	return newEntry
@@ -60,7 +60,7 @@ func NewEntry(user User, meal Meal, person Person, entries Entries) Entry {
 // Score produces a score from 0 to 100 for the entry based on its attributes and the given options
 func (e Entry) Score(options Options) int {
 	// average of all attributes
-	sum := options.CostWeight*e.Cost.Sum(options.People, true) + options.EffortWeight*e.Effort.Sum(options.People, true) + options.HealthinessWeight*e.Healthiness.Sum(options.People, false) + options.TasteWeight*e.Taste.Sum(options.People, false)
+	sum := options.CostWeight*e.Cost.Sum(options.Users, true) + options.EffortWeight*e.Effort.Sum(options.Users, true) + options.HealthinessWeight*e.Healthiness.Sum(options.Users, false) + options.TasteWeight*e.Taste.Sum(options.Users, false)
 	den := len(e.Cost)*options.CostWeight + len(e.Effort)*options.EffortWeight + len(e.Healthiness)*options.HealthinessWeight + len(e.Taste)*options.TasteWeight
 	if den == 0 {
 		return 0
@@ -68,34 +68,34 @@ func (e Entry) Score(options Options) int {
 	return sum / den
 }
 
-// MissingData returns whether the given person is missing data in the given entry
-func (e Entry) MissingData(person Person) bool {
-	return !(e.Cost.HasValueSet(person) && e.Effort.HasValueSet(person) && e.Healthiness.HasValueSet(person) && e.Taste.HasValueSet(person))
+// MissingData returns whether the given user is missing data in the given entry
+func (e Entry) MissingData(user User) bool {
+	return !(e.Cost.HasValueSet(user) && e.Effort.HasValueSet(user) && e.Healthiness.HasValueSet(user) && e.Taste.HasValueSet(user))
 }
 
-// FixMissingData fixes any missing data for the given person for the given entry by setting their values to the average of everyone else's ratings and returning the updated entry
-func (e Entry) FixMissingData(person Person) Entry {
-	if !e.Cost.HasValueSet(person) {
-		e.Cost[person.ID] = e.Cost.Average()
+// FixMissingData fixes any missing data for the given user for the given entry by setting their values to the average of everyone else's ratings and returning the updated entry
+func (e Entry) FixMissingData(user User) Entry {
+	if !e.Cost.HasValueSet(user) {
+		e.Cost[user.ID] = e.Cost.Average()
 	}
-	if !e.Effort.HasValueSet(person) {
-		e.Effort[person.ID] = e.Effort.Average()
+	if !e.Effort.HasValueSet(user) {
+		e.Effort[user.ID] = e.Effort.Average()
 	}
-	if !e.Healthiness.HasValueSet(person) {
-		e.Healthiness[person.ID] = e.Healthiness.Average()
+	if !e.Healthiness.HasValueSet(user) {
+		e.Healthiness[user.ID] = e.Healthiness.Average()
 	}
-	if !e.Taste.HasValueSet(person) {
-		e.Taste[person.ID] = e.Taste.Average()
+	if !e.Taste.HasValueSet(user) {
+		e.Taste[user.ID] = e.Taste.Average()
 	}
 	return e
 }
 
-// RemoveInvalid returns the entry with all invalid entries associated with nonexistent people removed
-func (e Entry) RemoveInvalid(people People) Entry {
-	e.Cost.RemoveInvalid(people)
-	e.Effort.RemoveInvalid(people)
-	e.Healthiness.RemoveInvalid(people)
-	e.Taste.RemoveInvalid(people)
+// RemoveInvalid returns the entry with all invalid entries associated with nonexistent users removed
+func (e Entry) RemoveInvalid(users []User) Entry {
+	e.Cost.RemoveInvalid(users)
+	e.Effort.RemoveInvalid(users)
+	e.Healthiness.RemoveInvalid(users)
+	e.Taste.RemoveInvalid(users)
 	return e
 }
 
@@ -127,7 +127,7 @@ type entry struct {
 	app.Compo
 	entry      Entry
 	isEntryNew bool
-	person     Person
+	user       User
 }
 
 func (e *entry) Render() app.UI {
@@ -149,14 +149,14 @@ func (e *entry) Render() app.UI {
 				CurrentPage.Title = "Create Entry"
 				CurrentPage.UpdatePageTitle(ctx)
 			}
-			people, err := GetPeopleAPI.Call(GetCurrentUser(ctx).ID)
-			if err != nil {
-				CurrentPage.ShowErrorStatus(err)
-				return
-			}
-			e.entry = e.entry.RemoveInvalid(people)
-			e.person = GetCurrentPerson(ctx)
-			e.entry = e.entry.FixMissingData(e.person)
+			// people, err := GetPeopleAPI.Call(GetCurrentUser(ctx).ID)
+			// if err != nil {
+			// 	CurrentPage.ShowErrorStatus(err)
+			// 	return
+			// }
+			// e.entry = e.entry.RemoveInvalid(people)
+			e.user = GetCurrentUser(ctx)
+			e.entry = e.entry.FixMissingData(e.user)
 		},
 		TitleElement: titleText,
 		Elements: []app.UI{
@@ -165,16 +165,16 @@ func (e *entry) Render() app.UI {
 				app.Input().ID("entry-page-date-input").Class("input").Type("date").Value(e.entry.Date.Format("2006-01-02")),
 				NewRadioChips("entry-page-type", "What meal did you eat this for?", "Dinner", &e.entry.Type, mealTypes...),
 				NewRadioChips("entry-page-source", "How did you get this meal?", "Cooking", &e.entry.Source, mealSources...),
-				NewRangeInputPersonMap("entry-page-taste", "How tasty do you think this was?", &e.entry.Taste, e.person),
-				NewRangeInputPersonMap("entry-page-cost", "How expensive do you think this was?", &e.entry.Cost, e.person),
-				NewRangeInputPersonMap("entry-page-effort", "How much effort do you think this took?", &e.entry.Effort, e.person),
-				NewRangeInputPersonMap("entry-page-healthiness", "How healthy do you think this was?", &e.entry.Healthiness, e.person),
+				NewRangeInputUserMap("entry-page-taste", "How tasty do you think this was?", &e.entry.Taste, e.user),
+				NewRangeInputUserMap("entry-page-cost", "How expensive do you think this was?", &e.entry.Cost, e.user),
+				NewRangeInputUserMap("entry-page-effort", "How much effort do you think this took?", &e.entry.Effort, e.user),
+				NewRangeInputUserMap("entry-page-healthiness", "How healthy do you think this was?", &e.entry.Healthiness, e.user),
 				app.Div().ID("entry-page-action-button-row").Class("action-button-row").Body(
 					app.If(!e.isEntryNew,
-						app.Input().ID("entry-page-delete-button").Class("action-button", "danger-action-button").Type("button").Value("Delete").OnClick(e.InitialDelete),
+						app.Button().ID("entry-page-delete-button").Class("action-button", "danger-action-button").Type("button").Text("Delete").OnClick(e.InitialDelete),
 					),
-					app.Input().ID("entry-page-cancel-button").Class("action-button", "secondary-action-button").Type("button").Value("Cancel").OnClick(Back),
-					app.Input().ID("entry-page-save-button").Class("action-button", "primary-action-button").Type("submit").Value(saveButtonText),
+					app.Button().ID("entry-page-cancel-button").Class("action-button", "secondary-action-button").Type("button").Text("Cancel").OnClick(ReturnToReturnURL),
+					app.Button().ID("entry-page-save-button").Class("action-button", "primary-action-button").Type("submit").Text(saveButtonText),
 				),
 			),
 			app.Dialog().ID("entry-page-confirm-delete").Body(
@@ -201,7 +201,8 @@ func (e *entry) OnSubmit(ctx app.Context, event app.Event) {
 		}
 		e.entry = entry
 		SetCurrentEntry(e.entry, ctx)
-		Back(ctx, event)
+		ReturnToReturnURL(ctx, event)
+		return
 	}
 	_, err := UpdateEntryAPI.Call(e.entry)
 	if err != nil {

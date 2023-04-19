@@ -53,12 +53,12 @@ func NewRangeInput(id string, label string, value *int) *Input[int] {
 	return &Input[int]{IsTextarea: false, ID: id, Label: label, InputClass: "input-range", Type: "range", Value: value, ValueFunc: ValueFuncInt}
 }
 
-// NewRangeInputPersonMap makes a new range input component from the given values with the value as the entry in the person map corresponding to the given current person
-func NewRangeInputPersonMap(id string, label string, value *PersonMap, currentPerson Person) *Input[int] {
-	val := (*value)[currentPerson.ID]
+// NewRangeInputUserMap makes a new range input component from the given values with the value as the entry in the user map corresponding to the given current user
+func NewRangeInputUserMap(id string, label string, value *UserMap, currentUser User) *Input[int] {
+	val := (*value)[currentUser.ID]
 	return &Input[int]{IsTextarea: false, ID: id, Label: label, InputClass: "input-range", Type: "range", Value: &val, ValueFunc: func(v app.Value) int {
 		res := v.Get("valueAsNumber").Int()
-		(*value)[currentPerson.ID] = res
+		(*value)[currentUser.ID] = res
 		return res
 	}}
 }

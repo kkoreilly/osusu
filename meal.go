@@ -9,7 +9,7 @@ import (
 // Meal is a struct that represents the data of a meal
 type Meal struct {
 	ID          int64
-	UserID      int64
+	GroupID     int64
 	Name        string
 	Description string
 	Cuisine     []string
@@ -88,8 +88,9 @@ var (
 
 type meal struct {
 	app.Compo
-	user      User
-	person    Person
+	group Group
+	user  User
+	// person    Person
 	meal      Meal
 	isMealNew bool
 	cuisine   map[string]bool
@@ -111,8 +112,9 @@ func (m *meal) Render() app.UI {
 		Description:            "Edit, view, or create a meal.",
 		AuthenticationRequired: true,
 		OnNavFunc: func(ctx app.Context) {
+			m.group = GetCurrentGroup(ctx)
 			m.user = GetCurrentUser(ctx)
-			m.person = GetCurrentPerson(ctx)
+			// m.person = GetCurrentPerson(ctx)
 			m.meal = GetCurrentMeal(ctx)
 			m.isMealNew = GetIsMealNew(ctx)
 
@@ -151,7 +153,7 @@ func (m *meal) Render() app.UI {
 					// app.Input().ID("meal-page-delete-button").Class("action-button", "danger-action-button").Type("button").Value("Delete").OnClick(m.InitialDelete),
 					app.A().ID("meal-page-cancel-button").Class("action-button", "secondary-action-button").Href("/home").Text("Cancel"),
 					// app.Input().ID("meal-page-entries-button").Class("action-button", "tertiary-action-button").Type("button").Value("View Entries").OnClick(m.ViewEntries),
-					app.Input().ID("meal-page-save-button").Class("action-button", "primary-action-button").Type("submit").Value(saveButtonText),
+					app.Button().ID("meal-page-save-button").Class("action-button", "primary-action-button").Type("submit").Text(saveButtonText),
 				),
 			),
 			app.Dialog().ID("meal-page-confirm-delete").Body(
@@ -189,7 +191,7 @@ func (m *meal) OnSubmit(ctx app.Context, event app.Event) {
 	}
 
 	if m.isMealNew {
-		m.meal.UserID = GetCurrentUser(ctx).ID
+		m.meal.GroupID = m.group.ID
 		meal, err := CreateMealAPI.Call(m.meal)
 		if err != nil {
 			CurrentPage.ShowErrorStatus(err)
@@ -202,7 +204,7 @@ func (m *meal) OnSubmit(ctx app.Context, event app.Event) {
 			CurrentPage.ShowErrorStatus(err)
 			return
 		}
-		entry := NewEntry(m.user, m.meal, m.person, entries)
+		entry := NewEntry(m.group, m.user, m.meal, entries)
 		SetIsEntryNew(true, ctx)
 		SetCurrentEntry(entry, ctx)
 		ctx.Navigate("/entry")

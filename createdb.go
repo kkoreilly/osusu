@@ -87,13 +87,13 @@ func CreateMealsTableDB() error {
 	CREATE TABLE IF NOT EXISTS public.meals
 	(
 		id bigserial NOT NULL,
-		user_id bigint NOT NULL,
+		group_id bigint NOT NULL,
 		name text NOT NULL DEFAULT ''::text,
 		description text NOT NULL DEFAULT ''::text,
 		cuisine text[] NOT NULL DEFAULT '{}'::text[],
 		CONSTRAINT meals_pkey PRIMARY KEY (id),
-		CONSTRAINT meals_user_id_fkey FOREIGN KEY (user_id)
-			REFERENCES public.users (id) MATCH SIMPLE
+		CONSTRAINT meals_group_id_fkey FOREIGN KEY (group_id)
+			REFERENCES public.groups (id) MATCH SIMPLE
 			ON UPDATE CASCADE
 			ON DELETE CASCADE
 	)`
@@ -107,7 +107,7 @@ func CreateEntriesTableDB() error {
 	CREATE TABLE IF NOT EXISTS public.entries
 	(
 		id bigserial NOT NULL,
-		user_id bigint NOT NULL,
+		group_id bigint NOT NULL,
 		meal_id bigint NOT NULL,
 		entry_date date NOT NULL,
 		type text NOT NULL DEFAULT ''::text,
@@ -121,8 +121,8 @@ func CreateEntriesTableDB() error {
 			REFERENCES public.meals (id) MATCH SIMPLE
 			ON UPDATE CASCADE
 			ON DELETE CASCADE,
-		CONSTRAINT entries_user_id_fkey FOREIGN KEY (user_id)
-			REFERENCES public.users (id) MATCH SIMPLE
+		CONSTRAINT entries_group_id_fkey FOREIGN KEY (group_id)
+			REFERENCES public.groups (id) MATCH SIMPLE
 			ON UPDATE CASCADE
 			ON DELETE CASCADE
 	)`

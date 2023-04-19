@@ -24,7 +24,6 @@ type Page struct {
 	updateAvailable        bool
 	installAvailable       bool
 	user                   User
-	person                 Person
 }
 
 // CurrentPage is the current page the user is on
@@ -35,8 +34,8 @@ func (p *Page) Render() app.UI {
 	width, _ := app.Window().Size()
 	smallScreen := width <= 480
 	nameFirstLetter := ""
-	if len(p.person.Name) > 0 {
-		nameFirstLetter = string(unicode.ToUpper(rune(p.person.Name[0])))
+	if len(p.user.Name) > 0 {
+		nameFirstLetter = string(unicode.ToUpper(rune(p.user.Name[0])))
 	}
 	return app.Div().ID(p.ID + "-page-container").Class("page-container").OnClick(p.OnClick).Body([]app.UI{
 		app.Header().ID(p.ID+"-page-header").Class("page-header").Body(
@@ -45,7 +44,6 @@ func (p *Page) Render() app.UI {
 					app.Img().ID(p.ID+"-page-top-bar-icon-img").Class("page-top-bar-icon-img").Src("/web/images/icon-192.png"),
 					app.If(!smallScreen, app.Span().ID(p.ID+"-page-top-bar-icon-text").Class("page-top-bar-icon-text").Text("Osusu")),
 				),
-
 				app.Div().ID(p.ID+"-page-top-bar-buttons").Class("page-top-bar-buttons").Body(
 					app.If(p.updateAvailable, app.Button().ID(p.ID+"-page-top-bar-update-button").Class("page-top-bar-button", "page-top-bar-update-button").Text("Update").Title("Update to the Latest Version of Osusu").OnClick(p.UpdateApp)),
 					app.If(p.installAvailable, app.Button().ID(p.ID+"-page-top-bar-install-button").Class("page-top-bar-button", "page-top-bar-install-button").Text("Install").Title("Install Osusu to Your Device").OnClick(p.InstallApp)),
@@ -104,12 +102,12 @@ func (p *Page) OnNav(ctx app.Context) {
 	p.updateAvailable = ctx.AppUpdateAvailable()
 	p.installAvailable = ctx.IsAppInstallable()
 	p.user = GetCurrentUser(ctx)
-	p.person = GetCurrentPerson(ctx)
-	// if not signed in but person still set, clear person
-	if p.user.Username == "" && p.person != (Person{}) {
-		p.person = Person{}
-		SetCurrentPerson(p.person, ctx)
-	}
+	// p.person = GetCurrentPerson(ctx)
+	// // if not signed in but person still set, clear person
+	// if p.user.Username == "" && p.person != (Person{}) {
+	// 	p.person = Person{}
+	// 	SetCurrentPerson(p.person, ctx)
+	// }
 
 	if p.OnNavFunc != nil {
 		p.OnNavFunc(ctx)
@@ -134,6 +132,24 @@ func (p *Page) UpdateApp(ctx app.Context, e app.Event) {
 // InstallApp shows the app installation prompt
 func (p *Page) InstallApp(ctx app.Context, e app.Event) {
 	ctx.ShowAppInstallPrompt()
+}
+
+// SetReturnURL sets the state value of the url to return to after exiting a page that can be accessed from multiple places
+func SetReturnURL(returnURL string, ctx app.Context) {
+	ctx.SetState("returnURL", returnURL, app.Persist)
+}
+
+// GetReturnURL returns the state value containing the url to return to after exiting a page that can be accessed from multiple places
+func GetReturnURL(ctx app.Context) string {
+	var returnURL string
+	ctx.GetState("returnURL", &returnURL)
+	return returnURL
+}
+
+// ReturnToReturnURL returns the user to the url to return to after exiting a page that can be accessed from multiple places.
+// The event value is not used, but it allows this function be used as an event handler.
+func ReturnToReturnURL(ctx app.Context, e app.Event) {
+	ctx.Navigate(GetReturnURL(ctx))
 }
 
 // Back navigates to the previous page in history. The context and event values are not used, but they allow this function to be used as an event handler

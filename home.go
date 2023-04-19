@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"sort"
 	"strconv"
 
@@ -10,30 +9,42 @@ import (
 
 type home struct {
 	app.Compo
+	group              Group
+	user               User
+	users              []User
 	meals              Meals
 	entriesForEachMeal map[int64]Entries // entries for each meal id
-	user               User
-	person             Person
-	people             People
 	options            Options
-	peopleOptions      map[string]bool
-	currentMeal        Meal // the current selected meal for the context menu
+	usersOptions       map[string]bool
+	cuisinesInUse      map[string]bool // key is cuisine name, value is if it's being used
+	currentMeal        Meal            // the current selected meal for the context menu
 }
 
 func (h *home) Render() app.UI {
-	peopleString := []string{}
-	for _, p := range h.people {
-		peopleString = append(peopleString, p.Name)
+	usersStrings := []string{}
+	for _, u := range h.users {
+		usersStrings = append(usersStrings, u.Name)
 	}
-	// need to copy to separate array from because append modifies the underlying array
-	var cuisines = make([]string, len(h.user.Cuisines))
-	copy(cuisines, h.user.Cuisines)
+	// // need to copy to separate array from because append modifies the underlying array
+	// var cuisines = make([]string, len(h.user.Cuisines))
+	// copy(cuisines, h.user.Cuisines)
+	cuisines := []string{}
+	for cuisine, val := range h.cuisinesInUse {
+		if val {
+			cuisines = append(cuisines, cuisine)
+		}
+	}
 	return &Page{
 		ID:                     "home",
 		Title:                  "Home",
 		Description:            "View, sort, and filter your meals.",
 		AuthenticationRequired: true,
 		OnNavFunc: func(ctx app.Context) {
+			SetReturnURL("/home", ctx)
+			h.group = GetCurrentGroup(ctx)
+			if h.group.Name == "" {
+				ctx.Navigate("/groups")
+			}
 			h.user = GetCurrentUser(ctx)
 			cuisines, err := GetUserCuisinesAPI.Call(h.user.ID)
 			if err != nil {
@@ -43,37 +54,54 @@ func (h *home) Render() app.UI {
 			h.user.Cuisines = cuisines
 			SetCurrentUser(h.user, ctx)
 
-			h.person = GetCurrentPerson(ctx)
-
-			people, err := GetPeopleAPI.Call(h.user.ID)
+			users, err := GetUsersAPI.Call(h.group.Members)
 			if err != nil {
 				CurrentPage.ShowErrorStatus(err)
 				return
 			}
-			h.people = people
+			h.users = users
+
+			// people, err := GetPeopleAPI.Call(h.user.ID)
+			// if err != nil {
+			// 	CurrentPage.ShowErrorStatus(err)
+			// 	return
+			// }
+			// h.people = people
 
 			h.options = GetOptions(ctx)
-			if h.options.People == nil {
+			if h.options.Users == nil {
 				h.options = DefaultOptions(h.user)
 			}
 			h.options = h.options.RemoveInvalidCuisines(h.user.Cuisines)
 			SetOptions(h.options, ctx)
-			h.peopleOptions = make(map[string]bool)
-			for _, p := range h.people {
-				if _, ok := h.options.People[p.ID]; !ok {
-					h.options.People[p.ID] = true
+			h.usersOptions = make(map[string]bool)
+			for _, p := range h.users {
+				if _, ok := h.options.Users[p.ID]; !ok {
+					h.options.Users[p.ID] = true
 				}
-				h.peopleOptions[p.Name] = h.options.People[p.ID]
+				h.usersOptions[p.Name] = h.options.Users[p.ID]
 			}
 
-			meals, err := GetMealsAPI.Call(h.user.ID)
+			meals, err := GetMealsAPI.Call(h.group.ID)
 			if err != nil {
 				CurrentPage.ShowErrorStatus(err)
 				return
 			}
 			h.meals = meals
 
-			entries, err := GetEntriesAPI.Call(h.user.ID)
+			h.cuisinesInUse = map[string]bool{}
+			for _, meal := range h.meals {
+				for _, cuisine := range meal.Cuisine {
+					h.cuisinesInUse[cuisine] = true
+					// if the user has not yet set whether or not to allow this cuisine (if it is new), automatically set it to true
+					_, ok := h.options.Cuisine[cuisine]
+					if !ok {
+						h.options.Cuisine[cuisine] = true
+					}
+				}
+			}
+
+			entries, err := GetEntriesAPI.Call(h.group.ID)
 			if err != nil {
 				CurrentPage.ShowErrorStatus(err)
 				return
@@ -90,7 +118,7 @@ func (h *home) Render() app.UI {
 			h.SortMeals()
 		},
 		OnClick:      h.PageOnClick,
-		TitleElement: "Welcome, " + h.person.Name,
+		TitleElement: "Welcome, " + h.user.Name,
 		Elements: []app.UI{
 			app.Div().ID("home-page-action-button-row").Class("action-button-row").Body(
 				app.Button().ID("home-page-new-button").Class("secondary-action-button", "action-button").Text("New Meal").OnClick(h.New),
@@ -142,7 +170,7 @@ func (h *home) Render() app.UI {
 						score := meal.Score(entries, h.options)
 						colorH := strconv.Itoa((score * 12) / 10)
 						scoreText := strconv.Itoa(score)
-						missingData := entries.MissingData(h.person)
+						missingData := entries.MissingData(h.user)
 						isCurrentMeal := meal.ID == h.currentMeal.ID
 						return app.Tr().ID("home-page-meal-"+si).Class("home-page-meal").DataSet("missing-data", missingData).DataSet("current-meal", isCurrentMeal).Style("--color-h", colorH).Style("--score-percent", scoreText+"%").
 							OnClick(func(ctx app.Context, e app.Event) { h.MealOnClick(ctx, e, meal) }).Body(
@@ -169,9 +197,9 @@ func (h *home) Render() app.UI {
 			app.Dialog().ID("home-page-options").OnClick(h.OptionsOnClick).Body(
 				app.Form().ID("home-page-options-form").Class("form").OnSubmit(h.SaveOptions).OnClick(h.OptionsFormOnClick).Body(
 					NewRadioChips("home-page-options-type", "What meal are you eating?", "Dinner", &h.options.Type, mealTypes...),
-					NewCheckboxChips("home-page-options", "Who are you eating with?", map[string]bool{}, &h.peopleOptions, peopleString...),
+					NewCheckboxChips("home-page-options", "Who are you eating with?", map[string]bool{}, &h.usersOptions, usersStrings...),
 					NewCheckboxChips("home-page-options-source", "What meal sources are okay?", map[string]bool{"Cooking": true, "Dine-In": true, "Takeout": true}, &h.options.Source, mealSources...),
-					NewCheckboxChips("home-page-options-cuisine", "What cuisines are okay?", map[string]bool{"American": true}, &h.options.Cuisine, append(cuisines, "+")...).SetOnChange(h.CuisinesOnChange),
+					NewCheckboxChips("home-page-options-cuisine", "What cuisines are okay?", map[string]bool{"American": true}, &h.options.Cuisine, cuisines...),
 					newCuisinesDialog("home-page", h.CuisinesDialogOnSave),
 					NewRangeInput("home-page-options-taste", "How important is taste?", &h.options.TasteWeight),
 					NewRangeInput("home-page-options-recency", "How important is recency?", &h.options.RecencyWeight),
@@ -179,8 +207,8 @@ func (h *home) Render() app.UI {
 					NewRangeInput("home-page-options-effort", "How important is effort?", &h.options.EffortWeight),
 					NewRangeInput("home-page-options-healthiness", "How important is healthiness?", &h.options.HealthinessWeight),
 					app.Div().ID("home-page-options-action-button-row").Class("action-button-row").Body(
-						app.Input().ID("home-page-options-cancel-button").Class("secondary-action-button", "action-button").Type("button").Value("Cancel").OnClick(h.CancelOptions),
-						app.Input().ID("home-page-options-save-button").Class("primary-action-button", "action-button").Type("submit").Value("Search"),
+						app.Button().ID("home-page-options-cancel-button").Class("secondary-action-button", "action-button").Type("button").Text("Cancel").OnClick(h.CancelOptions),
+						app.Button().ID("home-page-options-save-button").Class("primary-action-button", "action-button").Type("submit").Text("Search"),
 					),
 				),
 			),
@@ -194,7 +222,6 @@ func (h *home) OptionsOnClick(ctx app.Context, e app.Event) {
 }
 
 func (h *home) OptionsFormOnClick(ctx app.Context, e app.Event) {
-	log.Println("options form on click")
 	// cancel the closing of the dialog if they actually
 	e.Call("stopPropagation")
 }
@@ -241,7 +268,7 @@ func (h *home) MealDialogOnClick(ctx app.Context, e app.Event) {
 }
 
 func (h *home) NewEntryOnClick(ctx app.Context, e app.Event) {
-	entry := NewEntry(h.user, h.currentMeal, h.person, h.entriesForEachMeal[h.currentMeal.ID])
+	entry := NewEntry(h.group, h.user, h.currentMeal, h.entriesForEachMeal[h.currentMeal.ID])
 	SetIsEntryNew(true, ctx)
 	SetCurrentEntry(entry, ctx)
 	ctx.Navigate("/entry")
@@ -296,8 +323,8 @@ func (h *home) CancelOptions(ctx app.Context, e app.Event) {
 func (h *home) SaveOptions(ctx app.Context, e app.Event) {
 	e.PreventDefault()
 
-	for _, p := range h.people {
-		h.options.People[p.ID] = h.peopleOptions[p.Name]
+	for _, u := range h.users {
+		h.options.Users[u.ID] = h.usersOptions[u.Name]
 	}
 
 	SetOptions(h.options, ctx)
@@ -307,13 +334,13 @@ func (h *home) SaveOptions(ctx app.Context, e app.Event) {
 	h.SortMeals()
 }
 
-func (h *home) CuisinesOnChange(ctx app.Context, event app.Event, val string) {
-	if val == "+" {
-		h.options.Cuisine[val] = false
-		event.Get("target").Set("checked", false)
-		app.Window().GetElementByID("home-page-cuisines-dialog").Call("showModal")
-	}
-}
+// func (h *home) CuisinesOnChange(ctx app.Context, event app.Event, val string) {
+// 	if val == "+" {
+// 		h.options.Cuisine[val] = false
+// 		event.Get("target").Set("checked", false)
+// 		app.Window().GetElementByID("home-page-cuisines-dialog").Call("showModal")
+// 	}
+// }
 
 func (h *home) CuisinesDialogOnSave(ctx app.Context, event app.Event) {
 	h.user = GetCurrentUser(ctx)
@@ -325,10 +352,10 @@ func (h *home) SortMeals() {
 		// prioritize meals with missing data, then score
 		mealI := h.meals[i]
 		entriesI := h.entriesForEachMeal[mealI.ID]
-		iMissingData := entriesI.MissingData(h.person)
+		iMissingData := entriesI.MissingData(h.user)
 		mealJ := h.meals[j]
 		entriesJ := h.entriesForEachMeal[mealJ.ID]
-		jMissingData := entriesJ.MissingData(h.person)
+		jMissingData := entriesJ.MissingData(h.user)
 		if iMissingData && !jMissingData {
 			return true
 		}

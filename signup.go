@@ -27,13 +27,14 @@ func (s *signUp) Render() app.UI {
 			app.Form().ID("sign-up-page-form").Class("form").OnSubmit(s.OnSubmit).Body(
 				NewTextInput("sign-up-page-username", "Username:", "Username", true, &s.user.Username),
 				NewTextInput("sign-up-page-password", "Password:", "Password", false, &s.user.Password).SetType(passwordInputType),
+				NewTextInput("sign-up-page-name", "Name:", "Name", false, &s.user.Name),
 				app.Div().ID("sign-up-page-checkboxes").Class("action-button-row").Body(
 					NewCheckboxChip("sign-up-page-show-password", "Show Password", false, &s.showPassword),
 					NewCheckboxChip("sign-up-page-remember-me", "Remember Me", true, &s.user.RememberMe),
 				),
 				app.Div().ID("sign-up-page-action-button-row").Class("action-button-row").Body(
 					app.A().ID("sign-up-page-cancel").Class("action-button", "secondary-action-button").Href("/").Text("Cancel"),
-					app.Input().ID("sign-up-page-submit").Class("action-button", "primary-action-button").Name("submit").Type("submit").Value("Sign Up"),
+					app.Button().ID("sign-up-page-submit").Class("action-button", "primary-action-button").Name("submit").Type("submit").Text("Sign Up"),
 				),
 			),
 		},
@@ -55,6 +56,6 @@ func (s *signUp) OnSubmit(ctx app.Context, e app.Event) {
 		// if no error, we are now authenticated
 		authenticated = time.Now()
 		SetCurrentUser(user, ctx)
-		ctx.Navigate("/people")
+		ctx.Navigate("/groups")
 	})
 }

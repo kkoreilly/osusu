@@ -21,6 +21,7 @@ func (g *groups) Render() app.UI {
 		Description:            "Select your group",
 		AuthenticationRequired: true,
 		OnNavFunc: func(ctx app.Context) {
+			SetReturnURL("/groups", ctx)
 			groups, err := GetGroupsAPI.Call(GetCurrentUser(ctx).ID)
 			if err != nil {
 				CurrentPage.ShowErrorStatus(err)
@@ -51,5 +52,5 @@ func (g *groups) New(ctx app.Context, e app.Event) {
 func (g *groups) GroupOnClick(ctx app.Context, e app.Event, group Group) {
 	SetIsGroupNew(false, ctx)
 	SetCurrentGroup(group, ctx)
-	ctx.Navigate("/group")
+	ctx.Navigate("/home")
 }

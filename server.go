@@ -37,7 +37,7 @@ func startServer() {
 			"/web/css/home.css",
 			"/web/css/entries.css",
 			"/web/css/entry.css",
-			"/web/css/people.css",
+			"/web/css/groups.css",
 			"/web/css/input.css",
 			"/web/css/chips.css",
 			"/web/css/account.css",

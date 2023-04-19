@@ -118,6 +118,11 @@ var UpdatePasswordAPI = NewAPI(http.MethodPut, "/api/updatePassword", func(user 
 	return "updated password", nil
 })
 
+// GetUsersAPI returns all of the users with user ids contained within the given array of user ids
+var GetUsersAPI = NewAPI(http.MethodGet, "/api/getUsers", func(userIDs []int64) (Users, error) {
+	return GetUsersDB(userIDs)
+})
+
 // AuthenticateSessionAPI checks whether the given user has a valid session id.
 // It returns a confirmation string if so and an error if not.
 var AuthenticateSessionAPI = NewAPI(http.MethodPost, "/api/authenticateSession", func(user User) (string, error) {
@@ -187,9 +192,9 @@ var UpdateGroupAPI = NewAPI(http.MethodPut, "/api/updateGroup", func(group Group
 	return "group updated", nil
 })
 
-// GetMealsAPI returns the meals in the database that have the given user id.
-var GetMealsAPI = NewAPI(http.MethodGet, "/api/getMeals", func(userID int64) (Meals, error) {
-	return GetMealsDB(userID)
+// GetMealsAPI returns the meals in the database that have the given group id.
+var GetMealsAPI = NewAPI(http.MethodGet, "/api/getMeals", func(groupID int64) (Meals, error) {
+	return GetMealsDB(groupID)
 })
 
 // CreateMealAPI creates and returns a new meal with the given information.
@@ -221,39 +226,39 @@ var DeleteMealAPI = NewAPI(http.MethodDelete, "/api/deleteMeal", func(id int64) 
 	return "meal deleted", nil
 })
 
-// GetPeopleAPI gets and returns the people associated with the given user id from the database.
-var GetPeopleAPI = NewAPI(http.MethodGet, "/api/getPeople", func(userID int64) (People, error) {
-	return GetPeopleDB(userID)
-})
+// // GetPeopleAPI gets and returns the people associated with the given user id from the database.
+// var GetPeopleAPI = NewAPI(http.MethodGet, "/api/getPeople", func(userID int64) (People, error) {
+// 	return GetPeopleDB(userID)
+// })
 
-// CreatePersonAPI creates and returns a new person under the given user id.
-var CreatePersonAPI = NewAPI(http.MethodPost, "/api/createPerson", func(userID int64) (Person, error) {
-	return CreatePersonDB(userID)
-})
+// // CreatePersonAPI creates and returns a new person under the given user id.
+// var CreatePersonAPI = NewAPI(http.MethodPost, "/api/createPerson", func(userID int64) (Person, error) {
+// 	return CreatePersonDB(userID)
+// })
 
-// UpdatePersonAPI updates the given person in the database.
-// It returns a confirmation string if successful and an error if not.
-var UpdatePersonAPI = NewAPI(http.MethodPut, "/api/updatePerson", func(person Person) (string, error) {
-	err := UpdatePersonDB(person)
-	if err != nil {
-		return "", err
-	}
-	return "person updated", nil
-})
+// // UpdatePersonAPI updates the given person in the database.
+// // It returns a confirmation string if successful and an error if not.
+// var UpdatePersonAPI = NewAPI(http.MethodPut, "/api/updatePerson", func(person Person) (string, error) {
+// 	err := UpdatePersonDB(person)
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	return "person updated", nil
+// })
 
-// DeletePersonAPI deletes the given person from the database.
-// It returns a confirmation string if successful and an error if not.
-var DeletePersonAPI = NewAPI(http.MethodDelete, "/api/deletePerson", func(id int64) (string, error) {
-	err := DeletePersonDB(id)
-	if err != nil {
-		return "", err
-	}
-	return "person deleted", nil
-})
+// // DeletePersonAPI deletes the given person from the database.
+// // It returns a confirmation string if successful and an error if not.
+// var DeletePersonAPI = NewAPI(http.MethodDelete, "/api/deletePerson", func(id int64) (string, error) {
+// 	err := DeletePersonDB(id)
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	return "person deleted", nil
+// })
 
-// GetEntriesAPI fetches and returns the entries associated with the given user id from the database
-var GetEntriesAPI = NewAPI(http.MethodGet, "/api/getEntries", func(userID int64) (Entries, error) {
-	return GetEntriesDB(userID)
+// GetEntriesAPI fetches and returns the entries associated with the given group id from the database
+var GetEntriesAPI = NewAPI(http.MethodGet, "/api/getEntries", func(groupID int64) (Entries, error) {
+	return GetEntriesDB(groupID)
 })
 
 // GetEntriesForMealAPI fetches and returns the entries associated with the given meal id from the database
