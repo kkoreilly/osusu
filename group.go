@@ -1,6 +1,11 @@
 package main
 
-import "github.com/maxence-charriere/go-app/v9/pkg/app"
+import (
+	"strconv"
+	"time"
+
+	"github.com/maxence-charriere/go-app/v9/pkg/app"
+)
 
 // A Group is a group of users that can determine what to eat together
 type Group struct {
@@ -43,10 +48,12 @@ func GetIsGroupNew(ctx app.Context) bool {
 
 type group struct {
 	app.Compo
-	group      Group
-	isGroupNew bool
-	user       User
-	isOwner    bool
+	group           Group
+	isGroupNew      bool
+	user            User
+	isOwner         bool
+	members         Users
+	joinLinkClicked bool
 }
 
 func (g *group) Render() app.UI {
@@ -60,6 +67,10 @@ func (g *group) Render() app.UI {
 	if !g.isOwner {
 		cancelButtonText = "Back"
 		titleText = "View Group"
+	}
+	joinLinkText := "https://osusu.fly.dev/join/" + g.group.Code
+	if g.joinLinkClicked {
+		joinLinkText = "Link Copied!"
 	}
 	return &Page{
 		ID:                     "group",
@@ -75,6 +86,12 @@ func (g *group) Render() app.UI {
 			}
 			g.user = GetCurrentUser(ctx)
 			g.isOwner = g.isGroupNew || g.user.ID == g.group.Owner
+			users, err := GetUsersAPI.Call(g.group.Members)
+			if err != nil {
+				CurrentPage.ShowErrorStatus(err)
+				return
+			}
+			g.members = users
 		},
 		TitleElement: titleText,
 		Elements: []app.UI{
@@ -85,9 +102,26 @@ func (g *group) Render() app.UI {
 					app.Span().ID("group-page-name").Text("Name: "+g.group.Name),
 				),
 				app.If(!g.isGroupNew,
-					app.Span().ID("group-page-join-link-text").Body(
-						app.Text("Join Link: "),
-						app.A().ID("group-page-join-link").Href("https://osusu.fly.dev/join/"+g.group.Code).Text("osusu.fly.dev/join/"+g.group.Code),
+					app.Span().ID("group-page-join-link-text").Text("Join Link (click to copy):"),
+					app.Span().ID("group-page-join-link").Text(joinLinkText).DataSet("clicked", g.joinLinkClicked).OnClick(g.JoinLinkOnClick),
+				),
+				app.Span().ID("group-page-members-label").Text("Group Members:"),
+				app.Table().ID("group-page-members-table").Body(
+					app.THead().ID("group-page-members-table-header").Body(
+						app.Tr().ID("group-page-members-table-header-row").Body(
+							app.Th().ID("group-page-members-table-header-name").Text("Name:"),
+							app.Th().ID("group-page-members-table-header-username").Text("Username:"),
+						),
+					),
+					app.TBody().Body(
+						app.Range(g.members).Slice(func(i int) app.UI {
+							user := g.members[i]
+							si := strconv.Itoa(i)
+							return app.Tr().ID("group-page-member-"+si).Class("group-page-member").Body(
+								app.Td().ID("group-page-member-name-"+si).Class("group-page-member-name").Text(user.Name),
+								app.Td().ID("group-page-member-username-"+si).Class("group-page-member-username").Text(user.Username),
+							)
+						}),
 					),
 				),
 				app.Div().ID("group-page-action-button-row").Class("action-button-row").Body(
@@ -101,6 +135,19 @@ func (g *group) Render() app.UI {
 				),
 			),
 		},
+	}
+}
+
+func (g *group) JoinLinkOnClick(ctx app.Context, e app.Event) {
+	if g.joinLinkClicked || app.Window().Get("navigator").Get("clipboard").Truthy() {
+		e.PreventDefault()
+		g.joinLinkClicked = true
+		app.Window().Get("navigator").Get("clipboard").Call("writeText", "https://osusu.fly.dev/join/"+g.group.Code)
+		ctx.Defer(func(ctx app.Context) {
+			time.Sleep(1 * time.Second)
+			g.joinLinkClicked = false
+			g.Update()
+		})
 	}
 }
 

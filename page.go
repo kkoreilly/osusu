@@ -84,7 +84,7 @@ func (p *Page) ClosePageStatus(ctx app.Context, event app.Event) {
 
 // UpdatePageTitle updates the title of the page to the value set in the page's Title field
 func (p *Page) UpdatePageTitle(ctx app.Context) {
-	ctx.Page().SetTitle("Osusu | " + p.Title)
+	ctx.Page().SetTitle(p.Title + " | Osusu")
 }
 
 // OnNav is called when the page is navigated to. It calls the specified PreOnNav function, authenticates the user, sets the title and description, sets the update and install states, and calls the specified OnNav function. The specified PreOnNav function is called before all other steps, including authentication.

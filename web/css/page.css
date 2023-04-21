@@ -14,7 +14,7 @@ html,
 
 .page-top-bar {
     width: 100%;
-    background-color: var(--amber);
+    background-color: var(--color-one);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -29,7 +29,7 @@ html,
 }
 
 .page-top-bar-icon-link:hover {
-    background-color: var(--dark-amber);
+    background-color: var(--color-one-dark);
 }
 
 .page-top-bar-icon-img {
@@ -53,7 +53,7 @@ html,
     height: 100%;
     padding: 1.125rem;
     border: none;
-    background-color: var(--amber);
+    background-color: var(--color-one);
     font-size: 1.5rem;
     font-weight: bold;
     cursor: pointer;
@@ -62,7 +62,7 @@ html,
 }
 
 .page-top-bar-button:hover {
-    background-color: var(--dark-amber);
+    background-color: var(--color-one-dark);
 }
 
 .page-top-bar-account-button {
@@ -142,17 +142,17 @@ html,
 }
 
 .page-status[data-status-type="negative"] {
-    background-color: hsl(0, 100%, 80%);
+    background-color: var(--color-five);
 }
 
 .page-status[data-status-type="negative"] .page-status-close-button:hover {
-    background-color: hsl(0, 100%, 70%);
+    background-color: var(--color-five-dark);
 }
 
 .page-status[data-status-type="positive"] {
-    background-color: hsl(120, 73%, 60%);
+    background-color: var(--color-four);
 }
 
 .page-status[data-status-type="positive"] .page-status-close-button:hover {
-    background-color: hsl(120, 73%, 40%);
+    background-color: var(--color-four-dark)
 }

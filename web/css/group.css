@@ -1,0 +1,33 @@
+#group-page-join-link-text {
+    text-align: center;
+}
+
+#group-page-join-link {
+    border: 1px solid black;
+    padding: 0.5rem;
+    border-radius: 5px;
+    user-select: all;
+}
+
+#group-page-join-link[data-clicked="true"] {
+    background-color: hsl(120, 73%, 75%);
+}
+
+#group-page-members-table {
+    width: 100%;
+    table-layout: fixed;
+    border-spacing: 0;
+    border: 1px solid black;
+}
+
+#group-page-members-table-header-row>th {
+    padding: 1rem;
+    border-bottom: 1px solid gray;
+}
+
+.group-page-member>td {
+    margin: 0;
+    padding: 0.75rem;
+    border-bottom: 1px solid gray;
+    text-align: center;
+}

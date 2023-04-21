@@ -33,10 +33,10 @@ func CreateUserDB(user User) (User, error) {
 
 // SignInDB checks whether a specific user can sign into the database and returns the user if they can and an error if they can't
 func SignInDB(user User) (User, error) {
-	statement := `SELECT id, password, cuisines FROM users WHERE username=$1`
+	statement := `SELECT id, password, name, cuisines FROM users WHERE username=$1`
 	row := db.QueryRow(statement, user.Username)
 	var password string
-	err := row.Scan(&user.ID, &password, pq.Array(&user.Cuisines))
+	err := row.Scan(&user.ID, &password, &user.Name, pq.Array(&user.Cuisines))
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return User{}, errors.New("no user with the given username exists")
@@ -74,12 +74,12 @@ func UpdateUserCuisinesDB(user User) error {
 	return err
 }
 
-// UpdateUsernameDB updates the username of the given user in the database to its username value
-func UpdateUsernameDB(user User) error {
+// UpdateUserInfoDB updates the username and name of the given user in the database
+func UpdateUserInfoDB(user User) error {
 	statement := `UPDATE users
-	SET username = $1
-	WHERE id = $2`
-	_, err := db.Exec(statement, user.Username, user.ID)
+	SET username = $1, name = $2
+	WHERE id = $3`
+	_, err := db.Exec(statement, user.Username, user.Name, user.ID)
 	return err
 }
 

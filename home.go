@@ -11,7 +11,7 @@ type home struct {
 	app.Compo
 	group              Group
 	user               User
-	users              []User
+	users              Users
 	meals              Meals
 	entriesForEachMeal map[int64]Entries // entries for each meal id
 	options            Options
@@ -98,6 +98,11 @@ func (h *home) Render() app.UI {
 					if !ok {
 						h.options.Cuisine[cuisine] = true
 					}
+				}
+			}
+			for cuisine := range h.options.Cuisine {
+				if !h.cuisinesInUse[cuisine] {
+					delete(h.options.Cuisine, cuisine)
 				}
 			}
 

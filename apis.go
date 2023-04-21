@@ -14,8 +14,8 @@ import (
 // SignUpAPI attempts to create a user with the given information.
 // It returns the created user if successful and an error if not.
 var SignUpAPI = NewAPI(http.MethodPost, "/api/signUp", func(user User) (User, error) {
-	if user.Username == "" || user.Password == "" {
-		return User{}, errors.New("username and password must not be empty")
+	if user.Username == "" || user.Password == "" || user.Name == "" {
+		return User{}, errors.New("username, password, and name must not be empty")
 	}
 	// encrypt password
 	hash, err := bcrypt.GenerateFromPassword([]byte(user.Password), 14)
@@ -86,17 +86,17 @@ var UpdateUserCuisinesAPI = NewAPI(http.MethodPut, "/api/updateUserCuisines", fu
 	return "updated user cuisines", nil
 })
 
-// UpdateUsernameAPI updates the username of the given user to be the username value of the provided user.
+// UpdateUserInfoAPI updates the username and name of the given user to the values of the provided user.
 // It returns a confirmation string if successful and an error if not.
-var UpdateUsernameAPI = NewAPI(http.MethodPut, "/api/updateUsername", func(user User) (string, error) {
-	if user.Username == "" {
-		return "", errors.New("username must not be empty")
+var UpdateUserInfoAPI = NewAPI(http.MethodPut, "/api/updateUserInfo", func(user User) (string, error) {
+	if user.Username == "" || user.Name == "" {
+		return "", errors.New("username and name must not be empty")
 	}
-	err := UpdateUsernameDB(user)
+	err := UpdateUserInfoDB(user)
 	if err != nil {
 		return "", err
 	}
-	return "updated username", nil
+	return "updated user info", nil
 })
 
 // UpdatePasswordAPI updates the password of the given user to be the password value of the provided user.

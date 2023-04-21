@@ -5,9 +5,21 @@
 
 /* 1rem = 16px on mobile, 18px on desktop by default */
 :root {
-    --amber: hsl(49, 95%, 55%);
-    --dark-amber: hsl(49, 95%, 40%);
-    --amaranth: hsl(341, 83%, 53%);
+    --color-one: hsl(49, 95%, 55%);
+    --color-one-dark: hsl(49, 95%, 40%);
+    --color-one-text: black;
+    --color-two: hsl(195, 53%, 79%);
+    --color-two-dark: hsl(200, 35%, 62%);
+    --color-two-text: black;
+    --color-three: hsl(48, 92%, 81%);
+    --color-three-dark: hsl(48, 92%, 60%);
+    --color-three-text: black;
+    --color-four: hsl(120, 73%, 75%);
+    --color-four-dark: hsl(120, 73%, 45%);
+    --color-four-text: black;
+    --color-five: hsl(0, 100%, 80%);
+    --color-five-dark: hsl(0, 100%, 70%);
+    --color-five-text: black;
     font-size: 100%;
 }
 
@@ -36,42 +48,42 @@
 
 .primary-action-button {
     border: none;
-    color: black;
-    background-color: hsl(195, 53%, 79%);
+    color: var(--color-two-text);
+    background-color: var(--color-two);
 }
 
 .primary-action-button:hover {
-    background-color: hsl(195, 53%, 50%);
+    background-color: var(--color-two-dark);
 }
 
 .danger-action-button {
     border: none;
-    color: black;
-    background-color: hsl(0, 100%, 80%);
+    color: var(--color-five-text);
+    background-color: var(--color-five);
 }
 
 .danger-action-button:hover {
-    background-color: hsl(0, 100%, 70%);
+    background-color: var(--color-five-dark);
 }
 
 .secondary-action-button {
     border: none;
-    color: black;
-    background-color: hsl(48, 92%, 81%);
+    color: var(--color-three-text);
+    background-color: var(--color-three);
 }
 
 .secondary-action-button:hover {
-    background-color: hsl(48, 92%, 60%);
+    background-color: var(--color-three-dark);
 }
 
 .tertiary-action-button {
     border: none;
-    color: black;
-    background-color: hsl(120, 73%, 75%);
+    color: var(--color-four-text);
+    background-color: var(--color-four);
 }
 
 .tertiary-action-button:hover {
-    background-color: hsl(120, 73%, 45%);
+    background-color: var(--color-four-dark);
 }
 
 .confirm-delete-text {
@@ -104,4 +116,12 @@ dialog:modal {
 
 hr {
     border: 1px solid black;
+}
+
+h2 {
+    text-align: center;
+    font-size: 1.5rem;
+    width: min(80vw, 700px);
+    margin-left: auto;
+    margin-right: auto;
 }

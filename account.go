@@ -35,14 +35,17 @@ func (a *account) Render() app.UI {
 				app.A().ID("account-page-change-group-button").Class("secondary-action-button", "action-button").Href("/groups").Text("Change Group"),
 				app.Button().ID("account-page-view-group-button").Class("primary-action-button", "action-button").Text(viewGroupText).OnClick(a.ViewGroup),
 			),
-			app.Form().ID("account-page-username-form").Class("form").OnSubmit(a.ChangeUsername).Body(
-				NewTextInput("account-page-username", "Change Your Username:", "", false, &a.user.Username),
-				app.Div().ID("account-page-username-action-button-row").Class("action-button-row").Body(
-					app.Button().ID("account-page-username-save-button").Class("primary-action-button", "action-button").Type("submit").Text("Save Username"),
+			app.H2().ID("account-page-user-info-subtitle").Text("Change User Information:"),
+			app.Form().ID("account-page-user-info-form").Class("form").OnSubmit(a.ChangeUserInfo).Body(
+				NewTextInput("account-page-username", "Username:", "Username", false, &a.user.Username),
+				NewTextInput("account-page-name", "Name:", "Name", false, &a.user.Name),
+				app.Div().ID("account-page-user-info-action-button-row").Class("action-button-row").Body(
+					app.Button().ID("account-page-user-info-save-button").Class("primary-action-button", "action-button").Type("submit").Text("Save"),
 				),
 			),
+			app.H2().ID("account-page-password-subtitle").Text("Change Password:"),
 			app.Form().ID("account-page-password-form").Class("form").OnSubmit(a.ChangePassword).Body(
-				NewTextInput("account-page-password", "Change Your Password:", "••••••••", false, &a.user.Password).SetType("password"),
+				NewTextInput("account-page-password", "Password:", "••••••••", false, &a.user.Password).SetType("password"),
 				app.Div().ID("account-page-password-action-button-row").Class("action-button-row").Body(
 					app.Button().ID("account-page-password-save-button").Class("tertiary-action-button", "action-button").Type("submit").Text("Save Password"),
 				),
@@ -86,14 +89,14 @@ func (a *account) CancelSignOut(ctx app.Context, e app.Event) {
 	app.Window().GetElementByID("account-page-confirm-sign-out").Call("close")
 }
 
-func (a *account) ChangeUsername(ctx app.Context, e app.Event) {
+func (a *account) ChangeUserInfo(ctx app.Context, e app.Event) {
 	e.PreventDefault()
-	_, err := UpdateUsernameAPI.Call(a.user)
+	_, err := UpdateUserInfoAPI.Call(a.user)
 	if err != nil {
 		CurrentPage.ShowErrorStatus(err)
 		return
 	}
-	CurrentPage.ShowStatus("Username Updated!", StatusTypePositive)
+	CurrentPage.ShowStatus("User Info Updated!", StatusTypePositive)
 	SetCurrentUser(a.user, ctx)
 }
 
