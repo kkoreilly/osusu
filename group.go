@@ -80,7 +80,13 @@ func (g *group) Render() app.UI {
 		OnNavFunc: func(ctx app.Context) {
 			g.group = GetCurrentGroup(ctx)
 			g.isGroupNew = GetIsGroupNew(ctx)
-			if g.isGroupNew || !g.isOwner {
+			if g.isOwner {
+				if g.isOwner {
+					titleText = "Edit Group"
+				}
+				if g.isGroupNew {
+					titleText = "Create Group"
+				}
 				CurrentPage.Title = titleText
 				CurrentPage.UpdatePageTitle(ctx)
 			}
@@ -104,24 +110,24 @@ func (g *group) Render() app.UI {
 				app.If(!g.isGroupNew,
 					app.Span().ID("group-page-join-link-text").Text("Join Link (click to copy):"),
 					app.Span().ID("group-page-join-link").Text(joinLinkText).DataSet("clicked", g.joinLinkClicked).OnClick(g.JoinLinkOnClick),
-				),
-				app.Span().ID("group-page-members-label").Text("Group Members:"),
-				app.Table().ID("group-page-members-table").Body(
-					app.THead().ID("group-page-members-table-header").Body(
-						app.Tr().ID("group-page-members-table-header-row").Body(
-							app.Th().ID("group-page-members-table-header-name").Text("Name:"),
-							app.Th().ID("group-page-members-table-header-username").Text("Username:"),
+					app.Span().ID("group-page-members-label").Text("Group Members:"),
+					app.Table().ID("group-page-members-table").Body(
+						app.THead().ID("group-page-members-table-header").Body(
+							app.Tr().ID("group-page-members-table-header-row").Body(
+								app.Th().ID("group-page-members-table-header-name").Text("Name:"),
+								app.Th().ID("group-page-members-table-header-username").Text("Username:"),
+							),
 						),
-					),
-					app.TBody().Body(
-						app.Range(g.members).Slice(func(i int) app.UI {
-							user := g.members[i]
-							si := strconv.Itoa(i)
-							return app.Tr().ID("group-page-member-"+si).Class("group-page-member").Body(
-								app.Td().ID("group-page-member-name-"+si).Class("group-page-member-name").Text(user.Name),
-								app.Td().ID("group-page-member-username-"+si).Class("group-page-member-username").Text(user.Username),
-							)
-						}),
+						app.TBody().Body(
+							app.Range(g.members).Slice(func(i int) app.UI {
+								user := g.members[i]
+								si := strconv.Itoa(i)
+								return app.Tr().ID("group-page-member-"+si).Class("group-page-member").Body(
+									app.Td().ID("group-page-member-name-"+si).Class("group-page-member-name").Text(user.Name),
+									app.Td().ID("group-page-member-username-"+si).Class("group-page-member-username").Text(user.Username),
+								)
+							}),
+						),
 					),
 				),
 				app.Div().ID("group-page-action-button-row").Class("action-button-row").Body(
