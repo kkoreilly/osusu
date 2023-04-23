@@ -117,7 +117,8 @@ func (g *group) Render() app.UI {
 						app.Range(g.members).Slice(func(i int) app.UI {
 							user := g.members[i]
 							si := strconv.Itoa(i)
-							return app.Tr().ID("group-page-member-"+si).Class("group-page-member").Body(
+							isOwner := user.ID == g.group.Owner
+							return app.Tr().ID("group-page-member-"+si).Class("group-page-member").DataSet("is-owner", isOwner).Body(
 								app.Td().ID("group-page-member-name-"+si).Class("group-page-member-name").Text(user.Name),
 								app.Td().ID("group-page-member-username-"+si).Class("group-page-member-username").Text(user.Username),
 							)

@@ -32,7 +32,7 @@ func (a *account) Render() app.UI {
 		Elements: []app.UI{
 			app.Div().ID("acount-page-top-action-button-row").Class("action-button-row").Body(
 				app.Button().ID("account-page-sign-out-button").Class("danger-action-button", "action-button").Text("Sign Out").OnClick(a.InitialSignOut),
-				app.A().ID("account-page-change-group-button").Class("secondary-action-button", "action-button").Href("/groups").Text("Change Group"),
+				app.Button().ID("account-page-change-group-button").Class("secondary-action-button", "action-button").Type("button").OnClick(NavigateEvent("/groups")).Text("Change Group"),
 				app.Button().ID("account-page-view-group-button").Class("primary-action-button", "action-button").Text(viewGroupText).OnClick(a.ViewGroup),
 			),
 			app.H2().ID("account-page-user-info-subtitle").Text("Change User Information:"),
@@ -47,10 +47,10 @@ func (a *account) Render() app.UI {
 			app.Form().ID("account-page-password-form").Class("form").OnSubmit(a.ChangePassword).Body(
 				NewTextInput("account-page-password", "Password:", "••••••••", false, &a.user.Password).SetType("password"),
 				app.Div().ID("account-page-password-action-button-row").Class("action-button-row").Body(
-					app.Button().ID("account-page-password-save-button").Class("tertiary-action-button", "action-button").Type("submit").Text("Save Password"),
+					app.Button().ID("account-page-password-save-button").Class("tertiary-action-button", "action-button").Type("submit").Text("Save"),
 				),
 			),
-			app.Dialog().ID("account-page-confirm-sign-out").Body(
+			app.Dialog().ID("account-page-confirm-sign-out").Class("modal").Body(
 				app.P().ID("account-page-confirm-sign-out-text").Class("confirm-delete-text").Text("Are you sure you want to sign out?"),
 				app.Div().ID("account-page-confirm-sign-out-action-button-row").Class("action-button-row").Body(
 					app.Button().ID("account-page-confirm-sign-out-sign-out").Class("action-button", "danger-action-button").Text("Yes, Sign Out").OnClick(a.ConfirmSignOut),
@@ -81,7 +81,7 @@ func (a *account) ConfirmSignOut(ctx app.Context, e app.Event) {
 	ctx.LocalStorage().Del("currentUser")
 	ctx.LocalStorage().Del("currentGroup")
 
-	ctx.Navigate("/signin")
+	Navigate("/signin", ctx)
 }
 
 func (a *account) CancelSignOut(ctx app.Context, e app.Event) {
@@ -122,5 +122,5 @@ func (a *account) ChangePassword(ctx app.Context, e app.Event) {
 
 func (a *account) ViewGroup(ctx app.Context, e app.Event) {
 	SetIsGroupNew(false, ctx)
-	ctx.Navigate("/group")
+	Navigate("/group", ctx)
 }

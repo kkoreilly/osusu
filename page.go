@@ -1,6 +1,7 @@
 package main
 
 import (
+	"time"
 	"unicode"
 
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
@@ -31,38 +32,45 @@ var CurrentPage *Page
 
 // Render returns the UI of the page based on its attributes
 func (p *Page) Render() app.UI {
+	// We use current page for some things (account, install, and update buttons) to prevent flashing on page switch.
+	// If there is no current page (if we haven't been on a page before), just set it to p.
+	if CurrentPage == nil {
+		CurrentPage = p
+	}
 	width, _ := app.Window().Size()
 	smallScreen := width <= 480
 	nameFirstLetter := ""
-	if len(p.user.Name) > 0 {
-		nameFirstLetter = string(unicode.ToUpper(rune(p.user.Name[0])))
+	if len(CurrentPage.user.Name) > 0 {
+		nameFirstLetter = string(unicode.ToUpper(rune(CurrentPage.user.Name[0])))
 	}
-	return app.Div().ID(p.ID + "-page-container").Class("page-container").OnClick(p.OnClick).Body([]app.UI{
+	return app.Div().ID(p.ID+"-page-container").Class("page-container").OnClick(p.OnClick).Body(
 		app.Header().ID(p.ID+"-page-header").Class("page-header").Body(
 			app.Div().ID(p.ID+"-page-top-bar").Class("page-top-bar").Body(
-				app.A().ID(p.ID+"-page-top-bar-icon-link").Class("page-top-bar-icon-link").Href("/").Title("Navigate to the Osusu Start/Home Page").Body(
+				app.Button().ID(p.ID+"-page-top-bar-icon-link").Class("page-top-bar-icon-button").Type("button").OnClick(NavigateEvent("/")).Title("Navigate to the Osusu Start/Home Page").Body(
 					app.Img().ID(p.ID+"-page-top-bar-icon-img").Class("page-top-bar-icon-img").Src("/web/images/icon-192.png"),
 					app.If(!smallScreen, app.Span().ID(p.ID+"-page-top-bar-icon-text").Class("page-top-bar-icon-text").Text("Osusu")),
 				),
 				app.Div().ID(p.ID+"-page-top-bar-buttons").Class("page-top-bar-buttons").Body(
-					app.If(p.updateAvailable, app.Button().ID(p.ID+"-page-top-bar-update-button").Class("page-top-bar-button", "page-top-bar-update-button").Text("Update").Title("Update to the Latest Version of Osusu").OnClick(p.UpdateApp)),
-					app.If(p.installAvailable, app.Button().ID(p.ID+"-page-top-bar-install-button").Class("page-top-bar-button", "page-top-bar-install-button").Text("Install").Title("Install Osusu to Your Device").OnClick(p.InstallApp)),
-					app.A().ID(p.ID+"-page-top-bar-account-button").Class("page-top-bar-button", "page-top-bar-account-button").Href("/account").Text("Account").Title("View and Change Account Information").Body(
-						app.Span().ID(p.ID+"-page-top-bar-account-button-text").Class("page-top-bar-account-button-text").Text(nameFirstLetter),
-					),
+					app.If(CurrentPage.updateAvailable, app.Button().ID(p.ID+"-page-top-bar-update-button").Class("page-top-bar-button", "page-top-bar-update-button").Text("Update").Title("Update to the Latest Version of Osusu").OnClick(p.UpdateApp)),
+					app.If(CurrentPage.installAvailable, app.Button().ID(p.ID+"-page-top-bar-install-button").Class("page-top-bar-button", "page-top-bar-install-button").Text("Install").Title("Install Osusu to Your Device").OnClick(p.InstallApp)),
+					// workaround to prevent install button from flashing blue on page load / update
+					app.Span(),
+					app.Button().ID(p.ID+"-page-top-bar-account-button").Class("page-top-bar-button", "page-top-bar-account-button").OnClick(NavigateEvent("/account")).Text(nameFirstLetter).Title("View and Change Account Information"),
 				),
 			),
+		),
+		app.Main().ID(p.ID+"-page-main").Class("page-main").Body(
 			app.Dialog().ID(p.ID+"-page-status").Class("page-status").DataSet("status-type", p.statusType).Body(
 				app.Span().ID(p.ID+"-page-status-text").Class("page-status-text").Text(p.statusText),
 				app.Button().ID(p.ID+"-page-status-close-button").Class("page-status-close-button").Text("✕").OnClick(p.ClosePageStatus),
 			),
 			app.If(p.TitleElement != "", app.H1().ID(p.ID+"-page-title").Class("page-title").Text(p.TitleElement)),
 			app.If(p.SubtitleElement != "", app.P().ID(p.ID+"-page-subtitle").Class("page-subtitle").Text(p.SubtitleElement)),
+			app.Div().ID(p.ID+"page-elements").Class("page-elements").Body(
+				p.Elements...,
+			),
 		),
-		app.Main().ID(p.ID + "-page-main").Class("page-main").Body(
-			p.Elements...,
-		),
-	}...)
+	)
 }
 
 // ShowStatus shows the page status dialog with the given status text with the given status type
@@ -92,26 +100,25 @@ func (p *Page) OnNav(ctx app.Context) {
 	if p.PreOnNavFunc != nil {
 		p.PreOnNavFunc(ctx)
 	}
-
 	if Authenticate(p.AuthenticationRequired, ctx) {
 		return
 	}
 	CurrentPage = p
+
 	p.UpdatePageTitle(ctx)
 	ctx.Page().SetDescription(p.Description)
 	p.updateAvailable = ctx.AppUpdateAvailable()
 	p.installAvailable = ctx.IsAppInstallable()
 	p.user = GetCurrentUser(ctx)
-	// p.person = GetCurrentPerson(ctx)
-	// // if not signed in but person still set, clear person
-	// if p.user.Username == "" && p.person != (Person{}) {
-	// 	p.person = Person{}
-	// 	SetCurrentPerson(p.person, ctx)
-	// }
 
 	if p.OnNavFunc != nil {
 		p.OnNavFunc(ctx)
 	}
+
+	ctx.Defer(func(ctx app.Context) {
+		app.Window().GetElementByID(p.ID+"-page-main").Get("style").Set("opacity", 1)
+	})
+
 }
 
 // OnAppUpdate is called when the updatability of the app changes
@@ -146,10 +153,29 @@ func GetReturnURL(ctx app.Context) string {
 	return returnURL
 }
 
+// Navigate navigates to the given URL using the given context
+func Navigate(url string, ctx app.Context) {
+	if url == ctx.Page().URL().Path {
+		return
+	}
+	app.Window().GetElementByID(CurrentPage.ID+"-page-main").Get("style").Set("opacity", 0)
+	ctx.Defer(func(ctx app.Context) {
+		time.Sleep(250 * time.Millisecond)
+		ctx.Navigate(url)
+	})
+}
+
+// NavigateEvent returns an event handler that navigates the user to the given URL
+func NavigateEvent(url string) app.EventHandler {
+	return func(ctx app.Context, e app.Event) {
+		Navigate(url, ctx)
+	}
+}
+
 // ReturnToReturnURL returns the user to the url to return to after exiting a page that can be accessed from multiple places.
 // The event value is not used, but it allows this function be used as an event handler.
 func ReturnToReturnURL(ctx app.Context, e app.Event) {
-	ctx.Navigate(GetReturnURL(ctx))
+	Navigate(GetReturnURL(ctx), ctx)
 }
 
 // Back navigates to the previous page in history. The context and event values are not used, but they allow this function to be used as an event handler

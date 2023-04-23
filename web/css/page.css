@@ -7,6 +7,11 @@ html,
     padding: 0;
 }
 
+.page-main {
+    opacity: 0;
+    transition: 0.25s opacity;
+}
+
 .page-container {
     position: relative;
     min-height: 100vh;
@@ -20,15 +25,19 @@ html,
     align-items: center;
 }
 
-.page-top-bar-icon-link {
+.page-top-bar-icon-button {
     padding: 0.5rem;
     display: flex;
     align-items: center;
     column-gap: 10px;
     text-decoration: none;
+    background-color: var(--color-one);
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.5s;
 }
 
-.page-top-bar-icon-link:hover {
+.page-top-bar-icon-button:hover {
     background-color: var(--color-one-dark);
 }
 
@@ -51,14 +60,16 @@ html,
 
 .page-top-bar-button {
     height: 100%;
-    padding: 1.125rem;
+    padding: 1.25rem;
     border: none;
     background-color: var(--color-one);
     font-size: 1.5rem;
+    line-height: 1.5rem;
     font-weight: bold;
     cursor: pointer;
     color: black;
     text-decoration: none;
+    transition: background-color 0.5s;
 }
 
 .page-top-bar-button:hover {
@@ -77,9 +88,6 @@ html,
     align-items: center;
     margin-right: 10px;
     margin-left: 10px;
-}
-
-.page-top-bar-account-button>* {
     font-size: 1.5rem;
 }
 
@@ -104,8 +112,10 @@ html,
     margin-right: auto;
 }
 
-.page-status[open] {
-    position: static;
+.page-status {
+    /* offset by height of top bar so it doesn't move during closing transition */
+    position: absolute;
+    top: 4rem;
     width: 100%;
     margin: 0;
     padding: 0;
@@ -114,6 +124,10 @@ html,
     display: flex;
     align-items: center;
     justify-content: space-between;
+}
+
+.page-status[open] {
+    position: static;
 }
 
 .page-status-text {
@@ -145,12 +159,20 @@ html,
     background-color: var(--color-five);
 }
 
+.page-status[data-status-type="negative"]>* {
+    color: var(--color-five-text);
+}
+
 .page-status[data-status-type="negative"] .page-status-close-button:hover {
     background-color: var(--color-five-dark);
 }
 
 .page-status[data-status-type="positive"] {
     background-color: var(--color-four);
+}
+
+.page-status[data-status-type="positive"]>* {
+    color: var(--color-four-text);
 }
 
 .page-status[data-status-type="positive"] .page-status-close-button:hover {

@@ -63,7 +63,7 @@ func (e *entries) Render() app.UI {
 		TitleElement: "Entries for " + e.meal.Name,
 		Elements: []app.UI{
 			app.Div().ID("entries-page-action-button-row").Class("action-button-row").Body(
-				app.A().ID("entries-page-back-button").Class("secondary-action-button", "action-button").Href("/home").Text("Back"),
+				app.Button().ID("entries-page-back-button").Class("secondary-action-button", "action-button").Type("button").OnClick(NavigateEvent("/home")).Text("Back"),
 				app.Button().ID("entries-page-new-button").Class("primary-action-button", "action-button").Text("New").OnClick(e.New),
 			),
 			app.Table().ID("entries-page-entries-table").Body(
@@ -96,12 +96,12 @@ func (e *entries) Render() app.UI {
 func (e *entries) EntryOnClick(ctx app.Context, event app.Event, entry Entry) {
 	SetIsEntryNew(false, ctx)
 	SetCurrentEntry(entry, ctx)
-	ctx.Navigate("/entry")
+	Navigate("/entry", ctx)
 }
 
 func (e *entries) New(ctx app.Context, event app.Event) {
 	entry := NewEntry(GetCurrentGroup(ctx), e.user, e.meal, e.entries)
 	SetIsEntryNew(true, ctx)
 	SetCurrentEntry(entry, ctx)
-	ctx.Navigate("/entry")
+	Navigate("/entry", ctx)
 }

@@ -33,7 +33,7 @@ func (s *signUp) Render() app.UI {
 					NewCheckboxChip("sign-up-page-remember-me", "Remember Me", true, &s.user.RememberMe),
 				),
 				app.Div().ID("sign-up-page-action-button-row").Class("action-button-row").Body(
-					app.A().ID("sign-up-page-cancel").Class("action-button", "secondary-action-button").Href("/").Text("Cancel"),
+					app.Button().ID("sign-up-page-cancel").Class("action-button", "secondary-action-button").Type("button").OnClick(NavigateEvent("/")).Text("Cancel"),
 					app.Button().ID("sign-up-page-submit").Class("action-button", "primary-action-button").Name("submit").Type("submit").Text("Sign Up"),
 				),
 			),
@@ -56,6 +56,6 @@ func (s *signUp) OnSubmit(ctx app.Context, e app.Event) {
 		// if no error, we are now authenticated
 		authenticated = time.Now()
 		SetCurrentUser(user, ctx)
-		ctx.Navigate("/groups")
+		Navigate("/groups", ctx)
 	})
 }

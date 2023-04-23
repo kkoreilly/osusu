@@ -3,6 +3,7 @@ package main
 import (
 	"sort"
 	"strconv"
+	"time"
 
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
 )
@@ -43,7 +44,7 @@ func (h *home) Render() app.UI {
 			SetReturnURL("/home", ctx)
 			h.group = GetCurrentGroup(ctx)
 			if h.group.Name == "" {
-				ctx.Navigate("/groups")
+				Navigate("/groups", ctx)
 			}
 			h.user = GetCurrentUser(ctx)
 			cuisines, err := GetUserCuisinesAPI.Call(h.user.ID)
@@ -192,14 +193,14 @@ func (h *home) Render() app.UI {
 				app.Button().ID("home-page-meal-dialog-delete-meal-button").Class("action-button", "danger-action-button").Text("Delete Meal").OnClick(h.DeleteMealOnClick),
 			),
 
-			app.Dialog().ID("home-page-confirm-delete-meal").Body(
+			app.Dialog().ID("home-page-confirm-delete-meal").Class("modal").Body(
 				app.P().ID("home-page-confirm-delete-meal-text").Class("confirm-delete-text").Text("Are you sure you want to delete this meal?"),
 				app.Div().ID("home-page-confirm-delete-meal-action-button-row").Class("action-button-row").Body(
 					app.Button().ID("home-page-confirm-delete-meal-delete").Class("action-button", "danger-action-button").Text("Yes, Delete").OnClick(h.ConfirmDeleteMealOnClick),
 					app.Button().ID("home-page-confirm-delete-meal-cancel").Class("action-button", "secondary-action-button").Text("No, Cancel").OnClick(h.CancelDeleteMealOnClick),
 				),
 			),
-			app.Dialog().ID("home-page-options").OnClick(h.OptionsOnClick).Body(
+			app.Dialog().ID("home-page-options").Class("modal").OnClick(h.OptionsOnClick).Body(
 				app.Form().ID("home-page-options-form").Class("form").OnSubmit(h.SaveOptions).OnClick(h.OptionsFormOnClick).Body(
 					NewRadioChips("home-page-options-type", "What meal are you eating?", "Dinner", &h.options.Type, mealTypes...),
 					NewCheckboxChips("home-page-options", "Who are you eating with?", map[string]bool{}, &h.usersOptions, usersStrings...),
@@ -234,7 +235,7 @@ func (h *home) OptionsFormOnClick(ctx app.Context, e app.Event) {
 func (h *home) New(ctx app.Context, e app.Event) {
 	SetIsMealNew(true, ctx)
 	SetCurrentMeal(Meal{}, ctx)
-	ctx.Navigate("/meal")
+	Navigate("/meal", ctx)
 }
 
 func (h *home) PageOnClick(ctx app.Context, e app.Event) {
@@ -248,7 +249,23 @@ func (h *home) MealOnClick(ctx app.Context, e app.Event, meal Meal) {
 	h.currentMeal = meal
 	SetCurrentMeal(meal, ctx)
 	dialog := app.Window().GetElementByID("home-page-meal-dialog")
+	if dialog.Get("open").Bool() {
+		ctx.Dispatch(func(ctx app.Context) {
+			dialog.Call("close")
+		})
+		ctx.Defer(func(ctx app.Context) {
+			time.Sleep(250 * time.Millisecond)
+			h.UpdateMealDialogPosition(ctx, e, dialog)
+			dialog.Call("show")
+		})
+		return
+	}
+	h.UpdateMealDialogPosition(ctx, e, dialog)
 	dialog.Call("show")
+
+}
+
+func (h *home) UpdateMealDialogPosition(ctx app.Context, e app.Event, dialog app.Value) {
 	pageX, pageY := e.Get("pageX").Int(), e.Get("pageY").Int()
 	clientX, clientY := e.Get("clientX").Int(), e.Get("clientY").Int()
 	clientWidth, clientHeight := dialog.Get("clientWidth").Int(), dialog.Get("clientHeight").Int()
@@ -263,8 +280,6 @@ func (h *home) MealOnClick(ctx app.Context, e app.Event, meal Meal) {
 	dialog.Get("style").Set("top", strconv.Itoa(pageY)+"px")
 	dialog.Get("style").Set("left", strconv.Itoa(pageX)+"px")
 	dialog.Get("style").Set("transform", "translate("+translateX+", "+translateY)
-
-	// ctx.Navigate("/meal")
 }
 
 func (h *home) MealDialogOnClick(ctx app.Context, e app.Event) {
@@ -276,16 +291,16 @@ func (h *home) NewEntryOnClick(ctx app.Context, e app.Event) {
 	entry := NewEntry(h.group, h.user, h.currentMeal, h.entriesForEachMeal[h.currentMeal.ID])
 	SetIsEntryNew(true, ctx)
 	SetCurrentEntry(entry, ctx)
-	ctx.Navigate("/entry")
+	Navigate("/entry", ctx)
 }
 
 func (h *home) ViewEntriesOnClick(ctx app.Context, e app.Event) {
-	ctx.Navigate("/entries")
+	Navigate("/entries", ctx)
 }
 
 func (h *home) EditMealOnClick(ctx app.Context, e app.Event) {
 	SetIsMealNew(false, ctx)
-	ctx.Navigate("/meal")
+	Navigate("/meal", ctx)
 }
 
 func (h *home) DeleteMealOnClick(ctx app.Context, e app.Event) {

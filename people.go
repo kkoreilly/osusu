@@ -45,12 +45,12 @@ package main
 // 		return
 // 	}
 // 	SetCurrentPerson(person, ctx)
-// 	ctx.Navigate("/person")
+// 	Navigate("/person", ctx)
 // }
 
 // func (p *people) PersonOnClick(ctx app.Context, e app.Event, person Person) {
 // 	SetCurrentPerson(person, ctx)
-// 	ctx.Navigate("/person")
+// 	Navigate("/person", ctx)
 // }
 
 // // SetCurrentPerson sets the current person state value

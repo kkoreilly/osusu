@@ -7,10 +7,17 @@
     padding: 0.5rem;
     border-radius: 5px;
     user-select: all;
+    cursor: pointer;
+    transition: background-color 0.5s;
+}
+
+#group-page-join-link:hover {
+    background-color: lightgray;
 }
 
 #group-page-join-link[data-clicked="true"] {
-    background-color: hsl(120, 73%, 75%);
+    background-color: var(--color-four);
+    cursor: default;
 }
 
 #group-page-members-table {
@@ -30,4 +37,8 @@
     padding: 0.75rem;
     border-bottom: 1px solid gray;
     text-align: center;
+}
+
+.group-page-member[data-is-owner="true"] {
+    background-color: var(--color-three);
 }

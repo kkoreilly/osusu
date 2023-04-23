@@ -3,30 +3,23 @@
     font-size: 1rem;
 }
 
-/* 1rem = 16px on mobile, 18px on desktop by default */
 :root {
     --color-one: hsl(49, 95%, 55%);
     --color-one-dark: hsl(49, 95%, 40%);
     --color-one-text: black;
-    --color-two: hsl(195, 53%, 79%);
-    --color-two-dark: hsl(200, 35%, 62%);
-    --color-two-text: black;
-    --color-three: hsl(48, 92%, 81%);
-    --color-three-dark: hsl(48, 92%, 60%);
+    --color-two: hsl(229, 95%, 45%);
+    --color-two-dark: hsl(229, 95%, 30%);
+    --color-two-text: white;
+    --color-three: hsl(55, 95%, 65%);
+    --color-three-dark: hsl(55, 95%, 40%);
     --color-three-text: black;
-    --color-four: hsl(120, 73%, 75%);
+    --color-four: hsl(120, 73%, 65%);
     --color-four-dark: hsl(120, 73%, 45%);
     --color-four-text: black;
-    --color-five: hsl(0, 100%, 80%);
-    --color-five-dark: hsl(0, 100%, 70%);
-    --color-five-text: black;
+    --color-five: hsl(0, 100%, 30%);
+    --color-five-dark: hsl(0, 100%, 20%);
+    --color-five-text: white;
     font-size: 100%;
-}
-
-@media only screen and (min-width: 400px) {
-    :root {
-        font-size: 100%;
-    }
 }
 
 .action-button-row {
@@ -39,15 +32,19 @@
 }
 
 .action-button {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border: none;
     cursor: pointer;
     border-radius: 5px;
     font-size: 1rem;
-    padding: 1rem;
+    padding: 0.75rem 1rem;
     text-decoration: none;
+    transition: background-color 0.5s;
 }
 
 .primary-action-button {
-    border: none;
     color: var(--color-two-text);
     background-color: var(--color-two);
 }
@@ -57,7 +54,6 @@
 }
 
 .danger-action-button {
-    border: none;
     color: var(--color-five-text);
     background-color: var(--color-five);
 }
@@ -67,7 +63,6 @@
 }
 
 .secondary-action-button {
-    border: none;
     color: var(--color-three-text);
     background-color: var(--color-three);
 }
@@ -77,7 +72,6 @@
 }
 
 .tertiary-action-button {
-    border: none;
     color: var(--color-four-text);
     background-color: var(--color-four);
 }
@@ -91,10 +85,26 @@
     text-align: center;
 }
 
-dialog:modal {
+dialog {
+    opacity: 0;
+    transition: opacity 0.5s;
+    pointer-events: none;
+    display: block;
+}
+
+dialog.modal {
     border: 2px solid black;
     border-radius: 20px;
     max-height: 70vh;
+    position: fixed;
+    inset-block-start: 0px;
+    inset-block-end: 0px;
+    overflow: auto;
+}
+
+dialog[open] {
+    opacity: 1;
+    pointer-events: inherit;
 }
 
 .form {
@@ -124,4 +134,18 @@ h2 {
     width: min(80vw, 700px);
     margin-left: auto;
     margin-right: auto;
+}
+
+.fade-in {
+    animation: fadeInAnimation 0.5s ease-in 0s 1 normal forwards;
+}
+
+@keyframes fadeInAnimation {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
 }

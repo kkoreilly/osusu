@@ -14,7 +14,7 @@ type cuisinesDialog struct {
 }
 
 func (c *cuisinesDialog) Render() app.UI {
-	return app.Dialog().ID(c.ID+"-cuisines-dialog").Class("cuisines-dialog").Body(
+	return app.Dialog().ID(c.ID+"-cuisines-dialog").Class("cuisines-dialog", "modal").Body(
 		app.Form().ID(c.ID+"-cuisines-dialog-new-cuisine-form").Class("form").OnSubmit(c.NewCuisine).Body(
 			NewTextInput(c.ID+"-cuisines-dialog-new-name", "New Cuisine Name:", "New Cuisine Name", false, &c.newCuisineName),
 			app.Button().ID(c.ID+"-cuisines-dialog-new-button").Class("action-button", "tertiary-action-button").Type("submit").Text("Make New Cuisine"),

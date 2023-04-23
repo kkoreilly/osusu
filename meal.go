@@ -151,12 +151,12 @@ func (m *meal) Render() app.UI {
 				newCuisinesDialog("meal-page", m.CuisinesDialogOnSave),
 				app.Div().ID("meal-page-action-button-row").Class("action-button-row").Body(
 					// app.Input().ID("meal-page-delete-button").Class("action-button", "danger-action-button").Type("button").Value("Delete").OnClick(m.InitialDelete),
-					app.A().ID("meal-page-cancel-button").Class("action-button", "secondary-action-button").Href("/home").Text("Cancel"),
+					app.Button().ID("meal-page-cancel-button").Class("action-button", "secondary-action-button").Type("button").OnClick(NavigateEvent("/home")).Text("Cancel"),
 					// app.Input().ID("meal-page-entries-button").Class("action-button", "tertiary-action-button").Type("button").Value("View Entries").OnClick(m.ViewEntries),
 					app.Button().ID("meal-page-save-button").Class("action-button", "primary-action-button").Type("submit").Text(saveButtonText),
 				),
 			),
-			app.Dialog().ID("meal-page-confirm-delete").Body(
+			app.Dialog().ID("meal-page-confirm-delete").Class("modal").Body(
 				app.P().ID("meal-page-confirm-delete-text").Class("confirm-delete-text").Text("Are you sure you want to delete this meal?"),
 				app.Div().ID("meal-page-confirm-delete-action-button-row").Class("action-button-row").Body(
 					app.Button().ID("meal-page-confirm-delete-delete").Class("action-button", "danger-action-button").Text("Yes, Delete").OnClick(m.ConfirmDelete),
@@ -207,7 +207,7 @@ func (m *meal) OnSubmit(ctx app.Context, event app.Event) {
 		entry := NewEntry(m.group, m.user, m.meal, entries)
 		SetIsEntryNew(true, ctx)
 		SetCurrentEntry(entry, ctx)
-		ctx.Navigate("/entry")
+		Navigate("/entry", ctx)
 		return
 	}
 	_, err := UpdateMealAPI.Call(m.meal)
@@ -218,7 +218,7 @@ func (m *meal) OnSubmit(ctx app.Context, event app.Event) {
 
 	SetCurrentMeal(m.meal, ctx)
 
-	ctx.Navigate("/home")
+	Navigate("/home", ctx)
 }
 
 func (m *meal) ViewEntries(ctx app.Context, event app.Event) {
@@ -238,7 +238,7 @@ func (m *meal) ViewEntries(ctx app.Context, event app.Event) {
 	}
 	SetCurrentMeal(m.meal, ctx)
 
-	ctx.Navigate("/entries")
+	Navigate("/entries", ctx)
 }
 
 func (m *meal) InitialDelete(ctx app.Context, event app.Event) {
@@ -256,7 +256,7 @@ func (m *meal) ConfirmDelete(ctx app.Context, event app.Event) {
 	}
 	SetCurrentMeal(Meal{}, ctx)
 
-	ctx.Navigate("/home")
+	Navigate("/home", ctx)
 }
 
 func (m *meal) CancelDelete(ctx app.Context, event app.Event) {

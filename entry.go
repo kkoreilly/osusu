@@ -177,7 +177,7 @@ func (e *entry) Render() app.UI {
 					app.Button().ID("entry-page-save-button").Class("action-button", "primary-action-button").Type("submit").Text(saveButtonText),
 				),
 			),
-			app.Dialog().ID("entry-page-confirm-delete").Body(
+			app.Dialog().ID("entry-page-confirm-delete").Class("modal").Body(
 				app.P().ID("entry-page-confirm-delete-text").Class("confirm-delete-text").Text("Are you sure you want to delete this entry?"),
 				app.Div().ID("entry-page-confirm-delete-action-button-row").Class("action-button-row").Body(
 					app.Button().ID("entry-page-confirm-delete-delete").Class("action-button", "danger-action-button").Text("Yes, Delete").OnClick(e.ConfirmDelete),
@@ -211,7 +211,7 @@ func (e *entry) OnSubmit(ctx app.Context, event app.Event) {
 	}
 	SetCurrentEntry(e.entry, ctx)
 
-	ctx.Navigate("/entries")
+	Navigate("/entries", ctx)
 }
 
 func (e *entry) InitialDelete(ctx app.Context, event app.Event) {
@@ -229,7 +229,7 @@ func (e *entry) ConfirmDelete(ctx app.Context, event app.Event) {
 	}
 	SetCurrentEntry(Entry{}, ctx)
 
-	ctx.Navigate("/entries")
+	Navigate("/entries", ctx)
 }
 
 func (e *entry) CancelDelete(ctx app.Context, event app.Event) {

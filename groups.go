@@ -46,11 +46,11 @@ func (g *groups) Render() app.UI {
 func (g *groups) New(ctx app.Context, e app.Event) {
 	SetIsGroupNew(true, ctx)
 	SetCurrentGroup(Group{}, ctx)
-	ctx.Navigate("/group")
+	Navigate("/group", ctx)
 }
 
 func (g *groups) GroupOnClick(ctx app.Context, e app.Event, group Group) {
 	SetIsGroupNew(false, ctx)
 	SetCurrentGroup(group, ctx)
-	ctx.Navigate("/home")
+	Navigate("/home", ctx)
 }

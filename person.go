@@ -29,7 +29,7 @@ package main
 // 				app.Input().ID("person-page-name-input").Class("input").Type("text").Placeholder("Person Name").AutoFocus(true),
 // 				app.Div().ID("person-page-action-button-row").Class("action-button-row").Body(
 // 					app.Input().ID("person-page-delete-button").Class("action-button", "danger-action-button").Type("button").Value("Delete").OnClick(p.InitialDelete),
-// 					app.A().ID("person-page-back-button").Class("action-button", "secondary-action-button").Href("/people").Text("Back"),
+// 					app.Button().ID("person-page-back-button").Class("action-button", "secondary-action-button").Type("button").OnClick(NavigateEvent("/people")).Text("Back"),
 // 					app.Input().ID("person-page-continue-button").Class("action-button", "primary-action-button").Type("submit").Value("Continue"),
 // 				),
 // 			),
@@ -59,7 +59,7 @@ package main
 // 		SetCurrentPerson(p.person, ctx)
 // 	}
 
-// 	ctx.Navigate("/home")
+// 	Navigate("/home", ctx)
 // }
 
 // func (p *person) InitialDelete(ctx app.Context, event app.Event) {
@@ -76,7 +76,7 @@ package main
 // 		return
 // 	}
 // 	SetCurrentPerson(Person{}, ctx)
-// 	ctx.Navigate("/people")
+// 	Navigate("/people", ctx)
 // }
 
 // func (p *person) CancelDelete(ctx app.Context, event app.Event) {
