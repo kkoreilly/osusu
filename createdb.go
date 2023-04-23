@@ -1,8 +1,12 @@
 package main
 
-// CreateTablesDB creates all of the database tables if they do not exist.
-func CreateTablesDB() error {
-	err := CreateUsersTableDB()
+// InitDB creates all of the database tables if they do not exist.
+func InitDB() error {
+	err := CreateHstoreExtensionDB()
+	if err != nil {
+		return err
+	}
+	err = CreateUsersTableDB()
 	if err != nil {
 		return err
 	}
@@ -23,6 +27,13 @@ func CreateTablesDB() error {
 		return err
 	}
 	return nil
+}
+
+// CreateHstoreExtensionDB creates the hstore extension in the database if it does not exist
+func CreateHstoreExtensionDB() error {
+	statement := `CREATE EXTENSION IF NOT EXISTS hstore`
+	_, err := db.Exec(statement)
+	return err
 }
 
 // CreateUsersTableDB creates the users table in the database if it does not exist

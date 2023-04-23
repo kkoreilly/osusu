@@ -50,7 +50,10 @@ func startServer() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	CreateTablesDB()
+	err = InitDB()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	port := os.Getenv("PORT")
 	if port == "" {
