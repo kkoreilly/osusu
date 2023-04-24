@@ -26,9 +26,6 @@ func (h *home) Render() app.UI {
 	for _, u := range h.users {
 		usersStrings = append(usersStrings, u.Name)
 	}
-	// // need to copy to separate array from because append modifies the underlying array
-	// var cuisines = make([]string, len(h.user.Cuisines))
-	// copy(cuisines, h.user.Cuisines)
 	cuisines := []string{}
 	for cuisine, val := range h.cuisinesInUse {
 		if val {
@@ -61,13 +58,6 @@ func (h *home) Render() app.UI {
 				return
 			}
 			h.users = users
-
-			// people, err := GetPeopleAPI.Call(h.user.ID)
-			// if err != nil {
-			// 	CurrentPage.ShowErrorStatus(err)
-			// 	return
-			// }
-			// h.people = people
 
 			h.options = GetOptions(ctx)
 			if h.options.Users == nil {
@@ -126,9 +116,9 @@ func (h *home) Render() app.UI {
 		OnClick:      h.PageOnClick,
 		TitleElement: "Welcome, " + h.user.Name,
 		Elements: []app.UI{
-			app.Div().ID("home-page-action-button-row").Class("action-button-row").Body(
-				app.Button().ID("home-page-new-button").Class("secondary-action-button", "action-button").Text("New Meal").OnClick(h.New),
-				app.Button().ID("home-page-options-button").Class("primary-action-button", "action-button").Text("Search").OnClick(h.ShowOptions),
+			ButtonRow().ID("home-page").Buttons(
+				Button().ID("home-page-new").Class("secondary").Icon("add").Text("New Meal").OnClick(h.NewMeal),
+				Button().ID("home-page-search").Class("primary").Icon("search").Text("Search").OnClick(h.ShowOptions),
 			),
 			app.Table().ID("home-page-meals-table").Body(
 				app.THead().ID("home-page-meals-table-header").Body(
@@ -187,34 +177,34 @@ func (h *home) Render() app.UI {
 				),
 			),
 			app.Dialog().ID("home-page-meal-dialog").OnClick(h.MealDialogOnClick).Body(
-				app.Button().ID("home-page-meal-dialog-new-entry-button").Class("action-button", "primary-action-button").Text("New Entry").OnClick(h.NewEntryOnClick),
-				app.Button().ID("home-page-meal-dialog-view-entries-button").Class("action-button", "secondary-action-button").Text("View Entries").OnClick(h.ViewEntriesOnClick),
-				app.Button().ID("home-page-meal-dialog-edit-meal-button").Class("action-button", "tertiary-action-button").Text("Edit Meal").OnClick(h.EditMealOnClick),
-				app.Button().ID("home-page-meal-dialog-delete-meal-button").Class("action-button", "danger-action-button").Text("Delete Meal").OnClick(h.DeleteMealOnClick),
+				Button().ID("home-page-meal-dialog-new-entry").Class("primary").Icon("add").Text("New Entry").OnClick(h.NewEntry),
+				Button().ID("home-page-meal-dialog-view-entries").Class("secondary").Icon("visibility").Text("View Entries").OnClick(h.ViewEntries),
+				Button().ID("home-page-meal-dialog-edit-meal").Class("tertiary").Icon("edit").Text("Edit Meal").OnClick(h.EditMeal),
+				Button().ID("home-page-meal-dialog-delete-meal").Class("danger").Icon("delete").Text("Delete Meal").OnClick(h.DeleteMeal),
 			),
 
 			app.Dialog().ID("home-page-confirm-delete-meal").Class("modal").Body(
 				app.P().ID("home-page-confirm-delete-meal-text").Class("confirm-delete-text").Text("Are you sure you want to delete this meal?"),
-				app.Div().ID("home-page-confirm-delete-meal-action-button-row").Class("action-button-row").Body(
-					app.Button().ID("home-page-confirm-delete-meal-delete").Class("action-button", "danger-action-button").Text("Yes, Delete").OnClick(h.ConfirmDeleteMealOnClick),
-					app.Button().ID("home-page-confirm-delete-meal-cancel").Class("action-button", "secondary-action-button").Text("No, Cancel").OnClick(h.CancelDeleteMealOnClick),
+				ButtonRow().ID("home-page-confirm-delete-meal").Buttons(
+					Button().ID("home-page-confirm-delete-meal-delete").Class("danger").Icon("delete").Text("Yes, Delete").OnClick(h.ConfirmDeleteMeal),
+					Button().ID("home-page-confirm-delete-meal-cancel").Class("secondary").Icon("cancel").Text("No, Cancel").OnClick(h.CancelDeleteMeal),
 				),
 			),
 			app.Dialog().ID("home-page-options").Class("modal").OnClick(h.OptionsOnClick).Body(
 				app.Form().ID("home-page-options-form").Class("form").OnSubmit(h.SaveOptions).OnClick(h.OptionsFormOnClick).Body(
-					NewRadioChips("home-page-options-type", "What meal are you eating?", "Dinner", &h.options.Type, mealTypes...),
-					NewCheckboxChips("home-page-options", "Who are you eating with?", map[string]bool{}, &h.usersOptions, usersStrings...),
-					NewCheckboxChips("home-page-options-source", "What meal sources are okay?", map[string]bool{"Cooking": true, "Dine-In": true, "Takeout": true}, &h.options.Source, mealSources...),
-					NewCheckboxChips("home-page-options-cuisine", "What cuisines are okay?", map[string]bool{"American": true}, &h.options.Cuisine, cuisines...),
+					RadioChips().ID("home-page-options-type").Label("What meal are you eating?").Default("Dinner").Value(&h.options.Type).Options(mealTypes...),
+					CheckboxChips().ID("home-page-options-users").Label("Who are you eating with?").Value(&h.usersOptions).Options(usersStrings...),
+					CheckboxChips().ID("home-page-options-source").Label("What meal sources are okay?").Default(map[string]bool{"Cooking": true, "Dine-In": true, "Takeout": true}).Value(&h.options.Source).Options(mealSources...),
+					CheckboxChips().ID("home-page-options-cuisine").Label("What cuisines are okay?").Value(&h.options.Cuisine).Options(cuisines...),
 					newCuisinesDialog("home-page", h.CuisinesDialogOnSave),
-					NewRangeInput("home-page-options-taste", "How important is taste?", &h.options.TasteWeight),
-					NewRangeInput("home-page-options-recency", "How important is recency?", &h.options.RecencyWeight),
-					NewRangeInput("home-page-options-cost", "How important is cost?", &h.options.CostWeight),
-					NewRangeInput("home-page-options-effort", "How important is effort?", &h.options.EffortWeight),
-					NewRangeInput("home-page-options-healthiness", "How important is healthiness?", &h.options.HealthinessWeight),
-					app.Div().ID("home-page-options-action-button-row").Class("action-button-row").Body(
-						app.Button().ID("home-page-options-cancel-button").Class("secondary-action-button", "action-button").Type("button").Text("Cancel").OnClick(h.CancelOptions),
-						app.Button().ID("home-page-options-save-button").Class("primary-action-button", "action-button").Type("submit").Text("Search"),
+					RangeInput().ID("home-page-options-taste").Label("How important is taste?").Value(&h.options.TasteWeight),
+					RangeInput().ID("home-page-options-recency").Label("How important is recency?").Value(&h.options.RecencyWeight),
+					RangeInput().ID("home-page-options-cost").Label("How important is cost?").Value(&h.options.CostWeight),
+					RangeInput().ID("home-page-options-effort").Label("How important is effort?").Value(&h.options.EffortWeight),
+					RangeInput().ID("home-page-options-healthiness").Label("How important is healthiness?").Value(&h.options.HealthinessWeight),
+					ButtonRow().ID("home-page-options").Buttons(
+						Button().ID("home-page-options-cancel").Class("secondary").Icon("cancel").Text("Cancel").OnClick(h.CancelOptions),
+						Button().ID("home-page-options-save").Class("primary").Type("submit").Icon("search").Text("Search"),
 					),
 				),
 			),
@@ -232,7 +222,7 @@ func (h *home) OptionsFormOnClick(ctx app.Context, e app.Event) {
 	e.Call("stopPropagation")
 }
 
-func (h *home) New(ctx app.Context, e app.Event) {
+func (h *home) NewMeal(ctx app.Context, e app.Event) {
 	SetIsMealNew(true, ctx)
 	SetCurrentMeal(Meal{}, ctx)
 	Navigate("/meal", ctx)
@@ -287,28 +277,28 @@ func (h *home) MealDialogOnClick(ctx app.Context, e app.Event) {
 	e.Call("stopPropagation")
 }
 
-func (h *home) NewEntryOnClick(ctx app.Context, e app.Event) {
+func (h *home) NewEntry(ctx app.Context, e app.Event) {
 	entry := NewEntry(h.group, h.user, h.currentMeal, h.entriesForEachMeal[h.currentMeal.ID])
 	SetIsEntryNew(true, ctx)
 	SetCurrentEntry(entry, ctx)
 	Navigate("/entry", ctx)
 }
 
-func (h *home) ViewEntriesOnClick(ctx app.Context, e app.Event) {
+func (h *home) ViewEntries(ctx app.Context, e app.Event) {
 	Navigate("/entries", ctx)
 }
 
-func (h *home) EditMealOnClick(ctx app.Context, e app.Event) {
+func (h *home) EditMeal(ctx app.Context, e app.Event) {
 	SetIsMealNew(false, ctx)
 	Navigate("/meal", ctx)
 }
 
-func (h *home) DeleteMealOnClick(ctx app.Context, e app.Event) {
+func (h *home) DeleteMeal(ctx app.Context, e app.Event) {
 	e.PreventDefault()
 	app.Window().GetElementByID("home-page-confirm-delete-meal").Call("showModal")
 }
 
-func (h *home) ConfirmDeleteMealOnClick(ctx app.Context, e app.Event) {
+func (h *home) ConfirmDeleteMeal(ctx app.Context, e app.Event) {
 	e.PreventDefault()
 
 	_, err := DeleteMealAPI.Call(h.currentMeal.ID)
@@ -326,7 +316,7 @@ func (h *home) ConfirmDeleteMealOnClick(ctx app.Context, e app.Event) {
 	app.Window().GetElementByID("home-page-confirm-delete-meal").Call("close")
 }
 
-func (h *home) CancelDeleteMealOnClick(ctx app.Context, e app.Event) {
+func (h *home) CancelDeleteMeal(ctx app.Context, e app.Event) {
 	e.PreventDefault()
 	app.Window().GetElementByID("home-page-confirm-delete-meal").Call("close")
 }
@@ -353,14 +343,6 @@ func (h *home) SaveOptions(ctx app.Context, e app.Event) {
 
 	h.SortMeals()
 }
-
-// func (h *home) CuisinesOnChange(ctx app.Context, event app.Event, val string) {
-// 	if val == "+" {
-// 		h.options.Cuisine[val] = false
-// 		event.Get("target").Set("checked", false)
-// 		app.Window().GetElementByID("home-page-cuisines-dialog").Call("showModal")
-// 	}
-// }
 
 func (h *home) CuisinesDialogOnSave(ctx app.Context, event app.Event) {
 	h.user = GetCurrentUser(ctx)

@@ -62,9 +62,9 @@ func (e *entries) Render() app.UI {
 		},
 		TitleElement: "Entries for " + e.meal.Name,
 		Elements: []app.UI{
-			app.Div().ID("entries-page-action-button-row").Class("action-button-row").Body(
-				app.Button().ID("entries-page-back-button").Class("secondary-action-button", "action-button").Type("button").OnClick(NavigateEvent("/home")).Text("Back"),
-				app.Button().ID("entries-page-new-button").Class("primary-action-button", "action-button").Text("New").OnClick(e.New),
+			ButtonRow().ID("entries-page").Buttons(
+				Button().ID("entries-page-back").Class("secondary").Icon("arrow_back").Text("Back").OnClick(NavigateEvent("/home")),
+				Button().ID("entries-page-new").Class("primary").Icon("add").Text("New").OnClick(e.New),
 			),
 			app.Table().ID("entries-page-entries-table").Body(
 				app.THead().ID("entries-page-entries-table-header").Body(

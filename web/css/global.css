@@ -1,5 +1,5 @@
 * {
-    font-family: 'Roboto', sans-serif;
+    font-family: Roboto, Helvetica, Arial, sans-serif;
     font-size: 1rem;
 }
 
@@ -7,8 +7,8 @@
     --color-one: hsl(49, 95%, 55%);
     --color-one-dark: hsl(49, 95%, 40%);
     --color-one-text: black;
-    --color-two: hsl(229, 95%, 45%);
-    --color-two-dark: hsl(229, 95%, 30%);
+    --color-two: hsl(220, 80%, 50%);
+    --color-two-dark: hsl(220, 80%, 30%);
     --color-two-text: white;
     --color-three: hsl(55, 95%, 65%);
     --color-three-dark: hsl(55, 95%, 40%);
@@ -16,68 +16,10 @@
     --color-four: hsl(120, 73%, 65%);
     --color-four-dark: hsl(120, 73%, 45%);
     --color-four-text: black;
-    --color-five: hsl(0, 100%, 30%);
-    --color-five-dark: hsl(0, 100%, 20%);
+    --color-five: hsl(0, 100%, 40%);
+    --color-five-dark: hsl(0, 100%, 30%);
     --color-five-text: white;
     font-size: 100%;
-}
-
-.action-button-row {
-    display: flex;
-    justify-content: center;
-    column-gap: 1rem;
-    row-gap: 1rem;
-    flex-wrap: wrap;
-    padding-bottom: 20px;
-}
-
-.action-button {
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    border: none;
-    cursor: pointer;
-    border-radius: 5px;
-    font-size: 1rem;
-    padding: 0.75rem 1rem;
-    text-decoration: none;
-    transition: background-color 0.5s;
-}
-
-.primary-action-button {
-    color: var(--color-two-text);
-    background-color: var(--color-two);
-}
-
-.primary-action-button:hover {
-    background-color: var(--color-two-dark);
-}
-
-.danger-action-button {
-    color: var(--color-five-text);
-    background-color: var(--color-five);
-}
-
-.danger-action-button:hover {
-    background-color: var(--color-five-dark);
-}
-
-.secondary-action-button {
-    color: var(--color-three-text);
-    background-color: var(--color-three);
-}
-
-.secondary-action-button:hover {
-    background-color: var(--color-three-dark);
-}
-
-.tertiary-action-button {
-    color: var(--color-four-text);
-    background-color: var(--color-four);
-}
-
-.tertiary-action-button:hover {
-    background-color: var(--color-four-dark);
 }
 
 .confirm-delete-text {

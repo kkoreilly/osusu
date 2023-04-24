@@ -25,16 +25,16 @@ func (s *signUp) Render() app.UI {
 		TitleElement:           "Sign Up",
 		Elements: []app.UI{
 			app.Form().ID("sign-up-page-form").Class("form").OnSubmit(s.OnSubmit).Body(
-				NewTextInput("sign-up-page-username", "Username:", "Username", true, &s.user.Username),
-				NewTextInput("sign-up-page-password", "Password:", "Password", false, &s.user.Password).SetType(passwordInputType),
-				NewTextInput("sign-up-page-name", "Name:", "Name", false, &s.user.Name),
-				app.Div().ID("sign-up-page-checkboxes").Class("action-button-row").Body(
-					NewCheckboxChip("sign-up-page-show-password", "Show Password", false, &s.showPassword),
-					NewCheckboxChip("sign-up-page-remember-me", "Remember Me", true, &s.user.RememberMe),
+				TextInput().ID("sign-up-page-username").Label("Username:").Value(&s.user.Username).AutoFocus(true),
+				TextInput().ID("sign-up-page-password").Type(passwordInputType).Label("Password:").Value(&s.user.Password),
+				TextInput().ID("sign-up-page-name").Label("Name:").Value(&s.user.Name),
+				ButtonRow().ID("sign-up-page-checkboxes").Buttons(
+					CheckboxChip().ID("sign-up-page-show-password").Label("Show Password").Default(false).Value(&s.showPassword),
+					CheckboxChip().ID("sign-up-page-remember-me").Label("Remember Me").Default(true).Value(&s.user.RememberMe),
 				),
-				app.Div().ID("sign-up-page-action-button-row").Class("action-button-row").Body(
-					app.Button().ID("sign-up-page-cancel").Class("action-button", "secondary-action-button").Type("button").OnClick(NavigateEvent("/")).Text("Cancel"),
-					app.Button().ID("sign-up-page-submit").Class("action-button", "primary-action-button").Name("submit").Type("submit").Text("Sign Up"),
+				ButtonRow().ID("sign-up-page").Buttons(
+					Button().ID("sign-up-page-cancel").Class("secondary").Icon("cancel").Text("Cancel").OnClick(NavigateEvent("/")),
+					Button().ID("sign-up-page-submit").Class("primary").Type("submit").Icon("app_registration").Text("Sign Up"),
 				),
 			),
 		},

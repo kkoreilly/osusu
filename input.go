@@ -1,36 +1,122 @@
 package main
 
-import "github.com/maxence-charriere/go-app/v9/pkg/app"
+import (
+	"github.com/maxence-charriere/go-app/v9/pkg/app"
+)
 
-// Input is a component that includes an input field and an associated label
-type Input[T any] struct {
+// InputCompo is a component that includes an input field and an associated label
+type InputCompo[T any] struct {
 	app.Compo
-	IsTextarea  bool // whether the input is a text area instead of an input
-	ID          string
-	Label       string
-	InputClass  string
-	Type        string
-	Placeholder string
-	AutoFocus   bool
-	Value       *T
-	ValueFunc   func(app.Value) T
+	id          string
+	class       string
+	isTextarea  bool   // whether the input is a text area instead of an input
+	InputType   string // can sometimes change (with password field and show password) so needs to be exported
+	label       string
+	placeholder string
+	value       *T
+	valueFunc   func(app.Value) T
+	autoFocus   bool
 }
 
 // Render returns the UI of the input component, which includes a label and an input associated with it
-func (i *Input[T]) Render() app.UI {
-	var input app.UI = app.Input().ID(i.ID+"-input").Class("input", i.InputClass).Type(i.Type).Placeholder(i.Placeholder).AutoFocus(i.AutoFocus).Value(*i.Value).OnChange(func(ctx app.Context, e app.Event) {
-		*i.Value = i.ValueFunc(e.Get("target"))
+func (i *InputCompo[T]) Render() app.UI {
+	var input app.UI = app.Input().ID(i.id+"-input").Class("input", i.class).Type(i.InputType).Placeholder(i.placeholder).AutoFocus(i.autoFocus).Value(*i.value).OnChange(func(ctx app.Context, e app.Event) {
+		*i.value = i.valueFunc(e.Get("target"))
 	})
-	if i.IsTextarea {
-		input = app.Textarea().ID(i.ID+"-input").Class("input", i.InputClass).Placeholder(i.Placeholder).AutoFocus(i.AutoFocus).Text(*i.Value).OnChange(func(ctx app.Context, e app.Event) {
-			*i.Value = i.ValueFunc(e.Get("target"))
+	if i.isTextarea {
+		input = app.Textarea().ID(i.id+"-input").Class("input", i.class).Placeholder(i.placeholder).AutoFocus(i.autoFocus).Text(*i.value).OnChange(func(ctx app.Context, e app.Event) {
+			*i.value = i.valueFunc(e.Get("target"))
 		})
 	}
 
-	return app.Div().ID(i.ID+"-input-container").Class("input-container").Body(
-		app.Label().ID(i.ID+"-input-label").Class("input-label").For(i.ID+"-input").Text(i.Label),
+	return app.Div().ID(i.id+"-input-container").Class("input-container").Body(
+		app.Label().ID(i.id+"-input-label").Class("input-label").For(i.id+"-input").Text(i.label),
 		input,
 	)
+}
+
+// Input returns a new input component
+func Input[T any]() *InputCompo[T] {
+	return &InputCompo[T]{}
+}
+
+// TextInput returns a new string input component with type text and value func ValueFuncString
+func TextInput() *InputCompo[string] {
+	return Input[string]().Type("text").ValueFunc(ValueFuncString)
+}
+
+// RangeInput returns a new range input component with type range and value func ValueFuncInt
+func RangeInput() *InputCompo[int] {
+	return Input[int]().Class("input-range").Type("range").ValueFunc(ValueFuncInt)
+}
+
+// Textarea returns a new textarea input component
+func Textarea() *InputCompo[string] {
+	return Input[string]().Class("input-textarea").IsTextarea(true).ValueFunc(ValueFuncString)
+}
+
+// RangeInputUserMap returns a new range input component that has its values associated with the entry in the user map corresponding to the given user
+func RangeInputUserMap(value *UserMap, user User) *InputCompo[int] {
+	val := (*value)[user.ID]
+	return Input[int]().Class("input-range").Type("range").Value(&val).ValueFunc(func(v app.Value) int {
+		res := v.Get("valueAsNumber").Int()
+		(*value)[user.ID] = res
+		return res
+	})
+}
+
+// ID sets the ID of the input component to the given value
+func (i *InputCompo[T]) ID(id string) *InputCompo[T] {
+	i.id = id
+	return i
+}
+
+// Class sets the class of the input component to the given value
+func (i *InputCompo[T]) Class(class string) *InputCompo[T] {
+	i.class = class
+	return i
+}
+
+// IsTextarea sets whether the input component is a textarea. The default value if this function is not called is false.
+func (i *InputCompo[T]) IsTextarea(isTextarea bool) *InputCompo[T] {
+	i.isTextarea = isTextarea
+	return i
+}
+
+// Type sets the input type of the input (ex: text, password, range)
+func (i *InputCompo[T]) Type(typ string) *InputCompo[T] {
+	i.InputType = typ
+	return i
+}
+
+// Label sets the label of the input
+func (i *InputCompo[T]) Label(label string) *InputCompo[T] {
+	i.label = label
+	return i
+}
+
+// Placeholder sets the placeholder of the input
+func (i *InputCompo[T]) Placeholder(placeholder string) *InputCompo[T] {
+	i.placeholder = placeholder
+	return i
+}
+
+// Value sets the value of the input component to stay equal with the given pointer
+func (i *InputCompo[T]) Value(value *T) *InputCompo[T] {
+	i.value = value
+	return i
+}
+
+// ValueFunc sets the function used to convert the value of the input to a usable value
+func (i *InputCompo[T]) ValueFunc(valueFunc func(app.Value) T) *InputCompo[T] {
+	i.valueFunc = valueFunc
+	return i
+}
+
+// AutoFocus sets whether to automatically focus the input on page load
+func (i *InputCompo[T]) AutoFocus(autoFocus bool) *InputCompo[T] {
+	i.autoFocus = autoFocus
+	return i
 }
 
 // ValueFuncString is a basic value function for a string input
@@ -41,35 +127,4 @@ func ValueFuncString(v app.Value) string {
 // ValueFuncInt is a basic value function for an int input
 func ValueFuncInt(v app.Value) int {
 	return v.Get("valueAsNumber").Int()
-}
-
-// NewTextInput makes a new text input component from the given values
-func NewTextInput(id string, label string, placeholder string, autoFocus bool, value *string) *Input[string] {
-	return &Input[string]{IsTextarea: false, ID: id, Label: label, Type: "text", Placeholder: placeholder, AutoFocus: autoFocus, Value: value, ValueFunc: ValueFuncString}
-}
-
-// NewRangeInput makes a new range input component from the given values
-func NewRangeInput(id string, label string, value *int) *Input[int] {
-	return &Input[int]{IsTextarea: false, ID: id, Label: label, InputClass: "input-range", Type: "range", Value: value, ValueFunc: ValueFuncInt}
-}
-
-// NewRangeInputUserMap makes a new range input component from the given values with the value as the entry in the user map corresponding to the given current user
-func NewRangeInputUserMap(id string, label string, value *UserMap, currentUser User) *Input[int] {
-	val := (*value)[currentUser.ID]
-	return &Input[int]{IsTextarea: false, ID: id, Label: label, InputClass: "input-range", Type: "range", Value: &val, ValueFunc: func(v app.Value) int {
-		res := v.Get("valueAsNumber").Int()
-		(*value)[currentUser.ID] = res
-		return res
-	}}
-}
-
-// NewTextarea makes a new textarea input component from the given values
-func NewTextarea(id string, label string, placeholder string, autoFocus bool, value *string) *Input[string] {
-	return &Input[string]{IsTextarea: true, ID: id, Label: label, InputClass: "input-textarea", Placeholder: placeholder, AutoFocus: autoFocus, Value: value, ValueFunc: ValueFuncString}
-}
-
-// SetType sets the input type of the input to the given value
-func (i *Input[T]) SetType(inputType string) *Input[T] {
-	i.Type = inputType
-	return i
 }

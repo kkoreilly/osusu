@@ -13,8 +13,10 @@ type account struct {
 }
 
 func (a *account) Render() app.UI {
+	viewGroupIcon := "visibility"
 	viewGroupText := "View Group"
 	if a.user.ID == a.group.Owner {
+		viewGroupIcon = "edit"
 		viewGroupText = "Edit Group"
 	}
 	return &Page{
@@ -30,31 +32,27 @@ func (a *account) Render() app.UI {
 		TitleElement:    "Account",
 		SubtitleElement: "You are currently signed into " + a.user.Username + " with the name " + a.user.Name + " and the group " + a.group.Name + ".",
 		Elements: []app.UI{
-			app.Div().ID("acount-page-top-action-button-row").Class("action-button-row").Body(
-				app.Button().ID("account-page-sign-out-button").Class("danger-action-button", "action-button").Text("Sign Out").OnClick(a.InitialSignOut),
-				app.Button().ID("account-page-change-group-button").Class("secondary-action-button", "action-button").Type("button").OnClick(NavigateEvent("/groups")).Text("Change Group"),
-				app.Button().ID("account-page-view-group-button").Class("primary-action-button", "action-button").Text(viewGroupText).OnClick(a.ViewGroup),
+			ButtonRow().ID("account-page-top").Buttons(
+				Button().ID("account-page-sign-out").Class("danger").Icon("logout").Text("Sign Out").OnClick(a.InitialSignOut),
+				Button().ID("account-page-change-group").Class("secondary").Icon("group").Text("Change Group").OnClick(NavigateEvent("/groups")),
+				Button().ID("account-page-view-group").Class("primary").Icon(viewGroupIcon).Text(viewGroupText).OnClick(a.ViewGroup),
 			),
 			app.H2().ID("account-page-user-info-subtitle").Text("Change User Information:"),
 			app.Form().ID("account-page-user-info-form").Class("form").OnSubmit(a.ChangeUserInfo).Body(
-				NewTextInput("account-page-username", "Username:", "Username", false, &a.user.Username),
-				NewTextInput("account-page-name", "Name:", "Name", false, &a.user.Name),
-				app.Div().ID("account-page-user-info-action-button-row").Class("action-button-row").Body(
-					app.Button().ID("account-page-user-info-save-button").Class("primary-action-button", "action-button").Type("submit").Text("Save"),
-				),
+				TextInput().ID("account-page-username").Label("Username:").Value(&a.user.Username),
+				TextInput().ID("account-page-name").Label("Name:").Value(&a.user.Name),
+				Button().ID("account-page-user-info-save").Class("primary").Type("submit").Icon("save").Text("Save"),
 			),
 			app.H2().ID("account-page-password-subtitle").Text("Change Password:"),
 			app.Form().ID("account-page-password-form").Class("form").OnSubmit(a.ChangePassword).Body(
-				NewTextInput("account-page-password", "Password:", "••••••••", false, &a.user.Password).SetType("password"),
-				app.Div().ID("account-page-password-action-button-row").Class("action-button-row").Body(
-					app.Button().ID("account-page-password-save-button").Class("tertiary-action-button", "action-button").Type("submit").Text("Save"),
-				),
+				TextInput().ID("account-page-password").Type("password").Label("Password:").Value(&a.user.Password),
+				Button().ID("account-page-password-save").Class("tertiary").Type("submit").Icon("save").Text("Save"),
 			),
 			app.Dialog().ID("account-page-confirm-sign-out").Class("modal").Body(
 				app.P().ID("account-page-confirm-sign-out-text").Class("confirm-delete-text").Text("Are you sure you want to sign out?"),
-				app.Div().ID("account-page-confirm-sign-out-action-button-row").Class("action-button-row").Body(
-					app.Button().ID("account-page-confirm-sign-out-sign-out").Class("action-button", "danger-action-button").Text("Yes, Sign Out").OnClick(a.ConfirmSignOut),
-					app.Button().ID("account-page-confirm-sign-out-cancel").Class("action-button", "secondary-action-button").Text("No, Cancel").OnClick(a.CancelSignOut),
+				ButtonRow().ID("account-page-confirm-sign-out").Buttons(
+					Button().ID("account-page-confirm-sign-out-sign-out").Class("danger").Icon("logout").Text("Yes, Sign Out").OnClick(a.ConfirmSignOut),
+					Button().ID("account-page-confirm-sign-out-cancel").Class("secondary").Icon("cancel").Text("No, Cancel").OnClick(a.CancelSignOut),
 				),
 			),
 		},

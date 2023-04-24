@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
 )
 
@@ -16,14 +18,14 @@ type cuisinesDialog struct {
 func (c *cuisinesDialog) Render() app.UI {
 	return app.Dialog().ID(c.ID+"-cuisines-dialog").Class("cuisines-dialog", "modal").Body(
 		app.Form().ID(c.ID+"-cuisines-dialog-new-cuisine-form").Class("form").OnSubmit(c.NewCuisine).Body(
-			NewTextInput(c.ID+"-cuisines-dialog-new-name", "New Cuisine Name:", "New Cuisine Name", false, &c.newCuisineName),
-			app.Button().ID(c.ID+"-cuisines-dialog-new-button").Class("action-button", "tertiary-action-button").Type("submit").Text("Make New Cuisine"),
+			TextInput().ID(c.ID+"-cuisines-dialog-new-name").Label("New Cuisine Name:").Value(&c.newCuisineName),
+			Button().ID(c.ID+"-cuisines-dialog-new").Class("tertiary").Type("submit").Icon("add").Text("Create New Cuisine"),
 		),
 		app.Form().ID(c.ID+"-cuisines-dialog-form").Class("form").OnSubmit(c.Save).Body(
-			NewCheckboxChips(c.ID+"-cuisines-dialog-checkbox-chips", "What cuisine options should be available?", map[string]bool{}, &c.cuisines, c.user.Cuisines...),
-			app.Div().ID(c.ID+"-cuisines-dialog-action-button-row").Class("action-button-row").Body(
-				app.Button().ID(c.ID+"-cuisines-dialog-cancel-button").Class("action-button", "secondary-action-button").Type("button").Text("Cancel").OnClick(c.Cancel),
-				app.Button().ID(c.ID+"-cuisines-dialog-save-button").Class("action-button", "primary-action-button").Type("submit").Text("Save"),
+			CheckboxChips().ID(c.ID+"-cuisines-dialog-chips").Label("What cuisine options should be available?").Value(&c.cuisines).Options(c.user.Cuisines...),
+			ButtonRow().ID(c.ID+"-cuisines-dialog").Buttons(
+				Button().ID(c.ID+"-cuisines-dialog-cancel").Class("secondary").Icon("cancel").Text("Cancel").OnClick(c.Cancel),
+				Button().ID(c.ID+"-cuisines-dialog-save").Class("primary").Type("submit").Icon("save").Text("Save"),
 			),
 		),
 	)
@@ -38,6 +40,7 @@ func (c *cuisinesDialog) OnNav(ctx app.Context) {
 	for _, cuisine := range c.user.Cuisines {
 		c.cuisines[cuisine] = true
 	}
+	log.Println(c.user, c.cuisines)
 }
 
 func (c *cuisinesDialog) NewCuisine(ctx app.Context, e app.Event) {

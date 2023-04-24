@@ -83,14 +83,12 @@ func GetIsMealNew(ctx app.Context) bool {
 var (
 	mealTypes   = []string{"Breakfast", "Lunch", "Dinner"}
 	mealSources = []string{"Cooking", "Dine-In", "Takeout"}
-	// mealCuisines = []string{"American", "Chinese", "Indian", "Italian", "Japanese", "Korean", "Mexican", "+"}
 )
 
 type meal struct {
 	app.Compo
-	group Group
-	user  User
-	// person    Person
+	group     Group
+	user      User
 	meal      Meal
 	isMealNew bool
 	cuisine   map[string]bool
@@ -101,9 +99,11 @@ func (m *meal) Render() app.UI {
 	var cuisines = make([]string, len(m.user.Cuisines))
 	copy(cuisines, m.user.Cuisines)
 	titleText := "Edit Meal"
+	saveButtonIcon := "save"
 	saveButtonText := "Save"
 	if m.isMealNew {
 		titleText = "Create Meal"
+		saveButtonIcon = "create"
 		saveButtonText = "Create"
 	}
 	return &Page{
@@ -114,7 +114,6 @@ func (m *meal) Render() app.UI {
 		OnNavFunc: func(ctx app.Context) {
 			m.group = GetCurrentGroup(ctx)
 			m.user = GetCurrentUser(ctx)
-			// m.person = GetCurrentPerson(ctx)
 			m.meal = GetCurrentMeal(ctx)
 			m.isMealNew = GetIsMealNew(ctx)
 
@@ -145,22 +144,13 @@ func (m *meal) Render() app.UI {
 		TitleElement: titleText,
 		Elements: []app.UI{
 			app.Form().ID("meal-page-form").Class("form").OnSubmit(m.OnSubmit).Body(
-				NewTextInput("meal-page-name", "Name:", "Meal Name", true, &m.meal.Name),
-				NewTextarea("meal-page-description", "Description/Notes:", "Meal description/notes", false, &m.meal.Description),
-				NewCheckboxChips("meal-page-cuisine", "Cuisines:", map[string]bool{"American": true}, &m.cuisine, append(cuisines, "+")...).SetOnChange(m.CuisinesOnChange),
+				TextInput().ID("meal-page-name").Label("Name:").Value(&m.meal.Name).AutoFocus(true),
+				Textarea().ID("meal-page-description").Label("Description:").Value(&m.meal.Description),
+				CheckboxChips().ID("meal-page-cuisine").Label("Cuisines:").Value(&m.cuisine).Options(append(cuisines, "+")...).OnChange(m.CuisinesOnChange),
 				newCuisinesDialog("meal-page", m.CuisinesDialogOnSave),
-				app.Div().ID("meal-page-action-button-row").Class("action-button-row").Body(
-					// app.Input().ID("meal-page-delete-button").Class("action-button", "danger-action-button").Type("button").Value("Delete").OnClick(m.InitialDelete),
-					app.Button().ID("meal-page-cancel-button").Class("action-button", "secondary-action-button").Type("button").OnClick(NavigateEvent("/home")).Text("Cancel"),
-					// app.Input().ID("meal-page-entries-button").Class("action-button", "tertiary-action-button").Type("button").Value("View Entries").OnClick(m.ViewEntries),
-					app.Button().ID("meal-page-save-button").Class("action-button", "primary-action-button").Type("submit").Text(saveButtonText),
-				),
-			),
-			app.Dialog().ID("meal-page-confirm-delete").Class("modal").Body(
-				app.P().ID("meal-page-confirm-delete-text").Class("confirm-delete-text").Text("Are you sure you want to delete this meal?"),
-				app.Div().ID("meal-page-confirm-delete-action-button-row").Class("action-button-row").Body(
-					app.Button().ID("meal-page-confirm-delete-delete").Class("action-button", "danger-action-button").Text("Yes, Delete").OnClick(m.ConfirmDelete),
-					app.Button().ID("meal-page-confirm-delete-cancel").Class("action-button", "secondary-action-button").Text("No, Cancel").OnClick(m.CancelDelete),
+				ButtonRow().ID("meal-page").Buttons(
+					Button().ID("meal-page-cancel").Class("secondary").Icon("cancel").Text("Cancel").OnClick(NavigateEvent("/home")),
+					Button().ID("meal-page-save").Class("primary").Type("submit").Icon(saveButtonIcon).Text(saveButtonText),
 				),
 			),
 		},
@@ -239,27 +229,4 @@ func (m *meal) ViewEntries(ctx app.Context, event app.Event) {
 	SetCurrentMeal(m.meal, ctx)
 
 	Navigate("/entries", ctx)
-}
-
-func (m *meal) InitialDelete(ctx app.Context, event app.Event) {
-	event.PreventDefault()
-	app.Window().GetElementByID("meal-page-confirm-delete").Call("showModal")
-}
-
-func (m *meal) ConfirmDelete(ctx app.Context, event app.Event) {
-	event.PreventDefault()
-
-	_, err := DeleteMealAPI.Call(m.meal.ID)
-	if err != nil {
-		CurrentPage.ShowErrorStatus(err)
-		return
-	}
-	SetCurrentMeal(Meal{}, ctx)
-
-	Navigate("/home", ctx)
-}
-
-func (m *meal) CancelDelete(ctx app.Context, event app.Event) {
-	event.PreventDefault()
-	app.Window().GetElementByID("meal-page-confirm-delete").Call("close")
 }

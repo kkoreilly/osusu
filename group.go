@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"strconv"
 	"time"
 
@@ -57,14 +58,19 @@ type group struct {
 }
 
 func (g *group) Render() app.UI {
+	log.Println(g.isGroupNew)
 	titleText := "Edit Group"
+	saveButtonIcon := "save"
 	saveButtonText := "Save"
 	if g.isGroupNew {
 		titleText = "Create Group"
+		saveButtonIcon = "add"
 		saveButtonText = "Create"
 	}
+	cancelButtonIcon := "cancel"
 	cancelButtonText := "Cancel"
 	if !g.isOwner {
+		cancelButtonIcon = "arrow_back"
 		cancelButtonText = "Back"
 		titleText = "View Group"
 	}
@@ -103,7 +109,7 @@ func (g *group) Render() app.UI {
 		Elements: []app.UI{
 			app.Form().ID("group-page-form").Class("form").OnSubmit(g.OnSubmit).Body(
 				app.If(g.isOwner,
-					NewTextInput("group-page-name", "Name:", "Group Name", true, &g.group.Name),
+					TextInput().ID("group-page-name").Label("Name:").Value(&g.group.Name).AutoFocus(true),
 				).Else(
 					app.Span().ID("group-page-name").Text("Name: "+g.group.Name),
 				),
@@ -131,13 +137,13 @@ func (g *group) Render() app.UI {
 						),
 					),
 				),
-				app.Div().ID("group-page-action-button-row").Class("action-button-row").Body(
+				ButtonRow().ID("group-page").Buttons(
 					app.If(g.isOwner && !g.isGroupNew,
-						app.Button().ID("group-page-delete-button").Class("action-button", "danger-action-button").Type("button").Text("Delete"),
+						Button().ID("group-page-delete").Class("danger").Icon("delete").Text("Delete"),
 					),
-					app.Button().ID("group-page-cancel-button").Class("action-button", "secondary-action-button").Type("button").Text(cancelButtonText).OnClick(ReturnToReturnURL),
+					Button().ID("group-page-cancel").Class("secondary").Icon(cancelButtonIcon).Text(cancelButtonText).OnClick(ReturnToReturnURL),
 					app.If(g.isOwner,
-						app.Button().ID("group-page-save-button").Class("action-button", "primary-action-button").Type("submit").Text(saveButtonText),
+						Button().ID("group-page-save").Class("primary").Type("submit").Icon(saveButtonIcon).Text(saveButtonText),
 					),
 				),
 			),

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"time"
 	"unicode"
 
@@ -20,6 +21,7 @@ type Page struct {
 	TitleElement           string
 	SubtitleElement        string
 	Elements               []app.UI
+	loaded                 bool
 	statusText             string
 	statusType             StatusType
 	updateAvailable        bool
@@ -32,10 +34,15 @@ var CurrentPage *Page
 
 // Render returns the UI of the page based on its attributes
 func (p *Page) Render() app.UI {
+	log.Printf("page render (loaded: %v) \n", p.loaded)
 	// We use current page for some things (account, install, and update buttons) to prevent flashing on page switch.
 	// If there is no current page (if we haven't been on a page before), just set it to p.
 	if CurrentPage == nil {
 		CurrentPage = p
+	}
+	elements := []app.UI{}
+	if p.loaded {
+		elements = p.Elements
 	}
 	width, _ := app.Window().Size()
 	smallScreen := width <= 480
@@ -66,9 +73,7 @@ func (p *Page) Render() app.UI {
 			),
 			app.If(p.TitleElement != "", app.H1().ID(p.ID+"-page-title").Class("page-title").Text(p.TitleElement)),
 			app.If(p.SubtitleElement != "", app.P().ID(p.ID+"-page-subtitle").Class("page-subtitle").Text(p.SubtitleElement)),
-			app.Div().ID(p.ID+"page-elements").Class("page-elements").Body(
-				p.Elements...,
-			),
+			app.If(true, elements...),
 		),
 	)
 }
@@ -118,7 +123,7 @@ func (p *Page) OnNav(ctx app.Context) {
 	ctx.Defer(func(ctx app.Context) {
 		app.Window().GetElementByID(p.ID+"-page-main").Get("style").Set("opacity", 1)
 	})
-
+	p.loaded = true
 }
 
 // OnAppUpdate is called when the updatability of the app changes

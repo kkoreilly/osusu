@@ -25,15 +25,15 @@ func (s *signIn) Render() app.UI {
 		TitleElement:           "Sign In",
 		Elements: []app.UI{
 			app.Form().ID("sign-in-page-form").Class("form").OnSubmit(s.OnSubmit).Body(
-				NewTextInput("sign-in-page-username", "Username:", "Username", true, &s.user.Username),
-				NewTextInput("sign-in-page-password", "Password:", "Password", false, &s.user.Password).SetType(passwordInputType),
-				app.Div().ID("sign-in-page-checkboxes").Class("action-button-row").Body(
-					NewCheckboxChip("sign-in-page-show-password", "Show Password", false, &s.showPassword),
-					NewCheckboxChip("sign-in-page-remember-me", "Remember Me", true, &s.user.RememberMe),
+				TextInput().ID("sign-in-page-username").Label("Username:").Value(&s.user.Username).AutoFocus(true),
+				TextInput().ID("sign-in-page-password").Type(passwordInputType).Label("Password:").Value(&s.user.Password),
+				ButtonRow().ID("sign-in-page-checkboxes").Buttons(
+					CheckboxChip().ID("sign-in-page-show-password").Label("Show Password").Default(false).Value(&s.showPassword),
+					CheckboxChip().ID("sign-in-page-remember-me").Label("Remember Me").Default(true).Value(&s.user.RememberMe),
 				),
-				app.Div().ID("sign-in-page-action-button-row").Class("action-button-row").Body(
-					app.Button().ID("sign-in-page-cancel").Class("action-button", "secondary-action-button").Type("button").OnClick(NavigateEvent("/")).Text("Cancel").Title("Cancel the Sign In and Navigate to the Start"),
-					app.Button().ID("sign-in-page-submit").Class("action-button", "primary-action-button").Name("submit").Type("submit").Text("Sign In"),
+				ButtonRow().ID("sign-in-page").Buttons(
+					Button().ID("sign-in-page-cancel").Class("secondary").Icon("cancel").Text("Cancel").OnClick(NavigateEvent("/")),
+					Button().ID("sign-in-page-submit").Class("primary").Type("submit").Icon("login").Text("Sign In"),
 				),
 			),
 		},

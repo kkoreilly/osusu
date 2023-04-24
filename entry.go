@@ -132,9 +132,11 @@ type entry struct {
 
 func (e *entry) Render() app.UI {
 	titleText := "Edit Entry"
+	saveButtonIcon := "save"
 	saveButtonText := "Save"
 	if e.isEntryNew {
 		titleText = "Create Entry"
+		saveButtonIcon = "add"
 		saveButtonText = "Create"
 	}
 	return &Page{
@@ -149,12 +151,6 @@ func (e *entry) Render() app.UI {
 				CurrentPage.Title = "Create Entry"
 				CurrentPage.UpdatePageTitle(ctx)
 			}
-			// people, err := GetPeopleAPI.Call(GetCurrentUser(ctx).ID)
-			// if err != nil {
-			// 	CurrentPage.ShowErrorStatus(err)
-			// 	return
-			// }
-			// e.entry = e.entry.RemoveInvalid(people)
 			e.user = GetCurrentUser(ctx)
 			e.entry = e.entry.FixMissingData(e.user)
 		},
@@ -163,25 +159,25 @@ func (e *entry) Render() app.UI {
 			app.Form().ID("entry-page-form").Class("form").OnSubmit(e.OnSubmit).Body(
 				app.Label().ID("entry-page-date-label").Class("input-label").For("entry-page-date-input").Text("When did you eat this?"),
 				app.Input().ID("entry-page-date-input").Class("input").Type("date").Value(e.entry.Date.Format("2006-01-02")),
-				NewRadioChips("entry-page-type", "What meal did you eat this for?", "Dinner", &e.entry.Type, mealTypes...),
-				NewRadioChips("entry-page-source", "How did you get this meal?", "Cooking", &e.entry.Source, mealSources...),
-				NewRangeInputUserMap("entry-page-taste", "How tasty do you think this was?", &e.entry.Taste, e.user),
-				NewRangeInputUserMap("entry-page-cost", "How expensive do you think this was?", &e.entry.Cost, e.user),
-				NewRangeInputUserMap("entry-page-effort", "How much effort do you think this took?", &e.entry.Effort, e.user),
-				NewRangeInputUserMap("entry-page-healthiness", "How healthy do you think this was?", &e.entry.Healthiness, e.user),
-				app.Div().ID("entry-page-action-button-row").Class("action-button-row").Body(
+				RadioChips().ID("entry-page-type").Label("What meal did you eat this for?").Default("Dinner").Value(&e.entry.Type).Options(mealTypes...),
+				RadioChips().ID("entry-page-source").Label("How did you get this meal?").Default("Cooking").Value(&e.entry.Source).Options(mealSources...),
+				RangeInputUserMap(&e.entry.Taste, e.user).ID("entry-page-taste").Label("How tasty think this was?"),
+				RangeInputUserMap(&e.entry.Cost, e.user).ID("entry-page-cost").Label("How expensive was this?"),
+				RangeInputUserMap(&e.entry.Effort, e.user).ID("entry-page-effort").Label("How much effort did this take?"),
+				RangeInputUserMap(&e.entry.Healthiness, e.user).ID("entry-page-healthiness").Label("How healthy was this?"),
+				ButtonRow().ID("entry-page").Buttons(
 					app.If(!e.isEntryNew,
-						app.Button().ID("entry-page-delete-button").Class("action-button", "danger-action-button").Type("button").Text("Delete").OnClick(e.InitialDelete),
+						Button().ID("entry-page-delete").Class("danger").Icon("delete").Text("Delete").OnClick(e.InitialDelete),
 					),
-					app.Button().ID("entry-page-cancel-button").Class("action-button", "secondary-action-button").Type("button").Text("Cancel").OnClick(ReturnToReturnURL),
-					app.Button().ID("entry-page-save-button").Class("action-button", "primary-action-button").Type("submit").Text(saveButtonText),
+					Button().ID("entry-page-cancel").Class("secondary").Icon("cancel").Text("Cancel").OnClick(ReturnToReturnURL),
+					Button().ID("entry-page-save").Class("primary").Type("submit").Icon(saveButtonIcon).Text(saveButtonText),
 				),
 			),
 			app.Dialog().ID("entry-page-confirm-delete").Class("modal").Body(
 				app.P().ID("entry-page-confirm-delete-text").Class("confirm-delete-text").Text("Are you sure you want to delete this entry?"),
-				app.Div().ID("entry-page-confirm-delete-action-button-row").Class("action-button-row").Body(
-					app.Button().ID("entry-page-confirm-delete-delete").Class("action-button", "danger-action-button").Text("Yes, Delete").OnClick(e.ConfirmDelete),
-					app.Button().ID("entry-page-confirm-delete-cancel").Class("action-button", "secondary-action-button").Text("No, Cancel").OnClick(e.CancelDelete),
+				ButtonRow().ID("entry-page-confirm-delete").Buttons(
+					Button().ID("entry-page-confirm-delete-delete").Class("danger").Icon("delete").Text("Yes, Delete").OnClick(e.ConfirmDelete),
+					Button().ID("entry-page-confirm-delete-cancel").Class("secondary").Icon("cancel").Text("No, Cancel").OnClick(e.CancelDelete),
 				),
 			),
 		},

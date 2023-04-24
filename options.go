@@ -39,8 +39,8 @@ func (o Options) RemoveInvalidCuisines(cuisines []string) Options {
 	res := map[string]bool{}
 	for optionCuisine, value := range o.Cuisine {
 		for _, cuisineOption := range cuisines {
-			if value && optionCuisine == cuisineOption {
-				res[optionCuisine] = true
+			if optionCuisine == cuisineOption {
+				res[optionCuisine] = value
 			}
 		}
 	}

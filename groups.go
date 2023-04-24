@@ -30,8 +30,8 @@ func (g *groups) Render() app.UI {
 		},
 		TitleElement: "Select a Group",
 		Elements: []app.UI{
-			app.Div().ID("groups-page-action-button-row").Class("action-button-row").Body(
-				app.Button().ID("groups-page-new-group").Class("action-button", "primary-action-button").Text("New Group").OnClick(g.New),
+			ButtonRow().ID("groups-page").Buttons(
+				Button().ID("groups-page-new-group").Class("primary").Icon("add").Text("New Group").OnClick(g.New),
 			),
 			app.Div().ID("groups-page-groups-container").Body(
 				app.Range(g.groups).Slice(func(i int) app.UI {

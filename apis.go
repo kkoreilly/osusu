@@ -226,36 +226,6 @@ var DeleteMealAPI = NewAPI(http.MethodDelete, "/api/deleteMeal", func(id int64) 
 	return "meal deleted", nil
 })
 
-// // GetPeopleAPI gets and returns the people associated with the given user id from the database.
-// var GetPeopleAPI = NewAPI(http.MethodGet, "/api/getPeople", func(userID int64) (People, error) {
-// 	return GetPeopleDB(userID)
-// })
-
-// // CreatePersonAPI creates and returns a new person under the given user id.
-// var CreatePersonAPI = NewAPI(http.MethodPost, "/api/createPerson", func(userID int64) (Person, error) {
-// 	return CreatePersonDB(userID)
-// })
-
-// // UpdatePersonAPI updates the given person in the database.
-// // It returns a confirmation string if successful and an error if not.
-// var UpdatePersonAPI = NewAPI(http.MethodPut, "/api/updatePerson", func(person Person) (string, error) {
-// 	err := UpdatePersonDB(person)
-// 	if err != nil {
-// 		return "", err
-// 	}
-// 	return "person updated", nil
-// })
-
-// // DeletePersonAPI deletes the given person from the database.
-// // It returns a confirmation string if successful and an error if not.
-// var DeletePersonAPI = NewAPI(http.MethodDelete, "/api/deletePerson", func(id int64) (string, error) {
-// 	err := DeletePersonDB(id)
-// 	if err != nil {
-// 		return "", err
-// 	}
-// 	return "person deleted", nil
-// })
-
 // GetEntriesAPI fetches and returns the entries associated with the given group id from the database
 var GetEntriesAPI = NewAPI(http.MethodGet, "/api/getEntries", func(groupID int64) (Entries, error) {
 	return GetEntriesDB(groupID)

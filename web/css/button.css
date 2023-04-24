@@ -1,0 +1,60 @@
+.button-row {
+    display: flex;
+    justify-content: center;
+    column-gap: 1rem;
+    row-gap: 1rem;
+    flex-wrap: wrap;
+    padding-bottom: 20px;
+}
+
+.button {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    display: flex;
+    align-items: center;
+    column-gap: 5px;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 1rem;
+    padding: 0.75rem 1rem;
+    text-decoration: none;
+    transition: background-color 0.5s;
+}
+
+.primary-button {
+    color: var(--color-two-text);
+    background-color: var(--color-two);
+}
+
+.primary-button:hover {
+    background-color: var(--color-two-dark);
+}
+
+.secondary-button {
+    color: var(--color-three-text);
+    background-color: var(--color-three);
+}
+
+.secondary-button:hover {
+    background-color: var(--color-three-dark);
+}
+
+.tertiary-button {
+    color: var(--color-four-text);
+    background-color: var(--color-four);
+}
+
+.tertiary-button:hover {
+    background-color: var(--color-four-dark);
+}
+
+.danger-button {
+    color: var(--color-five-text);
+    background-color: var(--color-five);
+}
+
+.danger-button:hover {
+    background-color: var(--color-five-dark);
+}

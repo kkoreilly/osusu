@@ -14,8 +14,6 @@ func main() {
 	app.Route("/meal", &meal{})
 	app.Route("/entries", &entries{})
 	app.Route("/entry", &entry{})
-	// app.Route("/people", &people{})
-	// app.Route("/person", &person{})
 	app.Route("/account", &account{})
 
 	app.RunWhenOnBrowser()

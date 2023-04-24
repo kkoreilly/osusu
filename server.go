@@ -31,7 +31,7 @@ func startServer() {
 		},
 		Description: "Osusu is an app for getting recommendations on what meals to eat in a group based on the ratings of each member of the group, and the cost, effort, healthiness, and recency of the meal.",
 		Styles: []string{
-			"https://fonts.googleapis.com/css?family=Roboto",
+			"https://fonts.googleapis.com/css2?family=Roboto&family=Material+Symbols+Outlined",
 			"/web/css/global.css",
 			"/web/css/page.css",
 			"/web/css/home.css",
@@ -40,6 +40,7 @@ func startServer() {
 			"/web/css/groups.css",
 			"/web/css/group.css",
 			"/web/css/input.css",
+			"/web/css/button.css",
 			"/web/css/chips.css",
 			"/web/css/account.css",
 		},
@@ -53,6 +54,10 @@ func startServer() {
 	err = InitDB()
 	if err != nil {
 		log.Fatal(err)
+	}
+	err = CleanupDB()
+	if err != nil {
+		log.Println(err)
 	}
 
 	port := os.Getenv("PORT")

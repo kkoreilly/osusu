@@ -247,58 +247,6 @@ func DeleteMealEntriesDB(mealID int64) error {
 	return err
 }
 
-// // GetPeopleDB gets all of the people from the database that are associated with the given user id
-// func GetPeopleDB(userID int64) (People, error) {
-// 	statement := `SELECT id, name FROM people WHERE user_id=$1`
-// 	rows, err := db.Query(statement, userID)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	defer rows.Close()
-// 	var res People
-// 	for rows.Next() {
-// 		var person Person
-// 		err := rows.Scan(&person.ID, &person.Name)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		person.UserID = userID
-// 		res = append(res, person)
-// 	}
-// 	return res, nil
-// }
-
-// // CreatePersonDB creates a person in the database with the given userID and returns the created person if successful and an error if not
-// func CreatePersonDB(userID int64) (Person, error) {
-// 	statement := `INSERT INTO people (user_id)
-// 	VALUES ($1) RETURNING id, name`
-// 	row := db.QueryRow(statement, userID)
-// 	var person Person
-// 	err := row.Scan(&person.ID, &person.Name)
-// 	if err != nil {
-// 		return Person{}, err
-// 	}
-// 	person.UserID = userID
-// 	return person, nil
-// }
-
-// // UpdatePersonDB updates a person in the database
-// func UpdatePersonDB(person Person) error {
-// 	statement := `UPDATE people
-// 	SET name = $1
-// 	WHERE id = $2`
-// 	_, err := db.Exec(statement, person.Name, person.ID)
-// 	return err
-// }
-
-// // DeletePersonDB deletes the person with the given id from the database
-// func DeletePersonDB(id int64) error {
-// 	statement := `DELETE FROM people
-// 	WHERE id = $1`
-// 	_, err := db.Exec(statement, id)
-// 	return err
-// }
-
 // GetEntriesDB gets the entries from the database that have the given group id
 func GetEntriesDB(groupID int64) (Entries, error) {
 	statement := `SELECT id, meal_id, entry_date, type, source, cost, effort, healthiness, taste FROM entries
