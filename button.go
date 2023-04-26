@@ -42,6 +42,7 @@ type ButtonCompo struct {
 	icon    string
 	text    string
 	onClick app.EventHandler
+	hidden  bool
 }
 
 // Render returns the UI of the button component
@@ -49,7 +50,7 @@ func (b *ButtonCompo) Render() app.UI {
 	if b.typ == "" {
 		b.typ = "button"
 	}
-	return app.Button().ID(b.id+"-button").Class(b.class+"-button", "button").Type(b.typ).OnClick(b.onClick).Body(
+	return app.Button().ID(b.id+"-button").Class(b.class+"-button", "button").Type(b.typ).OnClick(b.onClick).Hidden(b.hidden).Body(
 		app.If(b.icon != "", app.Span().ID(b.id+"-button-icon").Class(b.class+"-button-icon", "button-icon", "material-symbols-outlined").Text(b.icon)),
 		app.Span().ID(b.id+"-button-text").Class(b.class+"-button-text", "button-text").Text(b.text),
 	)
@@ -94,5 +95,11 @@ func (b *ButtonCompo) Text(text string) *ButtonCompo {
 // OnClick sets the on click function of the button component
 func (b *ButtonCompo) OnClick(h app.EventHandler) *ButtonCompo {
 	b.onClick = h
+	return b
+}
+
+// Hidden sets whether the button is hidden
+func (b *ButtonCompo) Hidden(hidden bool) *ButtonCompo {
+	b.hidden = hidden
 	return b
 }
