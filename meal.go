@@ -56,28 +56,28 @@ func (m Meal) RemoveInvalidCuisines(cuisines []string) Meal {
 	return m
 }
 
-// SetCurrentMeal sets the current meal state value to the given meal, using the given context
-func SetCurrentMeal(meal Meal, ctx app.Context) {
-	ctx.SetState("currentMeal", meal, app.Persist)
-}
-
-// GetCurrentMeal gets and returns the current meal state value, using the given context
-func GetCurrentMeal(ctx app.Context) Meal {
+// CurrentMeal gets and returns the current meal state value, using the given context
+func CurrentMeal(ctx app.Context) Meal {
 	var meal Meal
 	ctx.GetState("currentMeal", &meal)
 	return meal
 }
 
-// SetIsMealNew sets the state value specifying whether the current meal is new
-func SetIsMealNew(isMealNew bool, ctx app.Context) {
-	ctx.SetState("isMealNew", isMealNew, app.Persist)
+// SetCurrentMeal sets the current meal state value to the given meal, using the given context
+func SetCurrentMeal(meal Meal, ctx app.Context) {
+	ctx.SetState("currentMeal", meal, app.Persist)
 }
 
-// GetIsMealNew gets the state value specifying whether the current meal is new
-func GetIsMealNew(ctx app.Context) bool {
+// IsMealNew gets the state value specifying whether the current meal is new
+func IsMealNew(ctx app.Context) bool {
 	var isMealNew bool
 	ctx.GetState("isMealNew", &isMealNew)
 	return isMealNew
+}
+
+// SetIsMealNew sets the state value specifying whether the current meal is new
+func SetIsMealNew(isMealNew bool, ctx app.Context) {
+	ctx.SetState("isMealNew", isMealNew, app.Persist)
 }
 
 var (
@@ -96,8 +96,8 @@ type meal struct {
 
 func (m *meal) Render() app.UI {
 	// need to copy to separate array from because append modifies the underlying array
-	var cuisines = make([]string, len(m.user.Cuisines))
-	copy(cuisines, m.user.Cuisines)
+	var cuisines = make([]string, len(m.group.Cuisines))
+	copy(cuisines, m.group.Cuisines)
 	titleText := "Edit Meal"
 	saveButtonIcon := "save"
 	saveButtonText := "Save"
@@ -112,25 +112,25 @@ func (m *meal) Render() app.UI {
 		Description:            "Edit, view, or create a meal.",
 		AuthenticationRequired: true,
 		OnNavFunc: func(ctx app.Context) {
-			m.group = GetCurrentGroup(ctx)
-			m.user = GetCurrentUser(ctx)
-			m.meal = GetCurrentMeal(ctx)
-			m.isMealNew = GetIsMealNew(ctx)
+			m.group = CurrentGroup(ctx)
+			m.user = CurrentUser(ctx)
+			m.meal = CurrentMeal(ctx)
+			m.isMealNew = IsMealNew(ctx)
 
 			if m.isMealNew {
 				CurrentPage.Title = "Create Meal"
 				CurrentPage.UpdatePageTitle(ctx)
 			}
 
-			cuisines, err := GetUserCuisinesAPI.Call(m.user.ID)
+			cuisines, err := GetGroupCuisinesAPI.Call(m.group.ID)
 			if err != nil {
 				CurrentPage.ShowErrorStatus(err)
 				return
 			}
-			m.user.Cuisines = cuisines
-			SetCurrentUser(m.user, ctx)
+			m.group.Cuisines = cuisines
+			SetCurrentGroup(m.group, ctx)
 
-			m.meal = m.meal.RemoveInvalidCuisines(m.user.Cuisines)
+			m.meal = m.meal.RemoveInvalidCuisines(m.group.Cuisines)
 
 			if m.meal.Cuisine == nil {
 				m.meal.Cuisine = []string{"American"}
@@ -166,8 +166,8 @@ func (m *meal) CuisinesOnChange(ctx app.Context, event app.Event, val string) {
 }
 
 func (m *meal) CuisinesDialogOnSave(ctx app.Context, event app.Event) {
-	m.user = GetCurrentUser(ctx)
-	m.meal = m.meal.RemoveInvalidCuisines(m.user.Cuisines)
+	m.user = CurrentUser(ctx)
+	m.meal = m.meal.RemoveInvalidCuisines(m.group.Cuisines)
 }
 
 func (m *meal) OnSubmit(ctx app.Context, event app.Event) {

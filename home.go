@@ -39,18 +39,18 @@ func (h *home) Render() app.UI {
 		AuthenticationRequired: true,
 		OnNavFunc: func(ctx app.Context) {
 			SetReturnURL("/home", ctx)
-			h.group = GetCurrentGroup(ctx)
+			h.group = CurrentGroup(ctx)
 			if h.group.Name == "" {
 				Navigate("/groups", ctx)
 			}
-			h.user = GetCurrentUser(ctx)
-			cuisines, err := GetUserCuisinesAPI.Call(h.user.ID)
+			h.user = CurrentUser(ctx)
+			cuisines, err := GetGroupCuisinesAPI.Call(h.group.ID)
 			if err != nil {
 				CurrentPage.ShowErrorStatus(err)
 				return
 			}
-			h.user.Cuisines = cuisines
-			SetCurrentUser(h.user, ctx)
+			h.group.Cuisines = cuisines
+			SetCurrentGroup(h.group, ctx)
 
 			users, err := GetUsersAPI.Call(h.group.Members)
 			if err != nil {
@@ -61,9 +61,9 @@ func (h *home) Render() app.UI {
 
 			h.options = GetOptions(ctx)
 			if h.options.Users == nil {
-				h.options = DefaultOptions(h.user)
+				h.options = DefaultOptions(h.group)
 			}
-			h.options = h.options.RemoveInvalidCuisines(h.user.Cuisines)
+			h.options = h.options.RemoveInvalidCuisines(h.group.Cuisines)
 			SetOptions(h.options, ctx)
 			h.usersOptions = make(map[string]bool)
 			for _, p := range h.users {
@@ -345,8 +345,8 @@ func (h *home) SaveOptions(ctx app.Context, e app.Event) {
 }
 
 func (h *home) CuisinesDialogOnSave(ctx app.Context, event app.Event) {
-	h.user = GetCurrentUser(ctx)
-	h.options = h.options.RemoveInvalidCuisines(h.user.Cuisines)
+	h.user = CurrentUser(ctx)
+	h.options = h.options.RemoveInvalidCuisines(h.group.Cuisines)
 }
 
 func (h *home) SortMeals() {

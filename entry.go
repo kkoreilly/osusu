@@ -99,28 +99,28 @@ func (e Entry) RemoveInvalid(users []User) Entry {
 	return e
 }
 
-// SetCurrentEntry sets the current entry state value to the given entry
-func SetCurrentEntry(entry Entry, ctx app.Context) {
-	ctx.SetState("currentEntry", entry, app.Persist)
-}
-
-// GetCurrentEntry gets and returns the current entry state value
-func GetCurrentEntry(ctx app.Context) Entry {
+// CurrentEntry gets and returns the current entry state value
+func CurrentEntry(ctx app.Context) Entry {
 	var entry Entry
 	ctx.GetState("currentEntry", &entry)
 	return entry
 }
 
-// SetIsEntryNew sets the state value specifying whether the current entry is new
-func SetIsEntryNew(isEntryNew bool, ctx app.Context) {
-	ctx.SetState("isEntryNew", isEntryNew, app.Persist)
+// SetCurrentEntry sets the current entry state value to the given entry
+func SetCurrentEntry(entry Entry, ctx app.Context) {
+	ctx.SetState("currentEntry", entry, app.Persist)
 }
 
-// GetIsEntryNew returns the state value specifying whether the current entry is new
-func GetIsEntryNew(ctx app.Context) bool {
+// IsEntryNew returns the state value specifying whether the current entry is new
+func IsEntryNew(ctx app.Context) bool {
 	var isEntryNew bool
 	ctx.GetState("isEntryNew", &isEntryNew)
 	return isEntryNew
+}
+
+// SetIsEntryNew sets the state value specifying whether the current entry is new
+func SetIsEntryNew(isEntryNew bool, ctx app.Context) {
+	ctx.SetState("isEntryNew", isEntryNew, app.Persist)
 }
 
 type entry struct {
@@ -145,20 +145,19 @@ func (e *entry) Render() app.UI {
 		Description:            "View, edit, or create a meal entry.",
 		AuthenticationRequired: true,
 		OnNavFunc: func(ctx app.Context) {
-			e.entry = GetCurrentEntry(ctx)
-			e.isEntryNew = GetIsEntryNew(ctx)
+			e.entry = CurrentEntry(ctx)
+			e.isEntryNew = IsEntryNew(ctx)
 			if e.isEntryNew {
 				CurrentPage.Title = "Create Entry"
 				CurrentPage.UpdatePageTitle(ctx)
 			}
-			e.user = GetCurrentUser(ctx)
+			e.user = CurrentUser(ctx)
 			e.entry = e.entry.FixMissingData(e.user)
 		},
 		TitleElement: titleText,
 		Elements: []app.UI{
 			app.Form().ID("entry-page-form").Class("form").OnSubmit(e.OnSubmit).Body(
-				app.Label().ID("entry-page-date-label").Class("input-label").For("entry-page-date-input").Text("When did you eat this?"),
-				app.Input().ID("entry-page-date-input").Class("input").Type("date").Value(e.entry.Date.Format("2006-01-02")),
+				DateInput().ID("entry-page-date").Label("When did you eat this?").Value(&e.entry.Date),
 				RadioChips().ID("entry-page-type").Label("What meal did you eat this for?").Default("Dinner").Value(&e.entry.Type).Options(mealTypes...),
 				RadioChips().ID("entry-page-source").Label("How did you get this meal?").Default("Cooking").Value(&e.entry.Source).Options(mealSources...),
 				RangeInputUserMap(&e.entry.Taste, e.user).ID("entry-page-taste").Label("How tasty think this was?"),
@@ -166,9 +165,7 @@ func (e *entry) Render() app.UI {
 				RangeInputUserMap(&e.entry.Effort, e.user).ID("entry-page-effort").Label("How much effort did this take?"),
 				RangeInputUserMap(&e.entry.Healthiness, e.user).ID("entry-page-healthiness").Label("How healthy was this?"),
 				ButtonRow().ID("entry-page").Buttons(
-					app.If(!e.isEntryNew,
-						Button().ID("entry-page-delete").Class("danger").Icon("delete").Text("Delete").OnClick(e.InitialDelete),
-					),
+					Button().ID("entry-page-delete").Class("danger").Icon("delete").Text("Delete").OnClick(e.InitialDelete).Hidden(e.isEntryNew),
 					Button().ID("entry-page-cancel").Class("secondary").Icon("cancel").Text("Cancel").OnClick(ReturnToReturnURL),
 					Button().ID("entry-page-save").Class("primary").Type("submit").Icon(saveButtonIcon).Text(saveButtonText),
 				),
@@ -186,8 +183,6 @@ func (e *entry) Render() app.UI {
 
 func (e *entry) OnSubmit(ctx app.Context, event app.Event) {
 	event.PreventDefault()
-
-	e.entry.Date = time.UnixMilli(int64((app.Window().GetElementByID("entry-page-date-input").Get("valueAsNumber").Int()))).UTC()
 
 	if e.isEntryNew {
 		entry, err := CreateEntryAPI.Call(e.entry)

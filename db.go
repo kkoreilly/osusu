@@ -22,9 +22,9 @@ func ConnectToDB() error {
 // CreateUserDB creates a user in the database and returns the created user if successful and an error if not
 func CreateUserDB(user User) (User, error) {
 	statement := `INSERT INTO users (username, password, name)
-	VALUES ($1, $2, $3) RETURNING id, cuisines`
+	VALUES ($1, $2, $3) RETURNING id`
 	row := db.QueryRow(statement, user.Username, user.Password, user.Name)
-	err := row.Scan(&user.ID, pq.Array(&user.Cuisines))
+	err := row.Scan(&user.ID)
 	if err != nil {
 		return User{}, err
 	}
@@ -33,10 +33,10 @@ func CreateUserDB(user User) (User, error) {
 
 // SignInDB checks whether a specific user can sign into the database and returns the user if they can and an error if they can't
 func SignInDB(user User) (User, error) {
-	statement := `SELECT id, password, name, cuisines FROM users WHERE username=$1`
+	statement := `SELECT id, password, name FROM users WHERE username=$1`
 	row := db.QueryRow(statement, user.Username)
 	var password string
-	err := row.Scan(&user.ID, &password, &user.Name, pq.Array(&user.Cuisines))
+	err := row.Scan(&user.ID, &password, &user.Name)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return User{}, errors.New("no user with the given username exists")
@@ -53,10 +53,10 @@ func SignInDB(user User) (User, error) {
 	return user, nil
 }
 
-// GetUserCuisinesDB gets the cuisines value of the user with the given id from the database
-func GetUserCuisinesDB(userID int64) ([]string, error) {
-	statement := `SELECT cuisines FROM users WHERE id = $1`
-	row := db.QueryRow(statement, userID)
+// GetGroupCuisinesDB gets the cuisines value of the group with the given id from the database
+func GetGroupCuisinesDB(groupID int64) ([]string, error) {
+	statement := `SELECT cuisines FROM groups WHERE id = $1`
+	row := db.QueryRow(statement, groupID)
 	var cuisines []string
 	err := row.Scan(pq.Array(&cuisines))
 	if err != nil {
@@ -65,12 +65,12 @@ func GetUserCuisinesDB(userID int64) ([]string, error) {
 	return cuisines, nil
 }
 
-// UpdateUserCuisinesDB updates the cuisines value of the given user in the database to its cuisines value
-func UpdateUserCuisinesDB(user User) error {
-	statement := `UPDATE users
+// UpdateGroupCuisinesDB updates the cuisines value of the given group in the database to its cuisines value
+func UpdateGroupCuisinesDB(group Group) error {
+	statement := `UPDATE groups
 	SET cuisines = $1
 	WHERE id = $2`
-	_, err := db.Exec(statement, pq.Array(user.Cuisines), user.ID)
+	_, err := db.Exec(statement, pq.Array(group.Cuisines), group.ID)
 	return err
 }
 

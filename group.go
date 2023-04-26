@@ -10,11 +10,12 @@ import (
 
 // A Group is a group of users that can determine what to eat together
 type Group struct {
-	ID      int64
-	Owner   int64
-	Code    string
-	Name    string
-	Members []int64
+	ID       int64
+	Owner    int64
+	Code     string
+	Name     string
+	Members  []int64
+	Cuisines []string
 }
 
 // GroupJoin is the struct that contains data used to have a person join a group
@@ -23,28 +24,28 @@ type GroupJoin struct {
 	UserID    int64
 }
 
-// SetCurrentGroup sets the current group state value to the given group
-func SetCurrentGroup(group Group, ctx app.Context) {
-	ctx.SetState("currentGroup", group, app.Persist)
-}
-
-// GetCurrentGroup returns the current group state value
-func GetCurrentGroup(ctx app.Context) Group {
+// CurrentGroup returns the current group state value
+func CurrentGroup(ctx app.Context) Group {
 	var group Group
 	ctx.GetState("currentGroup", &group)
 	return group
 }
 
-// SetIsGroupNew sets whether the current group is a new group
-func SetIsGroupNew(isGroupNew bool, ctx app.Context) {
-	ctx.SetState("isGroupNew", isGroupNew, app.Persist)
+// SetCurrentGroup sets the current group state value to the given group
+func SetCurrentGroup(group Group, ctx app.Context) {
+	ctx.SetState("currentGroup", group, app.Persist)
 }
 
-// GetIsGroupNew gets whether the current group is a new group
-func GetIsGroupNew(ctx app.Context) bool {
+// IsGroupNew gets whether the current group is a new group
+func IsGroupNew(ctx app.Context) bool {
 	var isGroupNew bool
 	ctx.GetState("isGroupNew", &isGroupNew)
 	return isGroupNew
+}
+
+// SetIsGroupNew sets whether the current group is a new group
+func SetIsGroupNew(isGroupNew bool, ctx app.Context) {
+	ctx.SetState("isGroupNew", isGroupNew, app.Persist)
 }
 
 type group struct {
@@ -84,8 +85,8 @@ func (g *group) Render() app.UI {
 		Description:            "View, edit, and select a group",
 		AuthenticationRequired: true,
 		OnNavFunc: func(ctx app.Context) {
-			g.group = GetCurrentGroup(ctx)
-			g.isGroupNew = GetIsGroupNew(ctx)
+			g.group = CurrentGroup(ctx)
+			g.isGroupNew = IsGroupNew(ctx)
 			if g.isOwner {
 				if g.isOwner {
 					titleText = "Edit Group"
@@ -96,7 +97,7 @@ func (g *group) Render() app.UI {
 				CurrentPage.Title = titleText
 				CurrentPage.UpdatePageTitle(ctx)
 			}
-			g.user = GetCurrentUser(ctx)
+			g.user = CurrentUser(ctx)
 			g.isOwner = g.isGroupNew || g.user.ID == g.group.Owner
 			users, err := GetUsersAPI.Call(g.group.Members)
 			if err != nil {

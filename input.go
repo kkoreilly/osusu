@@ -1,6 +1,8 @@
 package main
 
 import (
+	"time"
+
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
 )
 
@@ -15,16 +17,21 @@ type InputCompo[T any] struct {
 	placeholder string
 	value       *T
 	valueFunc   func(app.Value) T
+	displayFunc func(T) any
 	autoFocus   bool
 }
 
 // Render returns the UI of the input component, which includes a label and an input associated with it
 func (i *InputCompo[T]) Render() app.UI {
-	var input app.UI = app.Input().ID(i.id+"-input").Class("input", i.class).Type(i.InputType).Placeholder(i.placeholder).AutoFocus(i.autoFocus).Value(*i.value).OnChange(func(ctx app.Context, e app.Event) {
+	var value any = *i.value
+	if i.displayFunc != nil {
+		value = i.displayFunc(*i.value)
+	}
+	var input app.UI = app.Input().ID(i.id+"-input").Class("input", i.class).Type(i.InputType).Placeholder(i.placeholder).AutoFocus(i.autoFocus).Value(value).OnChange(func(ctx app.Context, e app.Event) {
 		*i.value = i.valueFunc(e.Get("target"))
 	})
 	if i.isTextarea {
-		input = app.Textarea().ID(i.id+"-input").Class("input", i.class).Placeholder(i.placeholder).AutoFocus(i.autoFocus).Text(*i.value).OnChange(func(ctx app.Context, e app.Event) {
+		input = app.Textarea().ID(i.id+"-input").Class("input", i.class).Placeholder(i.placeholder).AutoFocus(i.autoFocus).Text(value).OnChange(func(ctx app.Context, e app.Event) {
 			*i.value = i.valueFunc(e.Get("target"))
 		})
 	}
@@ -48,6 +55,11 @@ func TextInput() *InputCompo[string] {
 // RangeInput returns a new range input component with type range and value func ValueFuncInt
 func RangeInput() *InputCompo[int] {
 	return Input[int]().Class("input-range").Type("range").ValueFunc(ValueFuncInt)
+}
+
+// DateInput returns a new date input component
+func DateInput() *InputCompo[time.Time] {
+	return Input[time.Time]().Type("date").ValueFunc(ValueFuncDate).DisplayFunc(DisplayFuncDate)
 }
 
 // Textarea returns a new textarea input component
@@ -113,6 +125,12 @@ func (i *InputCompo[T]) ValueFunc(valueFunc func(app.Value) T) *InputCompo[T] {
 	return i
 }
 
+// DisplayFunc sets the function used to convert the set value to the value actually displayed in the input
+func (i *InputCompo[T]) DisplayFunc(displayFunc func(T) any) *InputCompo[T] {
+	i.displayFunc = displayFunc
+	return i
+}
+
 // AutoFocus sets whether to automatically focus the input on page load
 func (i *InputCompo[T]) AutoFocus(autoFocus bool) *InputCompo[T] {
 	i.autoFocus = autoFocus
@@ -127,4 +145,14 @@ func ValueFuncString(v app.Value) string {
 // ValueFuncInt is a basic value function for an int input
 func ValueFuncInt(v app.Value) int {
 	return v.Get("valueAsNumber").Int()
+}
+
+// ValueFuncDate is a basic value function for a date input
+func ValueFuncDate(v app.Value) time.Time {
+	return time.UnixMilli(int64(v.Int())).UTC()
+}
+
+// DisplayFuncDate is a basic display function for a date input
+func DisplayFuncDate(v time.Time) any {
+	return v.Format("2006-01-02")
 }

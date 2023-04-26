@@ -21,7 +21,7 @@ var authenticated time.Time
 func Authenticate(required bool, ctx app.Context) bool {
 	ok := time.Since(authenticated) < TemporarySessionLength
 	if !ok {
-		user := GetCurrentUser(ctx)
+		user := CurrentUser(ctx)
 		if user.Session != "" {
 			_, err := AuthenticateSessionAPI.Call(user)
 			if err == nil {

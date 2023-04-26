@@ -36,8 +36,8 @@ func (e *entries) Render() app.UI {
 		AuthenticationRequired: true,
 		OnNavFunc: func(ctx app.Context) {
 			SetReturnURL("/entries", ctx)
-			e.user = GetCurrentUser(ctx)
-			e.meal = GetCurrentMeal(ctx)
+			e.user = CurrentUser(ctx)
+			e.meal = CurrentMeal(ctx)
 			e.options = GetOptions(ctx)
 			entries, err := GetEntriesForMealAPI.Call(e.meal.ID)
 			if err != nil {
@@ -100,7 +100,7 @@ func (e *entries) EntryOnClick(ctx app.Context, event app.Event, entry Entry) {
 }
 
 func (e *entries) New(ctx app.Context, event app.Event) {
-	entry := NewEntry(GetCurrentGroup(ctx), e.user, e.meal, e.entries)
+	entry := NewEntry(CurrentGroup(ctx), e.user, e.meal, e.entries)
 	SetIsEntryNew(true, ctx)
 	SetCurrentEntry(entry, ctx)
 	Navigate("/entry", ctx)

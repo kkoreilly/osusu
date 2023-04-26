@@ -1,8 +1,6 @@
 package main
 
 import (
-	"log"
-
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
 )
 
@@ -10,7 +8,7 @@ type cuisinesDialog struct {
 	app.Compo
 	ID             string
 	OnSave         func(ctx app.Context, e app.Event)
-	user           User
+	group          Group
 	cuisines       map[string]bool
 	newCuisineName string
 }
@@ -22,7 +20,7 @@ func (c *cuisinesDialog) Render() app.UI {
 			Button().ID(c.ID+"-cuisines-dialog-new").Class("tertiary").Type("submit").Icon("add").Text("Create New Cuisine"),
 		),
 		app.Form().ID(c.ID+"-cuisines-dialog-form").Class("form").OnSubmit(c.Save).Body(
-			CheckboxChips().ID(c.ID+"-cuisines-dialog-chips").Label("What cuisine options should be available?").Value(&c.cuisines).Options(c.user.Cuisines...),
+			CheckboxChips().ID(c.ID+"-cuisines-dialog-chips").Label("What cuisine options should be available?").Value(&c.cuisines).Options(c.group.Cuisines...),
 			ButtonRow().ID(c.ID+"-cuisines-dialog").Buttons(
 				Button().ID(c.ID+"-cuisines-dialog-cancel").Class("secondary").Icon("cancel").Text("Cancel").OnClick(c.Cancel),
 				Button().ID(c.ID+"-cuisines-dialog-save").Class("primary").Type("submit").Icon("save").Text("Save"),
@@ -36,11 +34,10 @@ func newCuisinesDialog(id string, onSave func(ctx app.Context, e app.Event)) *cu
 }
 
 func (c *cuisinesDialog) OnNav(ctx app.Context) {
-	c.user = GetCurrentUser(ctx)
-	for _, cuisine := range c.user.Cuisines {
+	c.group = CurrentGroup(ctx)
+	for _, cuisine := range c.group.Cuisines {
 		c.cuisines[cuisine] = true
 	}
-	log.Println(c.user, c.cuisines)
 }
 
 func (c *cuisinesDialog) NewCuisine(ctx app.Context, e app.Event) {
@@ -49,7 +46,7 @@ func (c *cuisinesDialog) NewCuisine(ctx app.Context, e app.Event) {
 	input := app.Window().GetElementByID(c.ID + "-cuisines-dialog-new-name-input")
 	name := input.Get("value").String()
 	c.cuisines[name] = true
-	c.user.Cuisines = append(c.user.Cuisines, name)
+	c.group.Cuisines = append(c.group.Cuisines, name)
 	input.Call("blur")
 	ctx.Defer(func(ctx app.Context) {
 		input.Set("value", "")
@@ -63,18 +60,18 @@ func (c *cuisinesDialog) Cancel(ctx app.Context, e app.Event) {
 func (c *cuisinesDialog) Save(ctx app.Context, e app.Event) {
 	e.PreventDefault()
 
-	c.user.Cuisines = []string{}
+	c.group.Cuisines = []string{}
 	for cuisine, value := range c.cuisines {
 		if value {
-			c.user.Cuisines = append(c.user.Cuisines, cuisine)
+			c.group.Cuisines = append(c.group.Cuisines, cuisine)
 		}
 	}
-	_, err := UpdateUserCuisinesAPI.Call(c.user)
+	_, err := UpdateGroupCuisinesAPI.Call(c.group)
 	if err != nil {
 		CurrentPage.ShowErrorStatus(err)
 		return
 	}
-	SetCurrentUser(c.user, ctx)
+	SetCurrentGroup(c.group, ctx)
 	app.Window().GetElementByID(c.ID + "-cuisines-dialog").Call("close")
 	c.OnSave(ctx, e)
 }

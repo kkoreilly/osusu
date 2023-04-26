@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"time"
 	"unicode"
 
@@ -34,7 +33,6 @@ var CurrentPage *Page
 
 // Render returns the UI of the page based on its attributes
 func (p *Page) Render() app.UI {
-	log.Printf("page render (loaded: %v) \n", p.loaded)
 	// We use current page for some things (account, install, and update buttons) to prevent flashing on page switch.
 	// If there is no current page (if we haven't been on a page before), just set it to p.
 	if CurrentPage == nil {
@@ -114,7 +112,7 @@ func (p *Page) OnNav(ctx app.Context) {
 	ctx.Page().SetDescription(p.Description)
 	p.updateAvailable = ctx.AppUpdateAvailable()
 	p.installAvailable = ctx.IsAppInstallable()
-	p.user = GetCurrentUser(ctx)
+	p.user = CurrentUser(ctx)
 
 	if p.OnNavFunc != nil {
 		p.OnNavFunc(ctx)
@@ -146,16 +144,16 @@ func (p *Page) InstallApp(ctx app.Context, e app.Event) {
 	ctx.ShowAppInstallPrompt()
 }
 
-// SetReturnURL sets the state value of the url to return to after exiting a page that can be accessed from multiple places
-func SetReturnURL(returnURL string, ctx app.Context) {
-	ctx.SetState("returnURL", returnURL, app.Persist)
-}
-
-// GetReturnURL returns the state value containing the url to return to after exiting a page that can be accessed from multiple places
-func GetReturnURL(ctx app.Context) string {
+// ReturnURL returns the state value containing the url to return to after exiting a page that can be accessed from multiple places
+func ReturnURL(ctx app.Context) string {
 	var returnURL string
 	ctx.GetState("returnURL", &returnURL)
 	return returnURL
+}
+
+// SetReturnURL sets the state value of the url to return to after exiting a page that can be accessed from multiple places
+func SetReturnURL(returnURL string, ctx app.Context) {
+	ctx.SetState("returnURL", returnURL, app.Persist)
 }
 
 // Navigate navigates to the given URL using the given context
@@ -180,7 +178,7 @@ func NavigateEvent(url string) app.EventHandler {
 // ReturnToReturnURL returns the user to the url to return to after exiting a page that can be accessed from multiple places.
 // The event value is not used, but it allows this function be used as an event handler.
 func ReturnToReturnURL(ctx app.Context, e app.Event) {
-	Navigate(GetReturnURL(ctx), ctx)
+	Navigate(ReturnURL(ctx), ctx)
 }
 
 // Back navigates to the previous page in history. The context and event values are not used, but they allow this function to be used as an event handler

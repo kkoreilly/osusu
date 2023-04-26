@@ -45,7 +45,6 @@ func CreateUsersTableDB() error {
 		username text NOT NULL,
 		password text NOT NULL,
 		name text NOT NULL,
-		cuisines text[] NOT NULL DEFAULT '{American,Chinese,Indian,Italian,Japanese,Korean,Mexican}'::text[],
 		CONSTRAINT users_pkey PRIMARY KEY (id),
 		CONSTRAINT users_username_key UNIQUE (username)
 	)`
@@ -81,6 +80,7 @@ func CreateGroupsTableDB() error {
 		code text NOT NULL,
 		name text NOT NULL DEFAULT ''::text,
 		members bigint[] NOT NULL,
+		cuisines text[] NOT NULL DEFAULT '{American,Chinese,Indian,Italian,Japanese,Korean,Mexican}'::text[],
 		CONSTRAINT group_pkey PRIMARY KEY (id),
 		CONSTRAINT group_code_key UNIQUE (code),
 		CONSTRAINT group_owner_fkey FOREIGN KEY (owner)

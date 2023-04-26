@@ -71,19 +71,19 @@ var SignInAPI = NewAPI(http.MethodPost, "/api/signIn", func(user User) (User, er
 	return user, nil
 })
 
-// GetUserCuisinesAPI gets the cuisines of the user with the given user id.
-var GetUserCuisinesAPI = NewAPI(http.MethodGet, "/api/getUserCuisines", func(userID int64) ([]string, error) {
-	return GetUserCuisinesDB(userID)
+// GetGroupCuisinesAPI gets the cuisines of the group with the given group id.
+var GetGroupCuisinesAPI = NewAPI(http.MethodGet, "/api/getGroupCuisines", func(groupID int64) ([]string, error) {
+	return GetGroupCuisinesDB(groupID)
 })
 
-// UpdateUserCuisinesAPI updates the cuisines of the given user to be the cuisines value of the provided user.
+// UpdateGroupCuisinesAPI updates the cuisines of the given group to be the cuisines value of the provided group.
 // It returns a confirmation string if successful and an error if not.
-var UpdateUserCuisinesAPI = NewAPI(http.MethodPut, "/api/updateUserCuisines", func(user User) (string, error) {
-	err := UpdateUserCuisinesDB(user)
+var UpdateGroupCuisinesAPI = NewAPI(http.MethodPut, "/api/updateGroupCuisines", func(group Group) (string, error) {
+	err := UpdateGroupCuisinesDB(group)
 	if err != nil {
 		return "", err
 	}
-	return "updated user cuisines", nil
+	return "updated group cuisines", nil
 })
 
 // UpdateUserInfoAPI updates the username and name of the given user to the values of the provided user.

@@ -26,8 +26,8 @@ func (a *account) Render() app.UI {
 		AuthenticationRequired: true,
 		OnNavFunc: func(ctx app.Context) {
 			SetReturnURL("/account", ctx)
-			a.group = GetCurrentGroup(ctx)
-			a.user = GetCurrentUser(ctx)
+			a.group = CurrentGroup(ctx)
+			a.user = CurrentUser(ctx)
 		},
 		TitleElement:    "Account",
 		SubtitleElement: "You are currently signed into " + a.user.Username + " with the name " + a.user.Name + " and the group " + a.group.Name + ".",
@@ -66,9 +66,9 @@ func (a *account) InitialSignOut(ctx app.Context, e app.Event) {
 
 func (a *account) ConfirmSignOut(ctx app.Context, e app.Event) {
 	e.PreventDefault()
-	user := GetCurrentUser(ctx)
+	user := CurrentUser(ctx)
 	if user.Session != "" {
-		_, err := SignOutAPI.Call(GetCurrentUser(ctx))
+		_, err := SignOutAPI.Call(CurrentUser(ctx))
 		if err != nil {
 			CurrentPage.ShowErrorStatus(err)
 			return

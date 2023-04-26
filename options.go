@@ -15,8 +15,8 @@ type Options struct {
 	RecencyWeight     int
 }
 
-// DefaultOptions returns the default options for the given user
-func DefaultOptions(user User) Options {
+// DefaultOptions returns the default options for a user in the given group
+func DefaultOptions(group Group) Options {
 	options := Options{
 		Users:             make(map[int64]bool),
 		Type:              "Dinner",
@@ -28,7 +28,7 @@ func DefaultOptions(user User) Options {
 		TasteWeight:       50,
 		RecencyWeight:     50,
 	}
-	for _, cuisine := range user.Cuisines {
+	for _, cuisine := range group.Cuisines {
 		options.Cuisine[cuisine] = true
 	}
 	return options

@@ -22,7 +22,7 @@ func (g *groups) Render() app.UI {
 		AuthenticationRequired: true,
 		OnNavFunc: func(ctx app.Context) {
 			SetReturnURL("/groups", ctx)
-			groups, err := GetGroupsAPI.Call(GetCurrentUser(ctx).ID)
+			groups, err := GetGroupsAPI.Call(CurrentUser(ctx).ID)
 			if err != nil {
 				CurrentPage.ShowErrorStatus(err)
 			}
