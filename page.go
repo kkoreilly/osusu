@@ -44,9 +44,15 @@ func (p *Page) Render() app.UI {
 	}
 	width, _ := app.Window().Size()
 	smallScreen := width <= 480
+	installIcon := "install_desktop"
+	if smallScreen {
+		installIcon = "install_mobile"
+	}
 	nameFirstLetter := ""
+	accountButtonIcon := "person"
 	if len(CurrentPage.user.Name) > 0 {
 		nameFirstLetter = string(unicode.ToUpper(rune(CurrentPage.user.Name[0])))
+		accountButtonIcon = ""
 	}
 	return app.Div().ID(p.ID+"-page-container").Class("page-container").OnClick(p.OnClick).Body(
 		app.Header().ID(p.ID+"-page-header").Class("page-header").Body(
@@ -56,18 +62,16 @@ func (p *Page) Render() app.UI {
 					app.If(!smallScreen, app.Span().ID(p.ID+"-page-top-bar-icon-text").Class("page-top-bar-icon-text").Text("Osusu")),
 				),
 				app.Div().ID(p.ID+"-page-top-bar-buttons").Class("page-top-bar-buttons").Body(
-					app.If(CurrentPage.updateAvailable, app.Button().ID(p.ID+"-page-top-bar-update-button").Class("page-top-bar-button", "page-top-bar-update-button").Text("Update").Title("Update to the Latest Version of Osusu").OnClick(p.UpdateApp)),
-					app.If(CurrentPage.installAvailable, app.Button().ID(p.ID+"-page-top-bar-install-button").Class("page-top-bar-button", "page-top-bar-install-button").Text("Install").Title("Install Osusu to Your Device").OnClick(p.InstallApp)),
-					// workaround to prevent install button from flashing blue on page load / update
-					app.Span(),
-					app.Button().ID(p.ID+"-page-top-bar-account-button").Class("page-top-bar-button", "page-top-bar-account-button").OnClick(NavigateEvent("/account")).Text(nameFirstLetter).Title("View and Change Account Information"),
+					Button().ID(p.ID+"-page-top-bar-update").Class("top-bar").Icon("update").Text("Update").OnClick(p.UpdateApp).Hidden(!CurrentPage.updateAvailable),
+					Button().ID(p.ID+"-page-top-bar-install").Class("top-bar").Icon(installIcon).Text("Install").OnClick(p.InstallApp).Hidden(!CurrentPage.installAvailable),
+					Button().ID(p.ID+"-page-top-bar-account").Class("top-bar-account").Icon(accountButtonIcon).Text(nameFirstLetter).OnClick(NavigateEvent("/account")),
 				),
 			),
 		),
 		app.Main().ID(p.ID+"-page-main").Class("page-main").Body(
 			app.Dialog().ID(p.ID+"-page-status").Class("page-status").DataSet("status-type", p.statusType).Body(
 				app.Span().ID(p.ID+"-page-status-text").Class("page-status-text").Text(p.statusText),
-				app.Button().ID(p.ID+"-page-status-close-button").Class("page-status-close-button").Text("✕").OnClick(p.ClosePageStatus),
+				Button().ID(p.ID+"page-status-close-button").Class("page-status-close").Icon("close").OnClick(p.ClosePageStatus),
 			),
 			app.If(p.TitleElement != "", app.H1().ID(p.ID+"-page-title").Class("page-title").Text(p.TitleElement)),
 			app.If(p.SubtitleElement != "", app.P().ID(p.ID+"-page-subtitle").Class("page-subtitle").Text(p.SubtitleElement)),

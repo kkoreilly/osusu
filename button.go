@@ -36,13 +36,13 @@ func (b *ButtonRowCompo) Buttons(buttons ...app.UI) *ButtonRowCompo {
 // ButtonCompo is a button component with text and an optional icon
 type ButtonCompo struct {
 	app.Compo
-	id      string
-	class   string
-	typ     string
-	icon    string
-	text    string
-	onClick app.EventHandler
-	hidden  bool
+	id           string
+	class        string
+	typ          string
+	ButtonIcon   string // can sometimes change so needs to be exported
+	ButtonText   string // can sometimes change so needs to be exported
+	onClick      app.EventHandler
+	ButtonHidden bool // can sometimes change so needs to be exported
 }
 
 // Render returns the UI of the button component
@@ -50,9 +50,9 @@ func (b *ButtonCompo) Render() app.UI {
 	if b.typ == "" {
 		b.typ = "button"
 	}
-	return app.Button().ID(b.id+"-button").Class(b.class+"-button", "button").Type(b.typ).OnClick(b.onClick).Hidden(b.hidden).Body(
-		app.If(b.icon != "", app.Span().ID(b.id+"-button-icon").Class(b.class+"-button-icon", "button-icon", "material-symbols-outlined").Text(b.icon)),
-		app.Span().ID(b.id+"-button-text").Class(b.class+"-button-text", "button-text").Text(b.text),
+	return app.Button().ID(b.id+"-button").Class(b.class+"-button", "button").Type(b.typ).OnClick(b.onClick).Hidden(b.ButtonHidden).Body(
+		app.Span().ID(b.id+"-button-icon").Class(b.class+"-button-icon", "button-icon", "material-symbols-outlined").Text(b.ButtonIcon).Hidden(b.ButtonIcon == ""),
+		app.Span().ID(b.id+"-button-text").Class(b.class+"-button-text", "button-text").Text(b.ButtonText).Hidden(b.ButtonText == ""),
 	)
 }
 
@@ -82,13 +82,13 @@ func (b *ButtonCompo) Type(typ string) *ButtonCompo {
 
 // Icon sets the icon of the button component to the given value
 func (b *ButtonCompo) Icon(icon string) *ButtonCompo {
-	b.icon = icon
+	b.ButtonIcon = icon
 	return b
 }
 
 // Text sets the text of the button component to the given value
 func (b *ButtonCompo) Text(text string) *ButtonCompo {
-	b.text = text
+	b.ButtonText = text
 	return b
 }
 
@@ -100,6 +100,6 @@ func (b *ButtonCompo) OnClick(h app.EventHandler) *ButtonCompo {
 
 // Hidden sets whether the button is hidden
 func (b *ButtonCompo) Hidden(hidden bool) *ButtonCompo {
-	b.hidden = hidden
+	b.ButtonHidden = hidden
 	return b
 }

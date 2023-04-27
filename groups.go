@@ -31,7 +31,8 @@ func (g *groups) Render() app.UI {
 		TitleElement: "Select a Group",
 		Elements: []app.UI{
 			ButtonRow().ID("groups-page").Buttons(
-				Button().ID("groups-page-new-group").Class("primary").Icon("add").Text("New Group").OnClick(g.New),
+				Button().ID("groups-page-new-group").Class("secondary").Icon("add").Text("New Group").OnClick(g.New),
+				Button().ID("groups-page-join-group").Class("primary").Icon("group").Text("Join Group").OnClick(NavigateEvent("/join")),
 			),
 			app.Div().ID("groups-page-groups-container").Body(
 				app.Range(g.groups).Slice(func(i int) app.UI {

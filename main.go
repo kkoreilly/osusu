@@ -15,6 +15,7 @@ func main() {
 	app.Route("/entries", &entries{})
 	app.Route("/entry", &entry{})
 	app.Route("/account", &account{})
+	app.RouteWithRegexp("/join.*", &join{})
 
 	app.RunWhenOnBrowser()
 
