@@ -17,11 +17,12 @@
 #entries-page-entries-table-header-row>th {
     padding: 1rem;
     border-bottom: 1px solid gray;
+    width: 5rem;
 }
 
-#home-page-meals-table-header-score,
-#entries-page-entries-table-header-score {
-    width: 5rem;
+th#home-page-meals-table-header-name,
+th#entries-page-entries-table-header-name {
+    width: initial;
 }
 
 .home-page-meal,
@@ -44,18 +45,17 @@
 
 .home-page-meal>td,
 .entries-page-entry>td {
-    /* display: inline; */
     margin: 0;
     padding: 0.75rem;
     border-bottom: 1px solid gray;
     background: none;
-}
-
-.home-page-meal-score,
-.entries-page-entry-score {
     text-align: center;
 }
 
+td.home-page-meal-name,
+td.entries-page-meal-name {
+    text-align: left;
+}
 .home-page-meal[data-missing-data="true"] * {
     text-decoration: underline;
     font-weight: bold;

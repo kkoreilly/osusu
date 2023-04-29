@@ -7,6 +7,47 @@ import (
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
 )
 
+// Score is the score of a meal or entry
+type Score struct {
+	Cost        int
+	Effort      int
+	Healthiness int
+	Taste       int
+	Total       int
+}
+
+// ComputeTotal computes and returns the total score of the score.
+func (s Score) ComputeTotal(options Options) int {
+	den := options.CostWeight + options.EffortWeight + options.HealthinessWeight + options.TasteWeight
+	if den == 0 {
+		return 0
+	}
+	sum := s.Cost*options.CostWeight + s.Effort*options.EffortWeight + s.Healthiness*options.HealthinessWeight + s.Taste*options.TasteWeight
+	return sum / den
+}
+
+// AverageScore returns a score with the values set to the average values of the given scores
+func AverageScore(scores ...Score) Score {
+	lenScores := len(scores)
+	if lenScores == 0 {
+		return Score{}
+	}
+	res := Score{}
+	for _, score := range scores {
+		res.Cost += score.Cost
+		res.Effort += score.Effort
+		res.Healthiness += score.Healthiness
+		res.Taste += score.Taste
+		res.Total += score.Total
+	}
+	res.Cost /= lenScores
+	res.Effort /= lenScores
+	res.Healthiness /= lenScores
+	res.Taste /= lenScores
+	res.Total /= lenScores
+	return res
+}
+
 // Entry is an entry with information about how a meal was at a certain point in time
 type Entry struct {
 	ID          int64
@@ -57,15 +98,16 @@ func NewEntry(group Group, user User, meal Meal, entries Entries) Entry {
 	return newEntry
 }
 
-// Score produces a score from 0 to 100 for the entry based on its attributes and the given options
-func (e Entry) Score(options Options) int {
-	// average of all attributes
-	sum := options.CostWeight*e.Cost.Sum(options.Users, true) + options.EffortWeight*e.Effort.Sum(options.Users, true) + options.HealthinessWeight*e.Healthiness.Sum(options.Users, false) + options.TasteWeight*e.Taste.Sum(options.Users, false)
-	den := len(e.Cost)*options.CostWeight + len(e.Effort)*options.EffortWeight + len(e.Healthiness)*options.HealthinessWeight + len(e.Taste)*options.TasteWeight
-	if den == 0 {
-		return 0
+// Score produces a score object for the entry based on its attributes and the given options
+func (e Entry) Score(options Options) Score {
+	score := Score{
+		Cost:        e.Cost.Sum(options.Users, true) / len(e.Cost),
+		Effort:      e.Effort.Sum(options.Users, true) / len(e.Effort),
+		Healthiness: e.Healthiness.Sum(options.Users, false) / len(e.Healthiness),
+		Taste:       e.Taste.Sum(options.Users, false) / len(e.Taste),
 	}
-	return sum / den
+	score.Total = score.ComputeTotal(options)
+	return score
 }
 
 // MissingData returns whether the given user is missing data in the given entry

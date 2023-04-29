@@ -78,8 +78,8 @@ func (e *entries) Render() app.UI {
 						entry := e.entries[i]
 						si := strconv.Itoa(i)
 						score := entry.Score(e.options)
-						colorH := strconv.Itoa((score * 12) / 10)
-						scoreText := strconv.Itoa(score)
+						colorH := strconv.Itoa((score.Total * 12) / 10)
+						scoreText := strconv.Itoa(score.Total)
 						missingData := entry.MissingData(e.user)
 						return app.Tr().ID("entries-page-entry-"+si).Class("entries-page-entry").DataSet("missing-data", missingData).Style("--color-h", colorH).Style("--score-percent", scoreText+"%").
 							OnClick(func(ctx app.Context, event app.Event) { e.EntryOnClick(ctx, event, entry) }).Body(

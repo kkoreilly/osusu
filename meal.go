@@ -1,8 +1,6 @@
 package main
 
 import (
-	"time"
-
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
 )
 
@@ -18,28 +16,33 @@ type Meal struct {
 // Meals is a slice that represents multiple meals
 type Meals []Meal
 
-// Score produces a score from 0 to 100 for the meal based on the given entries and options
-func (m Meal) Score(entries Entries, options Options) int {
-	entriesSum := 0
-	var latestDate time.Time
+// Score produces a score object for the meal based on the given entries and options
+func (m Meal) Score(entries Entries, options Options) Score {
+	scores := []Score{}
 	for _, entry := range entries {
-		entriesSum += entry.Score(options)
-		if entry.Date.After(latestDate) {
-			latestDate = entry.Date
-		}
+		scores = append(scores, entry.Score(options))
 	}
-	recencyScore := int(2 * time.Now().Truncate(time.Hour*24).UTC().Sub(latestDate) / (time.Hour * 24))
-	if recencyScore > 100 {
-		recencyScore = 100
-	}
-	// add up all of the weights except recency and multiply all of the scores except for recency by them to make the other weights affect how much recency matters
-	weightsToal := options.CostWeight + options.EffortWeight + options.HealthinessWeight + options.TasteWeight
-	sum := weightsToal*entriesSum + options.RecencyWeight*recencyScore
-	den := weightsToal*len(entries) + options.RecencyWeight
-	if den == 0 {
-		return 0
-	}
-	return sum / den
+	return AverageScore(scores...)
+	// entriesSum := 0
+	// var latestDate time.Time
+	// for _, entry := range entries {
+	// 	entriesSum += entry.Score(options)
+	// 	if entry.Date.After(latestDate) {
+	// 		latestDate = entry.Date
+	// 	}
+	// }
+	// recencyScore := int(2 * time.Now().Truncate(time.Hour*24).UTC().Sub(latestDate) / (time.Hour * 24))
+	// if recencyScore > 100 {
+	// 	recencyScore = 100
+	// }
+	// // add up all of the weights except recency and multiply all of the scores except for recency by them to make the other weights affect how much recency matters
+	// weightsToal := options.CostWeight + options.EffortWeight + options.HealthinessWeight + options.TasteWeight
+	// sum := weightsToal*entriesSum + options.RecencyWeight*recencyScore
+	// den := weightsToal*len(entries) + options.RecencyWeight
+	// if den == 0 {
+	// 	return 0
+	// }
+	// return sum / den
 }
 
 // RemoveInvalidCuisines returns the the meal with all invalid cuisines removed, using the given cuisine options

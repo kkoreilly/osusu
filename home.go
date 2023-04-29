@@ -124,7 +124,11 @@ func (h *home) Render() app.UI {
 				app.THead().ID("home-page-meals-table-header").Body(
 					app.Tr().ID("home-page-meals-table-header-row").Body(
 						app.Th().ID("home-page-meals-table-header-name").Text("Name"),
-						app.Th().ID("home-page-meals-table-header-score").Text("Score"),
+						app.Th().ID("home-page-meals-table-header-cost").Text("Cost"),
+						app.Th().ID("home-page-meals-table-header-effort").Text("Effort"),
+						app.Th().ID("home-page-meals-table-header-healthiness").Text("Healthiness"),
+						app.Th().ID("home-page-meals-table-header-taste").Text("Taste"),
+						app.Th().ID("home-page-meals-table-header-total").Text("Total"),
 					),
 				),
 				app.TBody().ID("home-page-meals-table-body").Body(
@@ -164,14 +168,18 @@ func (h *home) Render() app.UI {
 						}
 
 						score := meal.Score(entries, h.options)
-						colorH := strconv.Itoa((score * 12) / 10)
-						scoreText := strconv.Itoa(score)
+						colorH := strconv.Itoa((score.Total * 12) / 10)
+						scoreText := strconv.Itoa(score.Total)
 						missingData := entries.MissingData(h.user)
 						isCurrentMeal := meal.ID == h.currentMeal.ID
 						return app.Tr().ID("home-page-meal-"+si).Class("home-page-meal").DataSet("missing-data", missingData).DataSet("current-meal", isCurrentMeal).Style("--color-h", colorH).Style("--score-percent", scoreText+"%").
 							OnClick(func(ctx app.Context, e app.Event) { h.MealOnClick(ctx, e, meal) }).Body(
 							app.Td().ID("home-page-meal-name-"+si).Class("home-page-meal-name").Text(meal.Name),
-							app.Td().ID("home-page-meal-score-"+si).Class("home-page-meal-score").Text(scoreText),
+							app.Td().ID("home-page-meal-cost-"+si).Class("home-page-meal-cost").Text(score.Cost),
+							app.Td().ID("home-page-meal-effort-"+si).Class("home-page-meal-effort").Text(score.Effort),
+							app.Td().ID("home-page-meal-healthiness-"+si).Class("home-page-meal-healthiness").Text(score.Healthiness),
+							app.Td().ID("home-page-meal-taste-"+si).Class("home-page-meal-taste").Text(score.Taste),
+							app.Td().ID("home-page-meal-total-"+si).Class("home-page-meal-toal").Text(scoreText),
 						)
 					}),
 				),
@@ -364,6 +372,6 @@ func (h *home) SortMeals() {
 		if !iMissingData && jMissingData {
 			return false
 		}
-		return h.meals[i].Score(h.entriesForEachMeal[h.meals[i].ID], h.options) > h.meals[j].Score(h.entriesForEachMeal[h.meals[j].ID], h.options)
+		return h.meals[i].Score(h.entriesForEachMeal[h.meals[i].ID], h.options).Total > h.meals[j].Score(h.entriesForEachMeal[h.meals[j].ID], h.options).Total
 	})
 }

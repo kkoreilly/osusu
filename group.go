@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"strconv"
 	"time"
 
@@ -59,7 +58,6 @@ type group struct {
 }
 
 func (g *group) Render() app.UI {
-	log.Println(g.isGroupNew)
 	titleText := "Edit Group"
 	saveButtonIcon := "save"
 	saveButtonText := "Save"
