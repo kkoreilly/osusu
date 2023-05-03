@@ -106,7 +106,7 @@ func (m *meal) Render() app.UI {
 	saveButtonText := "Save"
 	if m.isMealNew {
 		titleText = "Create Meal"
-		saveButtonIcon = "create"
+		saveButtonIcon = "add"
 		saveButtonText = "Create"
 	}
 	return &Page{

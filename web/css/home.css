@@ -15,9 +15,9 @@
 
 #home-page-meals-table-header-row>th,
 #entries-page-entries-table-header-row>th {
-    padding: 1rem;
+    padding-bottom: 1rem;
     border-bottom: 1px solid gray;
-    width: 5rem;
+    width: auto;
 }
 
 th#home-page-meals-table-header-name,
@@ -29,7 +29,7 @@ th#entries-page-entries-table-header-name {
 .entries-page-entry {
     cursor: pointer;
     width: 100%;
-    background: linear-gradient(90deg, hsl(var(--color-h), 100%, 70%, 90%) 0% calc(var(--score) - 5%), hsl(0, 0%, 90%) calc(var(--score) + 5%));
+    background: linear-gradient(90deg, hsl(var(--color-h), 100%, 70%, 90%) 0% calc(var(--score) - 5%), hsl(0, 0%, 95%) calc(var(--score) + 5%));
     border: none;
     font-size: 1rem;
     color: black;
@@ -40,7 +40,7 @@ th#entries-page-entries-table-header-name {
 .home-page-meal:hover,
 .home-page-meal[data-current-meal="true"],
 .entries-page-entry:hover {
-    background: linear-gradient(90deg, hsl(var(--color-h), 100%, 40%) 0% calc(var(--score) - 5%), hsl(0, 0%, 70%) calc(var(--score) + 5%));
+    background: linear-gradient(90deg, hsl(var(--color-h), 100%, 40%) 0% calc(var(--score) - 5%), hsl(0, 0%, 80%) calc(var(--score) + 5%));
 }
 
 .home-page-meal>td,
@@ -50,12 +50,12 @@ th#entries-page-entries-table-header-name {
     border-bottom: 1px solid gray;
     background: none;
     text-align: center;
-    background: linear-gradient(0deg, hsl(var(--color-h), 100%, 70%, 90%) 0% calc(var(--score) - 5%), hsl(0, 0%, 90%) calc(var(--score) + 5%));
+    background: linear-gradient(90deg, hsl(0, 0%, 95%) 0%, hsl(var(--color-h), 100%, 70%, 90%) 10% calc(var(--score) - 5%), hsl(0, 0%, 95%) calc(var(--score) + 5%));
 }
 
 .home-page-meal:hover>td,
 .entries-page-entry:hover>td {
-    background: linear-gradient(0deg, hsl(var(--color-h), 100%, 40%) 0% calc(var(--score) - 5%), hsl(0, 0%, 70%) calc(var(--score) + 5%));
+    background: linear-gradient(90deg, hsl(0, 0%, 80%) 0%, hsl(var(--color-h), 100%, 40%) 10% calc(var(--score) - 5%), hsl(0, 0%, 80%) calc(var(--score) + 5%));
 }
 
 td.home-page-meal-name,

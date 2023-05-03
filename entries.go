@@ -84,6 +84,7 @@ func (e *entries) Render() app.UI {
 						return app.Tr().ID("entries-page-entry-"+si).Class("entries-page-entry").DataSet("missing-data", missingData).Style("--color-h", colorH).Style("--score-percent", scoreText+"%").
 							OnClick(func(ctx app.Context, event app.Event) { e.EntryOnClick(ctx, event, entry) }).Body(
 							app.Td().ID("entries-page-entry-date"+si).Class("entries-page-entry-date").Text(entry.Date.Format("1/2/2006")),
+							app.Td().ID("entries-page-entry-cost-"+si).Class("entries-page-entry-cost").Text(score.Cost).Style("--score", strconv.Itoa(score.Cost)+"%").Style("--color-h", strconv.Itoa(score.Cost*12/10)),
 							app.Td().ID("entries-page-entry-score"+si).Class("entries-page-entry-score").Text(scoreText),
 						)
 					}),
