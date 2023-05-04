@@ -50,7 +50,7 @@ th#entries-page-entries-table-header-name {
     border-bottom: 1px solid gray;
     background: none;
     text-align: center;
-    background: linear-gradient(90deg, hsl(0, 0%, 95%) 0%, hsl(var(--color-h), 100%, 70%, 90%) 10% calc(var(--score) - 5%), hsl(0, 0%, 95%) calc(var(--score) + 5%));
+    /* background: linear-gradient(90deg, hsl(0, 0%, 95%) 0%, hsl(var(--color-h), 100%, 70%, 90%) 10% calc(var(--score) - 5%), hsl(0, 0%, 95%) calc(var(--score) + 5%)); */
 }
 
 .home-page-meal:hover>td,
@@ -61,12 +61,22 @@ th#entries-page-entries-table-header-name {
 td.home-page-meal-name,
 td.entries-page-entry-date {
     text-align: left;
-    background: inherit;
+    /* background: inherit; */
 }
 
 .home-page-meal:hover>td.home-page-meal-name,
 .entries-page-entry:hover>td.entries-page-entry-date {
     background: inherit;
+}
+
+.home-page-meal>td>div {
+    background: linear-gradient(30deg, hsl(0, 0%, 90%) 50%, transparent 50%), linear-gradient(-90deg, hsl(var(--color-h), 100%, 70%, 90%) 50%, hsl(0, 0%, 90%) 50%);
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .home-page-meal[data-missing-data="true"] * {

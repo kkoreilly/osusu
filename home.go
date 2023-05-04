@@ -175,6 +175,7 @@ func (h *home) Render() app.UI {
 						return app.Tr().ID("home-page-meal-"+si).Class("home-page-meal").DataSet("missing-data", missingData).DataSet("current-meal", isCurrentMeal).Style("--color-h", colorH).Style("--score", scoreText+"%").
 							OnClick(func(ctx app.Context, e app.Event) { h.MealOnClick(ctx, e, meal) }).Body(
 							app.Td().ID("home-page-meal-name-"+si).Class("home-page-meal-name").Text(meal.Name),
+							MealScore("home-page-meal-taste-"+si, "home-page-meal-taste", score.Taste),
 							app.Td().ID("home-page-meal-taste-"+si).Class("home-page-meal-taste").Text(score.Taste).Style("--score", strconv.Itoa(score.Taste)+"%").Style("--color-h", strconv.Itoa(score.Taste*12/10)),
 							app.Td().ID("home-page-meal-cost-"+si).Class("home-page-meal-cost").Text(score.Cost).Style("--score", strconv.Itoa(score.Cost)+"%").Style("--color-h", strconv.Itoa(score.Cost*12/10)),
 							app.Td().ID("home-page-meal-effort-"+si).Class("home-page-meal-effort").Text(score.Effort).Style("--score", strconv.Itoa(score.Effort)+"%").Style("--color-h", strconv.Itoa(score.Effort*12/10)),
@@ -218,6 +219,12 @@ func (h *home) Render() app.UI {
 			),
 		},
 	}
+}
+
+func MealScore(id string, class string, score int) app.UI {
+	return app.Td().ID(id).Class(class).Style("--score", strconv.Itoa(score)).Style("--color-h", strconv.Itoa(score*12/10)).Body(
+		app.Div().ID(id + "-circle").Class(class + "-circle").Text(score),
+	)
 }
 
 func (h *home) OptionsOnClick(ctx app.Context, e app.Event) {
