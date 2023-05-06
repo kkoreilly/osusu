@@ -17,11 +17,11 @@
 #entries-page-entries-table-header-row>th {
     padding-bottom: 1rem;
     border-bottom: 1px solid gray;
-    width: auto;
+    width: 60px;
 }
 
 th#home-page-meals-table-header-name,
-th#entries-page-entries-table-header-name {
+th#entries-page-entries-table-header-date {
     width: initial;
 }
 
@@ -29,44 +29,31 @@ th#entries-page-entries-table-header-name {
 .entries-page-entry {
     cursor: pointer;
     width: 100%;
-    /* background: linear-gradient(90deg, hsl(var(--color-h), 100%, 70%, 90%) 0% calc(var(--score) - 5%), hsl(0, 0%, 95%) calc(var(--score) + 5%)); */
     border: none;
     font-size: 1rem;
     color: black;
     margin: 0;
-    transition: --color-h 0.5s;
+    transition: background-color 0.5s;
 }
 
 .home-page-meal:hover,
 .home-page-meal[data-current-meal="true"],
 .entries-page-entry:hover {
-    background: linear-gradient(90deg, hsl(var(--color-h), 100%, 40%) 0% calc(var(--score) - 5%), hsl(0, 0%, 80%) calc(var(--score) + 5%));
+    background-color: lightblue;
 }
 
 .home-page-meal>td,
 .entries-page-entry>td {
     margin: 0;
-    padding: 0.75rem;
     border-bottom: 1px solid gray;
     background: none;
     text-align: center;
-    /* background: linear-gradient(90deg, hsl(0, 0%, 95%) 0%, hsl(var(--color-h), 100%, 70%, 90%) 10% calc(var(--score) - 5%), hsl(0, 0%, 95%) calc(var(--score) + 5%)); */
-}
-
-.home-page-meal:hover>td,
-.entries-page-entry:hover>td {
-    background: linear-gradient(90deg, hsl(0, 0%, 80%) 0%, hsl(var(--color-h), 100%, 40%) 10% calc(var(--score) - 5%), hsl(0, 0%, 80%) calc(var(--score) + 5%));
 }
 
 td.home-page-meal-name,
 td.entries-page-entry-date {
     text-align: left;
-    /* background: inherit; */
-}
-
-.home-page-meal:hover>td.home-page-meal-name,
-.entries-page-entry:hover>td.entries-page-entry-date {
-    background: inherit;
+    padding-left: 1rem;
 }
 
 div.meal-score-circle {
@@ -75,26 +62,6 @@ div.meal-score-circle {
     --pie-size: 50px;
     --pie-thickness: 5px;
 }
-
-/* .meal-score-circle {
-    --percent: var(--score);
-    --thickness: 22px;
-    --color: darkred;
-    --size: 15px;
-
-    width: var(--size);
-    height: var(--size);
-    position: relative;
-    display: inline-grid;
-    margin: 5px;
-    place-content: center;
-    font-size: 25px;
-    font-weight: bold;
-    font-family: sans-serif;
-    background: linear-gradient(var(--score), hsl(0, 0%, 90%) 50%, transparent 50%), linear-gradient(-90deg, hsl(var(--color-h), 100%, 70%, 90%) 50%, hsl(0, 0%, 90%) 50%);
-} */
-
-
 
 .home-page-meal[data-missing-data="true"] * {
     text-decoration: underline;

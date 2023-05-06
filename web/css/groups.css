@@ -10,12 +10,13 @@
     border: 1px solid black;
     border-radius: 10%;
     background-color: white;
-    padding: 20px;
+    padding: 2rem;
     font-size: 1rem;
     text-align: center;
     cursor: pointer;
+    transition: background-color 0.5s;
 }
 
 .groups-page-group:hover {
-    background-color: darkgray;
+    background-color: lightblue;
 }
