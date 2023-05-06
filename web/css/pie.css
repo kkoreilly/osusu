@@ -1,0 +1,51 @@
+@property --pie-percent {
+    syntax: '<number>';
+    inherits: true;
+    initial-value: 1;
+}
+
+.pie {
+    --pie-percent: 50;
+    --pie-color: green;
+    --pie-size: 50px;
+    --pie-thickness: 5px;
+
+    width: var(--pie-size);
+    height: var(--pie-size);
+    position: relative;
+    display: inline-grid;
+    place-content: center;
+    font-size: 1rem;
+    font-weight: bold;
+    font-family: sans-serif;
+
+    animation: pie-percent 1s 0.5s both;
+}
+
+.pie:before,
+.pie:after {
+    content: "";
+    position: absolute;
+    border-radius: 50%;
+}
+
+.pie:before {
+    inset: 0;
+    background:
+        radial-gradient(farthest-side, var(--pie-color) 98%, #0000) top/var(--pie-thickness) var(--pie-thickness) no-repeat,
+        conic-gradient(var(--pie-color) calc(var(--pie-percent)*1%), #0000 0);
+    -webkit-mask: radial-gradient(farthest-side, #0000 calc(99% - var(--pie-thickness)), #000 calc(100% - var(--pie-thickness)));
+    mask: radial-gradient(farthest-side, #0000 calc(99% - var(--pie-thickness)), #000 calc(100% - var(--pie-thickness)));
+}
+
+.pie:after {
+    inset: calc(50% - var(--pie-thickness)/2);
+    background: var(--pie-color);
+    transform: rotate(calc(var(--pie-percent)*3.6deg - 90deg)) translate(calc(var(--pie-size)/2 - 50%));
+}
+
+@keyframes pie-percent {
+    from {
+        --pie-percent: 0;
+    }
+}

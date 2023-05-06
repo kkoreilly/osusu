@@ -124,11 +124,11 @@ func (h *home) Render() app.UI {
 				app.THead().ID("home-page-meals-table-header").Body(
 					app.Tr().ID("home-page-meals-table-header-row").Body(
 						app.Th().ID("home-page-meals-table-header-name").Text("Name"),
+						app.Th().ID("home-page-meals-table-header-total").Text("Total"),
 						app.Th().ID("home-page-meals-table-header-taste").Text("Taste"),
 						app.Th().ID("home-page-meals-table-header-cost").Text("Cost"),
 						app.Th().ID("home-page-meals-table-header-effort").Text("Effort"),
 						app.Th().ID("home-page-meals-table-header-healthiness").Text("Health"),
-						app.Th().ID("home-page-meals-table-header-total").Text("Total"),
 					),
 				),
 				app.TBody().ID("home-page-meals-table-body").Body(
@@ -175,12 +175,11 @@ func (h *home) Render() app.UI {
 						return app.Tr().ID("home-page-meal-"+si).Class("home-page-meal").DataSet("missing-data", missingData).DataSet("current-meal", isCurrentMeal).Style("--color-h", colorH).Style("--score", scoreText+"%").
 							OnClick(func(ctx app.Context, e app.Event) { h.MealOnClick(ctx, e, meal) }).Body(
 							app.Td().ID("home-page-meal-name-"+si).Class("home-page-meal-name").Text(meal.Name),
+							MealScore("home-page-meal-total-"+si, "home-page-meal-total", score.Total),
 							MealScore("home-page-meal-taste-"+si, "home-page-meal-taste", score.Taste),
-							app.Td().ID("home-page-meal-taste-"+si).Class("home-page-meal-taste").Text(score.Taste).Style("--score", strconv.Itoa(score.Taste)+"%").Style("--color-h", strconv.Itoa(score.Taste*12/10)),
-							app.Td().ID("home-page-meal-cost-"+si).Class("home-page-meal-cost").Text(score.Cost).Style("--score", strconv.Itoa(score.Cost)+"%").Style("--color-h", strconv.Itoa(score.Cost*12/10)),
-							app.Td().ID("home-page-meal-effort-"+si).Class("home-page-meal-effort").Text(score.Effort).Style("--score", strconv.Itoa(score.Effort)+"%").Style("--color-h", strconv.Itoa(score.Effort*12/10)),
-							app.Td().ID("home-page-meal-healthiness-"+si).Class("home-page-meal-healthiness").Text(score.Healthiness).Style("--score", strconv.Itoa(score.Healthiness)+"%").Style("--color-h", strconv.Itoa(score.Healthiness*12/10)),
-							app.Td().ID("home-page-meal-total-"+si).Class("home-page-meal-toal").Text(scoreText),
+							MealScore("home-page-meal-cost-"+si, "home-page-meal-cost", score.Cost),
+							MealScore("home-page-meal-effort-"+si, "home-page-meal-effort", score.Effort),
+							MealScore("home-page-meal-healthiness-"+si, "home-page-meal-healthiness", score.Healthiness),
 						)
 					}),
 				),
@@ -222,8 +221,8 @@ func (h *home) Render() app.UI {
 }
 
 func MealScore(id string, class string, score int) app.UI {
-	return app.Td().ID(id).Class(class).Style("--score", strconv.Itoa(score)).Style("--color-h", strconv.Itoa(score*12/10)).Body(
-		app.Div().ID(id + "-circle").Class(class + "-circle").Text(score),
+	return app.Td().ID(id).Class("meal-score", class).Style("--score", strconv.Itoa(score)).Style("--color-h", strconv.Itoa(score*12/10)).Body(
+		app.Div().ID(id + "-circle").Class("meal-score-circle", "pie", class + "-circle").Text(score),
 	)
 }
 

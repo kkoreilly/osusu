@@ -43,6 +43,7 @@ func startServer() {
 			"/web/css/button.css",
 			"/web/css/chips.css",
 			"/web/css/account.css",
+			"/web/css/pie.css",
 		},
 		AutoUpdateInterval: 10 * time.Second,
 	})

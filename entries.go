@@ -69,8 +69,12 @@ func (e *entries) Render() app.UI {
 			app.Table().ID("entries-page-entries-table").Body(
 				app.THead().ID("entries-page-entries-table-header").Body(
 					app.Tr().ID("entries-page-entries-table-header-row").Body(
-						app.Th().ID("entries-page-entries-table-header-name").Text("Name"),
-						app.Th().ID("entries-page-entries-table-header-score").Text("Score"),
+						app.Th().ID("entries-page-entries-table-header-date").Text("Date"),
+						app.Th().ID("entries-page-entries-table-header-total").Text("Total"),
+						app.Th().ID("entries-page-entries-table-header-taste").Text("Taste"),
+						app.Th().ID("entries-page-entries-table-header-cost").Text("Cost"),
+						app.Th().ID("entries-page-entries-table-header-effort").Text("Effort"),
+						app.Th().ID("entries-page-entries-table-header-healthiness").Text("Health"),
 					),
 				),
 				app.TBody().ID("entries-page-entries-table-body").Body(
@@ -81,11 +85,14 @@ func (e *entries) Render() app.UI {
 						colorH := strconv.Itoa((score.Total * 12) / 10)
 						scoreText := strconv.Itoa(score.Total)
 						missingData := entry.MissingData(e.user)
-						return app.Tr().ID("entries-page-entry-"+si).Class("entries-page-entry").DataSet("missing-data", missingData).Style("--color-h", colorH).Style("--score-percent", scoreText+"%").
+						return app.Tr().ID("entries-page-entry-"+si).Class("entries-page-entry").DataSet("missing-data", missingData).Style("--color-h", colorH).Style("--score", scoreText+"%").
 							OnClick(func(ctx app.Context, event app.Event) { e.EntryOnClick(ctx, event, entry) }).Body(
 							app.Td().ID("entries-page-entry-date"+si).Class("entries-page-entry-date").Text(entry.Date.Format("1/2/2006")),
-							app.Td().ID("entries-page-entry-cost-"+si).Class("entries-page-entry-cost").Text(score.Cost).Style("--score", strconv.Itoa(score.Cost)+"%").Style("--color-h", strconv.Itoa(score.Cost*12/10)),
-							app.Td().ID("entries-page-entry-score"+si).Class("entries-page-entry-score").Text(scoreText),
+							MealScore("entries-page-entry-total-"+si, "entries-page-entry-total", score.Total),
+							MealScore("entries-page-entry-taste-"+si, "entries-page-entry-taste", score.Taste),
+							MealScore("entries-page-entry-cost-"+si, "entries-page-entry-cost", score.Cost),
+							MealScore("entries-page-entry-effort-"+si, "entries-page-entry-effort", score.Effort),
+							MealScore("entries-page-entry-healthiness-"+si, "entries-page-entry-healthiness", score.Healthiness),
 						)
 					}),
 				),
