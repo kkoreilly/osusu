@@ -4,6 +4,7 @@
     table-layout: fixed;
     border-spacing: 0;
     border: none;
+    overflow: hidden;
 }
 
 #home-page-meals-table-header,
@@ -15,13 +16,24 @@
 
 #home-page-meals-table-header-row>th,
 #entries-page-entries-table-header-row>th {
+    padding: 0;
     padding-bottom: 1rem;
     border-bottom: 1px solid gray;
-    width: 60px;
+    width: 52px;
+    overflow: hidden;
 }
 
 th#home-page-meals-table-header-name,
 th#entries-page-entries-table-header-date {
+    width: min(10rem, 15vw);
+    padding-left: 0.5rem;
+}
+
+th#home-page-meals-table-header-cuisines {
+    width: 10rem;
+}
+
+th#home-page-meals-table-header-description {
     width: initial;
 }
 
@@ -45,15 +57,27 @@ th#entries-page-entries-table-header-date {
 .home-page-meal>td,
 .entries-page-entry>td {
     margin: 0;
+    padding: 0;
     border-bottom: 1px solid gray;
     background: none;
     text-align: center;
+    overflow: hidden;
 }
 
 td.home-page-meal-name,
 td.entries-page-entry-date {
-    text-align: left;
-    padding-left: 1rem;
+    text-align: center;
+    padding-left: 0.5rem;
+}
+
+td.home-page-meal-description {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+td.home-page-meal-description:hover {
+    white-space: normal;
 }
 
 div.meal-score-circle {

@@ -1,29 +1,3 @@
-/* .entries-page-entry {
-    padding: 10px;
-    cursor: pointer;
-    display: flex;
-    justify-content: space-between;
-    width: clamp(70px, var(--score-percent), calc(100%));
-    background-color: hsl(var(--color-h), 100%, 50%);
-    border: none;
-    font-size: 1rem;
-    column-gap: 5px;
-    flex-wrap: wrap;
-    color: black;
-    margin: 0;
-} */
-
-/* .entries-page-entry:hover {
-    background-color: hsl(var(--color-h), 100%, 40%);
-} */
-
-/* .entries-page-entry-date,
-.entries-page-entry-score {
-    display: inline;
-    margin: 0;
-    padding: 0;
-} */
-
 .entries-page-entry[data-missing-data="true"] * {
     text-decoration: underline;
     font-weight: bold;

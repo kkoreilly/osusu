@@ -32,6 +32,8 @@ func (h *home) Render() app.UI {
 			cuisines = append(cuisines, cuisine)
 		}
 	}
+	width, _ := app.Window().Size()
+	smallScreen := width <= 480
 	return &Page{
 		ID:                     "home",
 		Title:                  "Home",
@@ -126,9 +128,14 @@ func (h *home) Render() app.UI {
 						app.Th().ID("home-page-meals-table-header-name").Text("Name"),
 						app.Th().ID("home-page-meals-table-header-total").Text("Total"),
 						app.Th().ID("home-page-meals-table-header-taste").Text("Taste"),
+						app.Th().ID("home-page-meals-table-header-recency").Text("New"),
 						app.Th().ID("home-page-meals-table-header-cost").Text("Cost"),
 						app.Th().ID("home-page-meals-table-header-effort").Text("Effort"),
 						app.Th().ID("home-page-meals-table-header-healthiness").Text("Health"),
+						app.If(!smallScreen,
+							app.Th().ID("home-page-meals-table-header-cuisines").Text("Cuisines"),
+							app.Th().ID("home-page-meals-table-header-description").Text("Description"),
+						),
 					),
 				),
 				app.TBody().ID("home-page-meals-table-body").Body(
@@ -177,9 +184,14 @@ func (h *home) Render() app.UI {
 							app.Td().ID("home-page-meal-name-"+si).Class("home-page-meal-name").Text(meal.Name),
 							MealScore("home-page-meal-total-"+si, "home-page-meal-total", score.Total),
 							MealScore("home-page-meal-taste-"+si, "home-page-meal-taste", score.Taste),
+							MealScore("home-page-meal-recency-"+si, "home-page-meal-recency", score.Recency),
 							MealScore("home-page-meal-cost-"+si, "home-page-meal-cost", score.Cost),
 							MealScore("home-page-meal-effort-"+si, "home-page-meal-effort", score.Effort),
 							MealScore("home-page-meal-healthiness-"+si, "home-page-meal-healthiness", score.Healthiness),
+							app.If(!smallScreen,
+								app.Td().ID("home-page-meal-cuisines-"+si).Class("home-page-meal-cuisines").Text(meal.CuisineString()),
+								app.Td().ID("home-page-meal-description-"+si).Class("home-page-meal-description").Text(meal.Description),
+							),
 						)
 					}),
 				),
@@ -220,9 +232,10 @@ func (h *home) Render() app.UI {
 	}
 }
 
+// MealScore returns a table cell with a score pie circle containing score information for a meal or entry
 func MealScore(id string, class string, score int) app.UI {
 	return app.Td().ID(id).Class("meal-score", class).Style("--score", strconv.Itoa(score)).Style("--color-h", strconv.Itoa(score*12/10)).Body(
-		app.Div().ID(id + "-circle").Class("meal-score-circle", "pie", class + "-circle").Text(score),
+		app.Div().ID(id+"-circle").Class("meal-score-circle", "pie", class+"-circle").Text(score),
 	)
 }
 

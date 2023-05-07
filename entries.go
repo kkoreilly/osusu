@@ -39,6 +39,8 @@ func (e *entries) Render() app.UI {
 			e.user = CurrentUser(ctx)
 			e.meal = CurrentMeal(ctx)
 			e.options = GetOptions(ctx)
+			// recency doesn't matter for entries
+			e.options.RecencyWeight = 0
 			entries, err := GetEntriesForMealAPI.Call(e.meal.ID)
 			if err != nil {
 				CurrentPage.ShowErrorStatus(err)

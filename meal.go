@@ -1,6 +1,8 @@
 package main
 
 import (
+	"time"
+
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
 )
 
@@ -19,10 +21,20 @@ type Meals []Meal
 // Score produces a score object for the meal based on the given entries and options
 func (m Meal) Score(entries Entries, options Options) Score {
 	scores := []Score{}
+	var latestDate time.Time
 	for _, entry := range entries {
 		scores = append(scores, entry.Score(options))
+		if entry.Date.After(latestDate) {
+			latestDate = entry.Date
+		}
 	}
-	return AverageScore(scores...)
+	score := AverageScore(scores...)
+	recencyScore := int(2 * time.Now().Truncate(time.Hour*24).UTC().Sub(latestDate) / (time.Hour * 24))
+	if recencyScore > 100 {
+		recencyScore = 100
+	}
+	score.Recency = recencyScore
+	return score
 	// entriesSum := 0
 	// var latestDate time.Time
 	// for _, entry := range entries {
@@ -57,6 +69,25 @@ func (m Meal) RemoveInvalidCuisines(cuisines []string) Meal {
 	}
 	m.Cuisine = res
 	return m
+}
+
+// CuisineString returns a formatted string of the meal's cuisines
+func (m Meal) CuisineString() string {
+	res := ""
+	lenCuisine := len(m.Cuisine)
+	for i, cuisine := range m.Cuisine {
+		res += cuisine
+		if lenCuisine != 2 && i != lenCuisine-1 {
+			res += ", "
+		}
+		if lenCuisine == 2 && i == lenCuisine-2 {
+			res += " and "
+		}
+		if lenCuisine > 2 && i == lenCuisine-2 {
+			res += "and "
+		}
+	}
+	return res
 }
 
 // CurrentMeal gets and returns the current meal state value, using the given context
