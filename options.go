@@ -4,7 +4,8 @@ import "github.com/maxence-charriere/go-app/v9/pkg/app"
 
 // Options represents meal recommendation options
 type Options struct {
-	Users             map[int64]bool // key is user id, value is whether or not they are included
+	Users             map[int64]bool   // key is user id, value is whether or not they are included
+	UserNames         map[int64]string // all of the names of the users by their ids. not part of options, but used in displaying them and in other contexts.
 	Type              string
 	Source            map[string]bool
 	Cuisine           map[string]bool
@@ -46,6 +47,15 @@ func (o Options) RemoveInvalidCuisines(cuisines []string) Options {
 	}
 	o.Cuisine = res
 	return o
+}
+
+// UsersList returns a slice of the names of the users in the given user map, using the UserNames field of the options
+func (o Options) UsersList(users UserMap) []string {
+	res := []string{}
+	for userID := range users {
+		res = append(res, o.UserNames[userID])
+	}
+	return res
 }
 
 // SetOptions sets the options state value to the given meal recommendation options

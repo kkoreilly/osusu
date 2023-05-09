@@ -66,6 +66,12 @@ func (h *home) Render() app.UI {
 				h.options = DefaultOptions(h.group)
 			}
 			h.options = h.options.RemoveInvalidCuisines(h.group.Cuisines)
+			if h.options.UserNames == nil {
+				h.options.UserNames = make(map[int64]string)
+			}
+			for _, user := range h.users {
+				h.options.UserNames[user.ID] = user.Name
+			}
 			SetOptions(h.options, ctx)
 			h.usersOptions = make(map[string]bool)
 			for _, p := range h.users {
@@ -189,7 +195,7 @@ func (h *home) Render() app.UI {
 							MealScore("home-page-meal-effort-"+si, "home-page-meal-effort", score.Effort),
 							MealScore("home-page-meal-healthiness-"+si, "home-page-meal-healthiness", score.Healthiness),
 							app.If(!smallScreen,
-								app.Td().ID("home-page-meal-cuisines-"+si).Class("home-page-meal-cuisines").Text(meal.CuisineString()),
+								app.Td().ID("home-page-meal-cuisines-"+si).Class("home-page-meal-cuisines").Text(ListString(meal.Cuisine)),
 								app.Td().ID("home-page-meal-description-"+si).Class("home-page-meal-description").Text(meal.Description),
 							),
 						)
@@ -216,7 +222,6 @@ func (h *home) Render() app.UI {
 					CheckboxChips().ID("home-page-options-users").Label("Who are you eating with?").Value(&h.usersOptions).Options(usersStrings...),
 					CheckboxChips().ID("home-page-options-source").Label("What meal sources are okay?").Default(map[string]bool{"Cooking": true, "Dine-In": true, "Takeout": true}).Value(&h.options.Source).Options(mealSources...),
 					CheckboxChips().ID("home-page-options-cuisine").Label("What cuisines are okay?").Value(&h.options.Cuisine).Options(cuisines...),
-					newCuisinesDialog("home-page", h.CuisinesDialogOnSave),
 					RangeInput().ID("home-page-options-taste").Label("How important is taste?").Value(&h.options.TasteWeight),
 					RangeInput().ID("home-page-options-recency").Label("How important is recency?").Value(&h.options.RecencyWeight),
 					RangeInput().ID("home-page-options-cost").Label("How important is cost?").Value(&h.options.CostWeight),
@@ -230,6 +235,25 @@ func (h *home) Render() app.UI {
 			),
 		},
 	}
+}
+
+// ListString returns a formatted string of the given list of items
+func ListString(list []string) string {
+	res := ""
+	lenList := len(list)
+	for i, l := range list {
+		res += l
+		if lenList != 2 && i != lenList-1 {
+			res += ", "
+		}
+		if lenList == 2 && i == lenList-2 {
+			res += " and "
+		}
+		if lenList > 2 && i == lenList-2 {
+			res += "and "
+		}
+	}
+	return res
 }
 
 // MealScore returns a table cell with a score pie circle containing score information for a meal or entry
@@ -369,11 +393,6 @@ func (h *home) SaveOptions(ctx app.Context, e app.Event) {
 	app.Window().GetElementByID("home-page-options").Call("close")
 
 	h.SortMeals()
-}
-
-func (h *home) CuisinesDialogOnSave(ctx app.Context, event app.Event) {
-	h.user = CurrentUser(ctx)
-	h.options = h.options.RemoveInvalidCuisines(h.group.Cuisines)
 }
 
 func (h *home) SortMeals() {

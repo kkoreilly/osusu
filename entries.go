@@ -29,6 +29,8 @@ type entries struct {
 }
 
 func (e *entries) Render() app.UI {
+	width, _ := app.Window().Size()
+	smallScreen := width <= 480
 	return &Page{
 		ID:                     "entries",
 		Title:                  "Entries",
@@ -72,11 +74,16 @@ func (e *entries) Render() app.UI {
 				app.THead().ID("entries-page-entries-table-header").Body(
 					app.Tr().ID("entries-page-entries-table-header-row").Body(
 						app.Th().ID("entries-page-entries-table-header-date").Text("Date"),
-						app.Th().ID("entries-page-entries-table-header-total").Text("Total"),
-						app.Th().ID("entries-page-entries-table-header-taste").Text("Taste"),
-						app.Th().ID("entries-page-entries-table-header-cost").Text("Cost"),
-						app.Th().ID("entries-page-entries-table-header-effort").Text("Effort"),
-						app.Th().ID("entries-page-entries-table-header-healthiness").Text("Health"),
+						app.Th().ID("entries-page-entries-table-header-total").Class("table-header-score").Text("Total"),
+						app.Th().ID("entries-page-entries-table-header-taste").Class("table-header-score").Text("Taste"),
+						app.Th().ID("entries-page-entries-table-header-cost").Class("table-header-score").Text("Cost"),
+						app.Th().ID("entries-page-entries-table-header-effort").Class("table-header-score").Text("Effort"),
+						app.Th().ID("entries-page-entries-table-header-healthiness").Class("table-header-score").Text("Health"),
+						app.If(!smallScreen,
+							app.Th().ID("entries-page-entries-table-header-type").Text("Type"),
+							app.Th().ID("entries-page-entries-table-header-source").Text("Source"),
+							app.Th().ID("entries-page-entries-table-header-people").Text("People"),
+						),
 					),
 				),
 				app.TBody().ID("entries-page-entries-table-body").Body(
@@ -89,12 +96,17 @@ func (e *entries) Render() app.UI {
 						missingData := entry.MissingData(e.user)
 						return app.Tr().ID("entries-page-entry-"+si).Class("entries-page-entry").DataSet("missing-data", missingData).Style("--color-h", colorH).Style("--score", scoreText+"%").
 							OnClick(func(ctx app.Context, event app.Event) { e.EntryOnClick(ctx, event, entry) }).Body(
-							app.Td().ID("entries-page-entry-date"+si).Class("entries-page-entry-date").Text(entry.Date.Format("1/2/2006")),
+							app.Td().ID("entries-page-entry-date-"+si).Class("entries-page-entry-date").Text(entry.Date.Format("Jan 2, 2006")),
 							MealScore("entries-page-entry-total-"+si, "entries-page-entry-total", score.Total),
 							MealScore("entries-page-entry-taste-"+si, "entries-page-entry-taste", score.Taste),
 							MealScore("entries-page-entry-cost-"+si, "entries-page-entry-cost", score.Cost),
 							MealScore("entries-page-entry-effort-"+si, "entries-page-entry-effort", score.Effort),
 							MealScore("entries-page-entry-healthiness-"+si, "entries-page-entry-healthiness", score.Healthiness),
+							app.If(!smallScreen,
+								app.Td().ID("entries-page-entry-type-"+si).Class("entries-page-entry-type").Text(entry.Type),
+								app.Td().ID("entries-page-entry-source-"+si).Class("entries-page-entry-source").Text(entry.Source),
+								app.Td().ID("entries-page-entry-people-"+si).Class("entries-page-entry-people").Text(ListString(e.options.UsersList(entry.Cost))),
+							),
 						)
 					}),
 				),

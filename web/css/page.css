@@ -5,11 +5,14 @@ html,
 .page-main {
     margin: 0;
     padding: 0;
+    overflow: hidden;
 }
 
 .page-main {
     opacity: 0;
     transition: 0.25s opacity;
+    height: calc(100vh - 4rem);
+    overflow: auto;
 }
 
 .page-container {

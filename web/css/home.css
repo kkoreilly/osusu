@@ -27,13 +27,12 @@
 }
 
 .page-container[data-small-screen="true"] .table-header-score {
-    width: 52px;
+    width: 50px;
 }
 
 th#home-page-meals-table-header-name,
 th#entries-page-entries-table-header-date {
-    width: min(20rem, 15vw);
-    padding-left: 0.5rem;
+    width: clamp(5rem, calc(100vw - 300px), 15rem);
 }
 
 th#home-page-meals-table-header-cuisines {
@@ -73,18 +72,14 @@ th#home-page-meals-table-header-description {
 
 td.home-page-meal-name,
 td.entries-page-entry-date {
-    text-align: center;
-    padding-left: 0.5rem;
+    text-overflow: ellipsis;
 }
 
 td.home-page-meal-description {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-}
-
-td.home-page-meal-description:hover {
-    white-space: normal;
+    padding-right: 1rem;
 }
 
 div.meal-score-circle {

@@ -71,25 +71,6 @@ func (m Meal) RemoveInvalidCuisines(cuisines []string) Meal {
 	return m
 }
 
-// CuisineString returns a formatted string of the meal's cuisines
-func (m Meal) CuisineString() string {
-	res := ""
-	lenCuisine := len(m.Cuisine)
-	for i, cuisine := range m.Cuisine {
-		res += cuisine
-		if lenCuisine != 2 && i != lenCuisine-1 {
-			res += ", "
-		}
-		if lenCuisine == 2 && i == lenCuisine-2 {
-			res += " and "
-		}
-		if lenCuisine > 2 && i == lenCuisine-2 {
-			res += "and "
-		}
-	}
-	return res
-}
-
 // CurrentMeal gets and returns the current meal state value, using the given context
 func CurrentMeal(ctx app.Context) Meal {
 	var meal Meal
@@ -181,7 +162,7 @@ func (m *meal) Render() app.UI {
 				TextInput().ID("meal-page-name").Label("Name:").Value(&m.meal.Name).AutoFocus(true),
 				Textarea().ID("meal-page-description").Label("Description:").Value(&m.meal.Description),
 				CheckboxChips().ID("meal-page-cuisine").Label("Cuisines:").Value(&m.cuisine).Options(append(cuisines, "+")...).OnChange(m.CuisinesOnChange),
-				newCuisinesDialog("meal-page", m.CuisinesDialogOnSave),
+				cuisinesDialog("meal-page", m.CuisinesDialogOnSave),
 				ButtonRow().ID("meal-page").Buttons(
 					Button().ID("meal-page-cancel").Class("secondary").Icon("cancel").Text("Cancel").OnClick(NavigateEvent("/home")),
 					Button().ID("meal-page-save").Class("primary").Type("submit").Icon(saveButtonIcon).Text(saveButtonText),
