@@ -19,18 +19,25 @@
     padding: 0;
     padding-bottom: 1rem;
     border-bottom: 1px solid gray;
-    width: 52px;
     overflow: hidden;
+}
+
+.table-header-score {
+    width: 70px;
+}
+
+.page-container[data-small-screen="true"] .table-header-score {
+    width: 52px;
 }
 
 th#home-page-meals-table-header-name,
 th#entries-page-entries-table-header-date {
-    width: min(10rem, 15vw);
+    width: min(20rem, 15vw);
     padding-left: 0.5rem;
 }
 
 th#home-page-meals-table-header-cuisines {
-    width: 10rem;
+    width: 15rem;
 }
 
 th#home-page-meals-table-header-description {

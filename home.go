@@ -126,12 +126,12 @@ func (h *home) Render() app.UI {
 				app.THead().ID("home-page-meals-table-header").Body(
 					app.Tr().ID("home-page-meals-table-header-row").Body(
 						app.Th().ID("home-page-meals-table-header-name").Text("Name"),
-						app.Th().ID("home-page-meals-table-header-total").Text("Total"),
-						app.Th().ID("home-page-meals-table-header-taste").Text("Taste"),
-						app.Th().ID("home-page-meals-table-header-recency").Text("New"),
-						app.Th().ID("home-page-meals-table-header-cost").Text("Cost"),
-						app.Th().ID("home-page-meals-table-header-effort").Text("Effort"),
-						app.Th().ID("home-page-meals-table-header-healthiness").Text("Health"),
+						app.Th().ID("home-page-meals-table-header-total").Class("table-header-score").Text("Total"),
+						app.Th().ID("home-page-meals-table-header-taste").Class("table-header-score").Text("Taste"),
+						app.Th().ID("home-page-meals-table-header-recency").Class("table-header-score").Text("New"),
+						app.Th().ID("home-page-meals-table-header-cost").Class("table-header-score").Text("Cost"),
+						app.Th().ID("home-page-meals-table-header-effort").Class("table-header-score").Text("Effort"),
+						app.Th().ID("home-page-meals-table-header-healthiness").Class("table-header-score").Text("Health"),
 						app.If(!smallScreen,
 							app.Th().ID("home-page-meals-table-header-cuisines").Text("Cuisines"),
 							app.Th().ID("home-page-meals-table-header-description").Text("Description"),

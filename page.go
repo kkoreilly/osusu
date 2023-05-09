@@ -54,7 +54,7 @@ func (p *Page) Render() app.UI {
 		nameFirstLetter = string(unicode.ToUpper(rune(CurrentPage.user.Name[0])))
 		accountButtonIcon = ""
 	}
-	return app.Div().ID(p.ID+"-page-container").Class("page-container").OnClick(p.OnClick).Body(
+	return app.Div().ID(p.ID+"-page-container").Class("page-container").DataSet("small-screen", smallScreen).OnClick(p.OnClick).Body(
 		app.Header().ID(p.ID+"-page-header").Class("page-header").Body(
 			app.Div().ID(p.ID+"-page-top-bar").Class("page-top-bar").Body(
 				app.Button().ID(p.ID+"-page-top-bar-icon-link").Class("page-top-bar-icon-button").Type("button").OnClick(NavigateEvent("/")).Title("Navigate to the Osusu Start/Home Page").Body(
