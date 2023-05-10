@@ -16,7 +16,7 @@ type ChipsCompo[T string | map[string]bool] struct {
 	label      string
 	defaultVal T
 	value      *T
-	options    []string
+	OptionsVal    []string // can change so needs to be exported
 	onChange   func(ctx app.Context, e app.Event, val string)
 }
 
@@ -25,9 +25,9 @@ func (c *ChipsCompo[T]) Render() app.UI {
 	return app.Div().ID(c.id+"-chips-outer-container").Class("chips-outer-container", c.class).Body(
 		app.Label().ID(c.id+"-chips-label").Class("input-label").For(c.id+"-chips-container").Text(c.label),
 		app.Div().ID(c.id+"-chips-container").Class("chips-container").Body(
-			app.Range(c.options).Slice(func(i int) app.UI {
+			app.Range(c.OptionsVal).Slice(func(i int) app.UI {
 				si := strconv.Itoa(i)
-				optionVal := c.options[i]
+				optionVal := c.OptionsVal[i]
 				var checked bool
 				if actualVal, ok := any(*c.value).(string); ok {
 					checked = optionVal == actualVal
@@ -37,7 +37,7 @@ func (c *ChipsCompo[T]) Render() app.UI {
 				return app.Label().ID(c.id+"-chip-label-"+si).Class("chip-label").For(c.id+"-chip-input-"+si).DataSet("checked", checked).Body(
 					app.Input().ID(c.id+"-chip-input-"+si).Class("chip-input").Type(c.typ).Name(c.id).Checked(checked).OnChange(func(ctx app.Context, e app.Event) {
 						// need to get val again to get updated value
-						optionVal := c.options[i]
+						optionVal := c.OptionsVal[i]
 						if val, ok := any(optionVal).(T); ok {
 							if e.Get("target").Get("checked").Bool() {
 								*c.value = val
@@ -123,7 +123,7 @@ func (c *ChipsCompo[T]) Value(value *T) *ChipsCompo[T] {
 
 // Options sets the options for the chips component to the given value
 func (c *ChipsCompo[T]) Options(options ...string) *ChipsCompo[T] {
-	c.options = options
+	c.OptionsVal = options
 	return c
 }
 

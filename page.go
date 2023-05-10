@@ -48,6 +48,10 @@ func (p *Page) Render() app.UI {
 	if smallScreen {
 		installIcon = "install_mobile"
 	}
+	menuButtonText := "Menu"
+	if smallScreen {
+		menuButtonText = ""
+	}
 	nameFirstLetter := ""
 	accountButtonIcon := "person"
 	if len(CurrentPage.user.Name) > 0 {
@@ -57,10 +61,14 @@ func (p *Page) Render() app.UI {
 	return app.Div().ID(p.ID+"-page-container").Class("page-container").DataSet("small-screen", smallScreen).OnClick(p.OnClick).Body(
 		app.Header().ID(p.ID+"-page-header").Class("page-header").Body(
 			app.Div().ID(p.ID+"-page-top-bar").Class("page-top-bar").Body(
-				app.Button().ID(p.ID+"-page-top-bar-icon-link").Class("page-top-bar-icon-button").Type("button").OnClick(NavigateEvent("/")).Title("Navigate to the Osusu Start/Home Page").Body(
-					app.Img().ID(p.ID+"-page-top-bar-icon-img").Class("page-top-bar-icon-img").Src("/web/images/icon-192.png"),
-					app.If(!smallScreen, app.Span().ID(p.ID+"-page-top-bar-icon-text").Class("page-top-bar-icon-text").Text("Osusu")),
+				Button().ID(p.ID+"-page-top-bar-menu").Class("top-bar").Icon("menu").Text(menuButtonText).OnClick(p.ShowMenu),
+				app.Dialog().ID(p.ID+"-page-menu").Class("page-menu").Body(
+					Button().ID(p.ID+"-home").Class("page-menu").Icon("home").Text("Home").OnClick(NavigateEvent("/")),
 				),
+				// app.Button().ID(p.ID+"-page-top-bar-icon-link").Class("page-top-bar-icon-button").Type("button").OnClick(NavigateEvent("/")).Title("Navigate to the Osusu Start/Home Page").Body(
+				// 	app.Img().ID(p.ID+"-page-top-bar-icon-img").Class("page-top-bar-icon-img").Src("/web/images/icon-192.png"),
+				// 	app.If(!smallScreen, app.Span().ID(p.ID+"-page-top-bar-icon-text").Class("page-top-bar-icon-text").Text("Osusu")),
+				// ),
 				app.Div().ID(p.ID+"-page-top-bar-buttons").Class("page-top-bar-buttons").Body(
 					Button().ID(p.ID+"-page-top-bar-update").Class("top-bar").Icon("update").Text("Update").OnClick(p.UpdateApp).Hidden(!CurrentPage.updateAvailable),
 					Button().ID(p.ID+"-page-top-bar-install").Class("top-bar").Icon(installIcon).Text("Install").OnClick(p.InstallApp).Hidden(!CurrentPage.installAvailable),
@@ -78,6 +86,10 @@ func (p *Page) Render() app.UI {
 			app.If(true, elements...),
 		),
 	)
+}
+// ShowMenu shows the menu on the page
+func (p *Page) ShowMenu(ctx app.Context, e app.Event) {
+	app.Window().GetElementByID(p.ID+"-page-menu").Call("show")
 }
 
 // ShowStatus shows the page status dialog with the given status text with the given status type

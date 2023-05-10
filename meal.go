@@ -181,8 +181,8 @@ func (m *meal) CuisinesOnChange(ctx app.Context, event app.Event, val string) {
 }
 
 func (m *meal) CuisinesDialogOnSave(ctx app.Context, event app.Event) {
-	m.user = CurrentUser(ctx)
-	m.meal = m.meal.RemoveInvalidCuisines(m.group.Cuisines)
+	m.group = CurrentGroup(ctx)
+	m.cuisine[newCuisine] = true
 }
 
 func (m *meal) OnSubmit(ctx app.Context, event app.Event) {
