@@ -227,10 +227,10 @@ func (h *home) Render() app.UI {
 					RangeInput().ID("home-page-options-cost").Label("How important is cost?").Value(&h.options.CostWeight),
 					RangeInput().ID("home-page-options-effort").Label("How important is effort?").Value(&h.options.EffortWeight),
 					RangeInput().ID("home-page-options-healthiness").Label("How important is healthiness?").Value(&h.options.HealthinessWeight),
-					ButtonRow().ID("home-page-options").Buttons(
-						Button().ID("home-page-options-cancel").Class("secondary").Icon("cancel").Text("Cancel").OnClick(h.CancelOptions),
-						Button().ID("home-page-options-save").Class("primary").Type("submit").Icon("search").Text("Search"),
-					),
+					// ButtonRow().ID("home-page-options").Buttons(
+					// 	Button().ID("home-page-options-cancel").Class("secondary").Icon("cancel").Text("Cancel").OnClick(h.CancelOptions),
+					// 	Button().ID("home-page-options-save").Class("primary").Type("submit").Icon("search").Text("Search"),
+					// ),
 				),
 			),
 		},
@@ -281,8 +281,12 @@ func (h *home) NewMeal(ctx app.Context, e app.Event) {
 
 func (h *home) PageOnClick(ctx app.Context, e app.Event) {
 	// close meal dialog on page click (this will be stopped by another event if someone clicks on the meal dialog itself)
-	app.Window().GetElementByID("home-page-meal-dialog").Call("close")
-	h.currentMeal = Meal{}
+	mealDialog := app.Window().GetElementByID("home-page-meal-dialog")
+	// need to check for null because people can click on page before dialog exists
+	if !mealDialog.IsNull() {
+		mealDialog.Call("close")
+		h.currentMeal = Meal{}
+	} 	
 }
 
 func (h *home) MealOnClick(ctx app.Context, e app.Event, meal Meal) {

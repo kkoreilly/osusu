@@ -21,6 +21,12 @@
     padding: 0.75rem 1rem;
     text-decoration: none;
     transition: background-color 0.5s;
+    box-shadow: 0.25rem 0.25rem 0.25rem var(--box-shadow-color);
+}
+
+.button:active {
+    transform: translateY(0.25rem);
+    box-shadow: 0.1rem 0.1rem 0.25rem var(--box-shadow-color);
 }
 
 .button>.button-icon {
@@ -34,6 +40,7 @@
 .primary-button {
     color: var(--color-two-text);
     background-color: var(--color-two);
+    --box-shadow-color: var(--color-two-dark);
 }
 
 .primary-button:hover {
@@ -43,6 +50,7 @@
 .secondary-button {
     color: var(--color-three-text);
     background-color: var(--color-three);
+    --box-shadow-color: var(--color-three-dark);
 }
 
 .secondary-button:hover {
@@ -52,6 +60,7 @@
 .tertiary-button {
     color: var(--color-four-text);
     background-color: var(--color-four);
+    --box-shadow-color: var(--color-four-dark);
 }
 
 .tertiary-button:hover {
@@ -61,6 +70,7 @@
 .danger-button {
     color: var(--color-five-text);
     background-color: var(--color-five);
+    --box-shadow-color: var(--color-five-dark);
 }
 
 .danger-button:hover {
@@ -78,6 +88,7 @@
     cursor: pointer;
     color: black;
     border-radius: 0;
+    box-shadow: none;
 }
 
 .top-bar-button:hover {
@@ -97,6 +108,7 @@
     margin-right: 10px;
     margin-left: 10px;
     font-size: 1.5rem;
+    box-shadow: none;
 }
 
 .top-bar-account-button:hover {
@@ -114,6 +126,7 @@
     padding: 10px;
     padding-left: 20px;
     padding-right: 20px;
+    box-shadow: none;
 }
 
 .page-status-close-button:hover {

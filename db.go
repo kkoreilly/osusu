@@ -178,6 +178,7 @@ func JoinGroupDB(groupJoin GroupJoin) (Group, error) {
 	if err != nil {
 		return Group{}, err
 	}
+	res.Code = groupJoin.GroupCode
 	return res, nil
 }
 

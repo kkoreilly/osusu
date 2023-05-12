@@ -48,9 +48,9 @@ func (p *Page) Render() app.UI {
 	if smallScreen {
 		installIcon = "install_mobile"
 	}
-	menuButtonText := "Menu"
+	homeButtonText := "Home"
 	if smallScreen {
-		menuButtonText = ""
+		homeButtonText = ""
 	}
 	nameFirstLetter := ""
 	accountButtonIcon := "person"
@@ -61,10 +61,10 @@ func (p *Page) Render() app.UI {
 	return app.Div().ID(p.ID+"-page-container").Class("page-container").DataSet("small-screen", smallScreen).OnClick(p.OnClick).Body(
 		app.Header().ID(p.ID+"-page-header").Class("page-header").Body(
 			app.Div().ID(p.ID+"-page-top-bar").Class("page-top-bar").Body(
-				Button().ID(p.ID+"-page-top-bar-menu").Class("top-bar").Icon("menu").Text(menuButtonText).OnClick(p.ShowMenu),
-				app.Dialog().ID(p.ID+"-page-menu").Class("page-menu").Body(
-					Button().ID(p.ID+"-home").Class("page-menu").Icon("home").Text("Home").OnClick(NavigateEvent("/")),
-				),
+				Button().ID(p.ID+"-page-top-bar-home").Class("top-bar").Icon("home").Text(homeButtonText).OnClick(NavigateEvent("/")),
+				// app.Dialog().ID(p.ID+"-page-menu").Class("page-menu").Body(
+				// 	Button().ID(p.ID+"-home").Class("page-menu").Icon("home").Text("Home").OnClick(NavigateEvent("/")),
+				// ),
 				// app.Button().ID(p.ID+"-page-top-bar-icon-link").Class("page-top-bar-icon-button").Type("button").OnClick(NavigateEvent("/")).Title("Navigate to the Osusu Start/Home Page").Body(
 				// 	app.Img().ID(p.ID+"-page-top-bar-icon-img").Class("page-top-bar-icon-img").Src("/web/images/icon-192.png"),
 				// 	app.If(!smallScreen, app.Span().ID(p.ID+"-page-top-bar-icon-text").Class("page-top-bar-icon-text").Text("Osusu")),

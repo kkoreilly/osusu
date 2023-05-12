@@ -20,7 +20,7 @@ func SetJoinURL(joinURL string, ctx app.Context) {
 
 type join struct {
 	app.Compo
-	joinURL string
+	groupCode string
 	user    User
 }
 
@@ -31,8 +31,15 @@ func (j *join) Render() app.UI {
 		Description:            "Join a group",
 		AuthenticationRequired: true,
 		PreOnNavFunc: func(ctx app.Context) {
-			j.joinURL = ctx.Page().URL().String()
-			SetJoinURL(j.joinURL, ctx)
+			joinURL := ctx.Page().URL().String()
+			SetJoinURL(joinURL, ctx)
+			split := strings.Split(joinURL, "/")
+			groupCode := split[len(split)-1]
+			if groupCode == "join" {
+				groupCode = ""
+			}
+			j.groupCode = groupCode
+			
 		},
 		OnNavFunc: func(ctx app.Context) {
 			j.user = CurrentUser(ctx)
@@ -40,7 +47,7 @@ func (j *join) Render() app.UI {
 		TitleElement: "Join Group",
 		Elements: []app.UI{
 			app.Form().ID("join-page-form").Class("form").OnSubmit(j.OnSubmit).Body(
-				TextInput().ID("join-page-form-join-url").Label("Join URL:").Value(&j.joinURL).AutoFocus(true),
+				TextInput().ID("join-page-form-join-url").Label("Join Code:").Value(&j.groupCode).AutoFocus(true),
 				ButtonRow().ID("join-page").Buttons(
 					Button().ID("join-page-cancel").Class("secondary").Icon("cancel").Text("Cancel").OnClick(ReturnToReturnURL),
 					Button().ID("join-page-join").Class("primary").Type("submit").Icon("group").Text("Join Group"),
@@ -53,9 +60,10 @@ func (j *join) Render() app.UI {
 func (j *join) OnSubmit(ctx app.Context, e app.Event) {
 	e.PreventDefault()
 
-	split := strings.Split(j.joinURL, "/")
-	groupCode := split[len(split)-1]
-	group, err := JoinGroupAPI.Call(GroupJoin{GroupCode: groupCode, UserID: j.user.ID})
+	split := strings.Split(j.groupCode, "/")
+	j.groupCode = split[len(split)-1]
+	
+	group, err := JoinGroupAPI.Call(GroupJoin{GroupCode: j.groupCode, UserID: j.user.ID})
 	if err != nil {
 		CurrentPage.ShowErrorStatus(err)
 		return

@@ -182,7 +182,10 @@ func (m *meal) CuisinesOnChange(ctx app.Context, event app.Event, val string) {
 
 func (m *meal) CuisinesDialogOnSave(ctx app.Context, event app.Event) {
 	m.group = CurrentGroup(ctx)
-	m.cuisine[newCuisine] = true
+	if newCuisineCreated {
+		m.cuisine[newCuisine] = true
+	}
+	m.meal.RemoveInvalidCuisines(m.group.Cuisines)
 }
 
 func (m *meal) OnSubmit(ctx app.Context, event app.Event) {

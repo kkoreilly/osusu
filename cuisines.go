@@ -11,6 +11,9 @@ type cuisinesDialogCompo struct {
 	group          Group
 	newCuisineName string
 }
+// wasNewCuisinecCreated is whether a new cuisine was created by the cuisines dialog
+var newCuisineCreated bool
+
 // newCuisine is the newly created cuisine
 var newCuisine string
 
@@ -34,6 +37,7 @@ func cuisinesDialog(id string, onSave func(ctx app.Context, e app.Event)) *cuisi
 func (c *cuisinesDialogCompo) NewCuisine(ctx app.Context, e app.Event) {
 	e.PreventDefault()
 
+	newCuisineCreated = true
 	c.group = CurrentGroup(ctx)
 	input := app.Window().GetElementByID(c.ID + "-cuisines-dialog-name-input")
 	name := input.Get("value").String()
@@ -62,6 +66,8 @@ func (c *cuisinesDialogCompo) Cancel(ctx app.Context, e app.Event) {
 }
 
 func (c *cuisinesDialogCompo) DeleteUnusedCuisines(ctx app.Context, e app.Event) {
+	newCuisineCreated = false
+
 	c.group = CurrentGroup(ctx)
 	
 	meals, err := GetMealsAPI.Call(c.group.ID)
