@@ -121,13 +121,15 @@ div.meal-score-circle {
     min-width: 100vw;
     border-radius: 0;
     inset-block-start: auto;
+}
+
+#home-page-options-container {
     display: flex;
     justify-content: center;
 }
 
 #home-page-options-form {
     margin: 0;
-    width: 100vw;
     padding: 1rem 0;
 }
 

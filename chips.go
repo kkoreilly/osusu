@@ -16,14 +16,14 @@ type ChipsCompo[T string | map[string]bool] struct {
 	label      string
 	defaultVal T
 	value      *T
-	OptionsVal    []string // can change so needs to be exported
+	OptionsVal []string // can change so needs to be exported
 	onChange   func(ctx app.Context, e app.Event, val string)
 }
 
 // Render returns the UI of the chips component
 func (c *ChipsCompo[T]) Render() app.UI {
 	return app.Div().ID(c.id+"-chips-outer-container").Class("chips-outer-container", c.class).Body(
-		app.Label().ID(c.id+"-chips-label").Class("input-label").For(c.id+"-chips-container").Text(c.label),
+		app.Label().ID(c.id+"-chips-label").Class("input-label").Text(c.label),
 		app.Div().ID(c.id+"-chips-container").Class("chips-container").Body(
 			app.Range(c.OptionsVal).Slice(func(i int) app.UI {
 				si := strconv.Itoa(i)

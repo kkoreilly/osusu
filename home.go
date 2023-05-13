@@ -32,6 +32,8 @@ func (h *home) Render() app.UI {
 			cuisines = append(cuisines, cuisine)
 		}
 	}
+	// need to sort so options don't keep swapping
+	sort.Strings(cuisines)
 	width, _ := app.Window().Size()
 	smallScreen := width <= 480
 	return &Page{
@@ -216,20 +218,18 @@ func (h *home) Render() app.UI {
 				),
 			),
 			app.Dialog().ID("home-page-options").Class("modal").OnClick(h.OptionsOnClick).Body(
-				app.Form().ID("home-page-options-form").Class("form").OnSubmit(h.SaveOptions).OnClick(h.OptionsFormOnClick).Body(
-					RadioChips().ID("home-page-options-type").Label("What meal are you eating?").Default("Dinner").Value(&h.options.Type).Options(mealTypes...),
-					CheckboxChips().ID("home-page-options-users").Label("Who are you eating with?").Value(&h.usersOptions).Options(usersStrings...),
-					CheckboxChips().ID("home-page-options-source").Label("What meal sources are okay?").Default(map[string]bool{"Cooking": true, "Dine-In": true, "Takeout": true}).Value(&h.options.Source).Options(mealSources...),
-					CheckboxChips().ID("home-page-options-cuisine").Label("What cuisines are okay?").Value(&h.options.Cuisine).Options(cuisines...),
-					RangeInput().ID("home-page-options-taste").Label("How important is taste?").Value(&h.options.TasteWeight),
-					RangeInput().ID("home-page-options-recency").Label("How important is recency?").Value(&h.options.RecencyWeight),
-					RangeInput().ID("home-page-options-cost").Label("How important is cost?").Value(&h.options.CostWeight),
-					RangeInput().ID("home-page-options-effort").Label("How important is effort?").Value(&h.options.EffortWeight),
-					RangeInput().ID("home-page-options-healthiness").Label("How important is healthiness?").Value(&h.options.HealthinessWeight),
-					// ButtonRow().ID("home-page-options").Buttons(
-					// 	Button().ID("home-page-options-cancel").Class("secondary").Icon("cancel").Text("Cancel").OnClick(h.CancelOptions),
-					// 	Button().ID("home-page-options-save").Class("primary").Type("submit").Icon("search").Text("Search"),
-					// ),
+				app.Div().ID("home-page-options-container").OnClick(h.OptionsContainerOnClick).Body(
+					app.Form().ID("home-page-options-form").Class("form").OnSubmit(h.SaveOptions).Body(
+						RadioChips().ID("home-page-options-type").Label("What meal are you eating?").Default("Dinner").Value(&h.options.Type).Options(mealTypes...),
+						CheckboxChips().ID("home-page-options-users").Label("Who are you eating with?").Value(&h.usersOptions).Options(usersStrings...),
+						CheckboxChips().ID("home-page-options-source").Label("What meal sources are okay?").Default(map[string]bool{"Cooking": true, "Dine-In": true, "Takeout": true}).Value(&h.options.Source).Options(mealSources...),
+						CheckboxChips().ID("home-page-options-cuisine").Label("What cuisines are okay?").Value(&h.options.Cuisine).Options(cuisines...),
+						RangeInput().ID("home-page-options-taste").Label("How important is taste?").Value(&h.options.TasteWeight),
+						RangeInput().ID("home-page-options-recency").Label("How important is recency?").Value(&h.options.RecencyWeight),
+						RangeInput().ID("home-page-options-cost").Label("How important is cost?").Value(&h.options.CostWeight),
+						RangeInput().ID("home-page-options-effort").Label("How important is effort?").Value(&h.options.EffortWeight),
+						RangeInput().ID("home-page-options-healthiness").Label("How important is healthiness?").Value(&h.options.HealthinessWeight),
+					),
 				),
 			),
 		},
@@ -267,8 +267,8 @@ func (h *home) OptionsOnClick(ctx app.Context, e app.Event) {
 	h.SaveOptions(ctx, e)
 }
 
-func (h *home) OptionsFormOnClick(ctx app.Context, e app.Event) {
-	// cancel the closing of the dialog if they actually
+func (h *home) OptionsContainerOnClick(ctx app.Context, e app.Event) {
+	// cancel the closing of the dialog if they actually click on the dialog
 	e.Call("stopPropagation")
 }
 
@@ -377,11 +377,6 @@ func (h *home) CancelDeleteMeal(ctx app.Context, e app.Event) {
 
 func (h *home) ShowOptions(ctx app.Context, e app.Event) {
 	app.Window().GetElementByID("home-page-options").Call("showModal")
-}
-
-func (h *home) CancelOptions(ctx app.Context, e app.Event) {
-	h.options = GetOptions(ctx)
-	app.Window().GetElementByID("home-page-options").Call("close")
 }
 
 func (h *home) SaveOptions(ctx app.Context, e app.Event) {
