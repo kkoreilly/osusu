@@ -6,6 +6,7 @@ import (
 	"crypto/subtle"
 	"encoding/base64"
 	"encoding/hex"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -60,6 +61,28 @@ func startServer() {
 	err = CleanupDB()
 	if err != nil {
 		log.Println(err)
+	}
+
+	recipes, err := GetRecipes()
+	if err != nil {
+		log.Println(err)
+	} else {
+		for i, recipe := range recipes {
+			if i > 1000 {
+				break
+			}
+			fmt.Println("Index:", i, "Total Time:", recipe.TotalDuration, "Prep Time:", recipe.PrepDuration, "Cook Time:", recipe.CookDuration, "Name:", recipe.Name)
+			// if recipe.PrepTime != "" {
+			// 	totalTimeString := recipe.PrepTime[2:]
+			// 	totalTimeString = strings.ToLower(totalTimeString)
+			// 	totalTime, err := time.ParseDuration(totalTimeString)
+			// 	if err != nil {
+			// 		log.Println(err)
+			// 	}
+			// 	log.Println("Index:", i, "Name:", recipe.Name, "Total Time:", totalTime)
+			// }
+
+		}
 	}
 
 	port := os.Getenv("PORT")

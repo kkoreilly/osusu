@@ -361,7 +361,7 @@ func (h *home) ConfirmDeleteMeal(ctx app.Context, e app.Event) {
 		return
 	}
 	SetCurrentMeal(Meal{}, ctx)
-	meals, err := GetMealsAPI.Call(h.user.ID)
+	meals, err := GetMealsAPI.Call(h.group.ID)
 	if err != nil {
 		CurrentPage.ShowErrorStatus(err)
 		return

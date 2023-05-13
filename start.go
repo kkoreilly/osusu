@@ -23,7 +23,7 @@ func (s *start) Render() app.UI {
 			),
 			app.Div().ID("start-page-info").Body(
 				StartPageInfos([]startPageInfo{
-					{id: "recommendations", title: "Get Recommendations", body: "Get a ranked list of the best meals to eat based on your preferences. Each meal is scored on various metrics, so you can always pick the best meals that satisfy your needs."},
+					{id: "recommendations", title: "Get Recommendations", body: "Get a ranked list of the best meals to eat based on your preferences. Each meal is scored on various metrics, so you can always pick the best meals that satisfy your needs.", img: "/web/images/recommendations.png"},
 					{id: "everyone", title: "Works for Everyone", body: "Find meals that satisfy everyone's preferences and constraints, no matter how picky people are. Each person gets input on how they feel about each meal, and we find the meals that make everyone happy."},
 					{id: "options", title: "Customize Options", body: "Customize your options and get recommendations that satisfy your needs. Whether you need something that is easy, cheap, and American for two people or something that is new, healthy, and Japanese for five people, you can get recommendations that fit whatever you need in the moment."},
 					{id: "history", title: "Track History", body: "Track when you eat meals and how their quality changes over time. You can see how different attributes of a meal like taste, health, cost, and effort have gotten worse or better over time. Also, you can see when you ate each meal, how and for what meal you got it, and who you ate it with."},

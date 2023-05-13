@@ -149,7 +149,7 @@ func ValueFuncInt(v app.Value) int {
 
 // ValueFuncDate is a basic value function for a date input
 func ValueFuncDate(v app.Value) time.Time {
-	return time.UnixMilli(int64(v.Int())).UTC()
+	return time.UnixMilli(int64(v.Get("valueAsNumber").Int())).UTC()
 }
 
 // DisplayFuncDate is a basic display function for a date input
