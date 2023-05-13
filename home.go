@@ -208,7 +208,6 @@ func (h *home) Render() app.UI {
 				Button().ID("home-page-meal-dialog-edit-meal").Class("tertiary").Icon("edit").Text("Edit Meal").OnClick(h.EditMeal),
 				Button().ID("home-page-meal-dialog-delete-meal").Class("danger").Icon("delete").Text("Delete Meal").OnClick(h.DeleteMeal),
 			),
-
 			app.Dialog().ID("home-page-confirm-delete-meal").Class("modal").Body(
 				app.P().ID("home-page-confirm-delete-meal-text").Class("confirm-delete-text").Text("Are you sure you want to delete this meal?"),
 				ButtonRow().ID("home-page-confirm-delete-meal").Buttons(
@@ -286,7 +285,7 @@ func (h *home) PageOnClick(ctx app.Context, e app.Event) {
 	if !mealDialog.IsNull() {
 		mealDialog.Call("close")
 		h.currentMeal = Meal{}
-	} 	
+	}
 }
 
 func (h *home) MealOnClick(ctx app.Context, e app.Event, meal Meal) {
