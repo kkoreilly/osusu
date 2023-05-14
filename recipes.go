@@ -13,50 +13,50 @@ type Recipe struct {
 	Ingredients string
 	URL         string
 	Image       string
-
-	// only used when unmarshalling json
-	TotalTime string
-	PrepTime  string
-	CookTime  string
-
-	// used later after loading json
-	TotalDuration time.Duration
-	PrepDuration  time.Duration
-	CookDuration  time.Duration
+	TotalTime   string
+	PrepTime    string
+	CookTime    string
+	Description string
 }
 
 // Recipes is a slice of multiple recipes
 type Recipes []Recipe
 
-// GetRecipes gets all of the recipes from the recipes.json file and validates them
+// GetRecipes gets all of the recipes from the recipes.json file
 func GetRecipes() (Recipes, error) {
-	recipies := Recipes{}
+	recipes := Recipes{}
 	b, err := os.ReadFile("web/recipes.json")
 	if err != nil {
 		return nil, err
 	}
-	err = json.Unmarshal(b, &recipies)
+	err = json.Unmarshal(b, &recipes)
 	if err != nil {
 		return nil, err
 	}
-	for i, recipe := range recipies {
+	return recipes, nil
+}
+
+// FixRecipeTimes returns the given recipes with durations formatted correctly
+func FixRecipeTimes(recipes Recipes) Recipes {
+	for i, recipe := range recipes {
+		var prepDuration, cookDuration, totalDuration time.Duration
 		if recipe.PrepTime != "" {
-			prepDuration, _ := ParseDuration(recipe.PrepTime)
-			recipe.PrepDuration = prepDuration
+			prepDuration, _ = ParseDuration(recipe.PrepTime)
+			recipe.PrepTime = prepDuration.String()
 		}
 		if recipe.CookTime != "" {
-			cookDuration, _ := ParseDuration(recipe.CookTime)
-			recipe.CookDuration = cookDuration
+			cookDuration, _ = ParseDuration(recipe.CookTime)
+			recipe.CookTime = cookDuration.String()
 		}
 		if recipe.TotalTime != "" {
-			totalDuration, _ := ParseDuration(recipe.TotalTime)
-			recipe.TotalDuration = totalDuration
+			totalDuration, _ = ParseDuration(recipe.TotalTime)
+			recipe.TotalTime = totalDuration.String()
 		} else {
-			recipe.TotalDuration = recipe.PrepDuration + recipe.CookDuration
+			recipe.TotalTime = (prepDuration + cookDuration).String()
 		}
-		recipies[i] = recipe
+		recipes[i] = recipe
 	}
-	return recipies, nil
+	return recipes
 }
 
 // ParseDuration parses an ISO 8601 duration (the format used in the recipes source)

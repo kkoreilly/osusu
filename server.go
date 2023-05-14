@@ -6,10 +6,10 @@ import (
 	"crypto/subtle"
 	"encoding/base64"
 	"encoding/hex"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
@@ -67,11 +67,40 @@ func startServer() {
 	if err != nil {
 		log.Println(err)
 	} else {
+		recipes = FixRecipeTimes(recipes)
+		total := 0
 		for i, recipe := range recipes {
-			if i > 1000 {
-				break
+			// if i > 100 {
+			// 	break
+			// }
+			// fmt.Println("Index:", i, "Total Time:", recipe.TotalTime, "Prep Time:", recipe.PrepTime, "Cook Time:", recipe.CookTime, "Name:", recipe.Name)
+			for _, cuisine := range []string{"African", "American", "Anglo-Indian", "Arabian", "Argentine", "Armenian", "Australian", "Austrian", "Azeri",
+				"Balkan", "Bangladeshi", "Barbeque", "Basque", "Belgian", "Bengali", "Bhutanese", "Bolivian", "Brazilian", "British",
+				"Bruneian", "Bulgarian", "Burmese", "Cambodian", "Cantonese", "Cape Malay", "Central Asian", "Cherokee", "Chilean",
+				"Chinese", "Colombian", "Cornish", "Costa Rican", "Croatian", "Cuban", "Cypriot", "Czech", "Danish", "Djiboutian",
+				"Dominican", "Dutch", "East African", "Eastern European", "Ecuadorian", "Egyptian", "Eritrean", "Estonian",
+				"Ethiopian", "Faroe Islands", "Filipino", "Finnish", "French", "Galician", "Gambian", "Georgian", "German",
+				"Ghanaian", "Greek", "Grenadian", "Guatemalan", "Guinea-Bissauan", "Guyanese", "Haitian", "Hawaiian", "Herzegovinian",
+				"Hungarian", "Icelandic", "Indian", "Indonesian", "Iranian", "Iraqi", "Irish", "Israeli", "Italian",
+				"Jamaican", "Japanese", "Jordanian", "Kazakh", "Kenyan", "Khmer", "Korean", "Kosovan", "Kuwaiti",
+				"Kyrgyz", "Laotian", "Latin American", "Latvian", "Lebanese", "Lithuanian", "Luxembourgish", "Macedonian",
+				"Malagasy", "Malaysian", "Maldivian", "Maltese", "Marshallese", "Mauritanian", "Mauritian", "Mexican",
+				"Micronesian", "Middle Eastern", "Mongolian", "Moroccan", "Mozambican", "Myanmar", "Namibian", "Nepalese",
+				"New Zealand", "Nicaraguan", "Nigerian", "North African", "North American", "Norwegian", "Omani", "Pakistani",
+				"Palauan", "Palestinian", "Panamanian", "Papua New Guinean", "Paraguayan", "Peruvian", "Philippine",
+				"Polish", "Portuguese", "Qatari", "Romanian", "Russian", "Rwandan", "Saint Lucian", "Salvadoran", "Samoa",
+				"Samoan", "Sanmarinese", "Sao Tome and Principe", "Saudi Arabian", "Scottish", "Senegalese", "Serbian",
+				"Seychellois", "Sierra Leonean", "Singaporean", "Slovak", "Slovenian", "Solomon Islander", "Somali",
+				"South African", "South American", "South Korean", "Spanish", "Sri Lankan", "Sudanese", "Surinamese",
+				"Swazi", "Swedish", "Swiss", "Syrian", "Taiwanese", "Tajikistani", "Tanzanian", "Thai", "Tibetan",
+				"Tonga", "Trinidad and Tobago", "Tunisian", "Turkish", "Turkmen", "Tuvaluan", "Ugandan", "Ukrainian",
+				"Uruguayan", "Uzbek", "Vietnamese", "Welsh", "West African", "Western European", "Yemeni", "Zambian",
+				"Zimbabwean"} {
+				if strings.Contains(recipe.Name, cuisine) || strings.Contains(recipe.Description, cuisine) || strings.Contains(recipe.Ingredients, cuisine) {
+					total++
+					log.Println(i, cuisine)
+				}
 			}
-			fmt.Println("Index:", i, "Total Time:", recipe.TotalDuration, "Prep Time:", recipe.PrepDuration, "Cook Time:", recipe.CookDuration, "Name:", recipe.Name)
 			// if recipe.PrepTime != "" {
 			// 	totalTimeString := recipe.PrepTime[2:]
 			// 	totalTimeString = strings.ToLower(totalTimeString)
@@ -83,6 +112,7 @@ func startServer() {
 			// }
 
 		}
+		log.Println(total)
 	}
 
 	port := os.Getenv("PORT")
