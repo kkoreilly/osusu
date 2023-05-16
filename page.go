@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"time"
 	"unicode"
 
@@ -16,7 +17,7 @@ type Page struct {
 	AuthenticationRequired bool
 	PreOnNavFunc           func(ctx app.Context)
 	OnNavFunc              func(ctx app.Context)
-	OnClick                func(ctx app.Context, e app.Event)
+	OnClick                []app.EventHandler
 	TitleElement           string
 	SubtitleElement        string
 	Elements               []app.UI
@@ -26,6 +27,7 @@ type Page struct {
 	updateAvailable        bool
 	installAvailable       bool
 	user                   User
+	dialogElements         app.Value // all of the elements that should be closed on page click
 }
 
 // CurrentPage is the current page the user is on
@@ -58,7 +60,7 @@ func (p *Page) Render() app.UI {
 		nameFirstLetter = string(unicode.ToUpper(rune(CurrentPage.user.Name[0])))
 		accountButtonIcon = ""
 	}
-	return app.Div().ID(p.ID+"-page-container").Class("page-container").DataSet("small-screen", smallScreen).OnClick(p.OnClick).Body(
+	return app.Div().ID(p.ID+"-page-container").Class("page-container").DataSet("small-screen", smallScreen).OnClick(p.OnClickEvent).Body(
 		app.Header().ID(p.ID+"-page-header").Class("page-header").Body(
 			app.Div().ID(p.ID+"-page-top-bar").Class("page-top-bar").Body(
 				Button().ID(p.ID+"-page-top-bar-home").Class("top-bar").Icon("home").Text(homeButtonText).OnClick(NavigateEvent("/")),
@@ -87,9 +89,10 @@ func (p *Page) Render() app.UI {
 		),
 	)
 }
+
 // ShowMenu shows the menu on the page
 func (p *Page) ShowMenu(ctx app.Context, e app.Event) {
-	app.Window().GetElementByID(p.ID+"-page-menu").Call("show")
+	app.Window().GetElementByID(p.ID + "-page-menu").Call("show")
 }
 
 // ShowStatus shows the page status dialog with the given status text with the given status type
@@ -136,8 +139,36 @@ func (p *Page) OnNav(ctx app.Context) {
 
 	ctx.Defer(func(ctx app.Context) {
 		app.Window().GetElementByID(p.ID+"-page-main").Get("style").Set("opacity", 1)
+		p.dialogElements = app.Window().Get("document").Call("querySelectorAll", ".select, .modal")
+		log.Println(p.dialogElements.Length())
 	})
 	p.loaded = true
+}
+
+// OnClickEvent is called when someone clicks on the page
+func (p *Page) OnClickEvent(ctx app.Context, e app.Event) {
+	// forEachFunc := app.FuncOf(func(this app.Value, args []app.Value) any {
+	// 	elem := args[0]
+	// 	log.Println(elem)
+	// 	elem.Call("close")
+	// 	return nil
+	// })
+	// p.dialogElements.Call("forEach", forEachFunc)
+	log.Println(len(p.OnClick), p.OnClick)
+	if p.OnClick != nil {
+		for _, event := range p.OnClick {
+			log.Println(event)
+			event(ctx, e)
+		}
+	}
+}
+
+// AddOnClick adds a new on click event handler to the page
+func (p *Page) AddOnClick(eventHandler app.EventHandler) {
+	if p.OnClick == nil {
+		p.OnClick = []app.EventHandler{}
+	}
+	p.OnClick = append(p.OnClick, eventHandler)
 }
 
 // OnAppUpdate is called when the updatability of the app changes

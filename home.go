@@ -123,12 +123,12 @@ func (h *home) Render() app.UI {
 			}
 			h.SortMeals()
 		},
-		OnClick:      h.PageOnClick,
+		OnClick:      []app.EventHandler{h.PageOnClick},
 		TitleElement: "Welcome, " + h.user.Name,
 		Elements: []app.UI{
 			ButtonRow().ID("home-page").Buttons(
 				Button().ID("home-page-new").Class("secondary").Icon("add").Text("New Meal").OnClick(h.NewMeal),
-				Button().ID("home-page-discover").Class("tertiary").Icon("explore").Text("Discover"),
+				// Button().ID("home-page-discover").Class("tertiary").Icon("explore").Text("Discover"),
 				Button().ID("home-page-search").Class("primary").Icon("search").Text("Search").OnClick(h.ShowOptions),
 				// app.Label().ID("home-page-mode-label").For("home-page-mode").Body(
 				// 	app.Span().Text("Mode:"),
@@ -138,6 +138,12 @@ func (h *home) Render() app.UI {
 				// 		app.Option().Text("Discover"),
 				// 	),
 				// ),
+			),
+			ButtonRow().ID("home-page-quick-options").Buttons(
+				RadioSelect().ID("home-page-mode").Label("Mode:").Default("Search").Value(&h.options.Mode).Options("Search", "History", "Discover"),
+				RadioSelect().ID("home-page-options-type").Label("Meal:").Default("Dinner").Value(&h.options.Type).Options(mealTypes...),
+				CheckboxSelect().ID("home-page-options-users").Label("People:").Value(&h.usersOptions).Options(usersStrings...),
+				CheckboxSelect().ID("home-page-options-source").Label("Sources:").Default(map[string]bool{"Cooking": true, "Dine-In": true, "Takeout": true}).Value(&h.options.Source).Options(mealSources...),
 			),
 			app.Table().ID("home-page-meals-table").Body(
 				app.THead().ID("home-page-meals-table-header").Body(
@@ -267,6 +273,17 @@ func ListString(list []string) string {
 		}
 	}
 	return res
+}
+
+// ListMap returns a formatted string of the given list of items in which the key is the item and the value is whether it should be included in the string
+func ListMap(list map[string]bool) string {
+	slice := []string{}
+	for k, v := range list {
+		if v {
+			slice = append(slice, k)
+		}
+	}
+	return ListString(slice)
 }
 
 // MealScore returns a table cell with a score pie circle containing score information for a meal or entry

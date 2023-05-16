@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"strconv"
 
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
@@ -12,19 +13,32 @@ type ChipsCompo[T string | map[string]bool] struct {
 	app.Compo
 	id         string
 	class      string
+	isSelect   bool
 	typ        string
 	label      string
 	defaultVal T
 	value      *T
 	OptionsVal []string // can change so needs to be exported
 	onChange   func(ctx app.Context, e app.Event, val string)
+	selectOpen bool
 }
 
 // Render returns the UI of the chips component
 func (c *ChipsCompo[T]) Render() app.UI {
+	// get formatted value text for value element only if we are going to display it
+	var valueText string
+	if c.isSelect && !c.selectOpen {
+		if actualVal, ok := any(*c.value).(string); ok {
+			valueText = actualVal
+		} else if actualVal, ok := any(*c.value).(map[string]bool); ok {
+			valueText = ListMap(actualVal)
+		}
+	}
 	return app.Div().ID(c.id+"-chips-outer-container").Class("chips-outer-container", c.class).Body(
-		app.Label().ID(c.id+"-chips-label").Class("input-label").Text(c.label),
-		app.Div().ID(c.id+"-chips-container").Class("chips-container").Body(
+		app.Span().ID(c.id+"-chips-label").Class("input-label").Text(c.label),
+		// current value of the chips, used in select
+		app.Span().ID(c.id+"-chips-value").Class("chips-value").Text(valueText).Hidden(!c.isSelect || c.selectOpen).OnClick(c.ToggleSelect),
+		app.Div().ID(c.id+"-chips-container").Class("chips-container").Hidden(c.isSelect && !c.selectOpen).Body(
 			app.Range(c.OptionsVal).Slice(func(i int) app.UI {
 				si := strconv.Itoa(i)
 				optionVal := c.OptionsVal[i]
@@ -58,6 +72,7 @@ func (c *ChipsCompo[T]) Render() app.UI {
 
 // OnNav is called when the chips component is loaded. It loads the default value, if it set.
 func (c *ChipsCompo[T]) OnNav(ctx app.Context) {
+	log.Println("ON NAV")
 	if val, ok := any(c.defaultVal).(string); ok {
 		if val != "" {
 			c.value = &c.defaultVal
@@ -67,6 +82,20 @@ func (c *ChipsCompo[T]) OnNav(ctx app.Context) {
 			c.value = &c.defaultVal
 		}
 	}
+	log.Println("onNav", c.id, c.isSelect)
+	if c.isSelect {
+		CurrentPage.AddOnClick(func(ctx app.Context, e app.Event) {
+			log.Println(c.id, c.selectOpen)
+			if c.selectOpen {
+				c.selectOpen = false
+			}
+		})
+	}
+}
+
+// ToggleSelect toggles whether the select is open
+func (c *ChipsCompo[T]) ToggleSelect(ctx app.Context, e app.Event) {
+	c.selectOpen = !c.selectOpen
 }
 
 // Chips returns a new chips component
@@ -91,9 +120,15 @@ func (c *ChipsCompo[T]) ID(id string) *ChipsCompo[T] {
 	return c
 }
 
-// Class sets the class of the chips component to the given value
+// Class adds the given class to the classes of the chips component
 func (c *ChipsCompo[T]) Class(class string) *ChipsCompo[T] {
-	c.class = class
+	c.class += class
+	return c
+}
+
+// Select sets whether the chips component is a select component
+func (c *ChipsCompo[T]) Select(isSelect bool) *ChipsCompo[T] {
+	c.isSelect = isSelect
 	return c
 }
 
@@ -183,4 +218,24 @@ func (c *CheckboxChipCompo) Default(defaultVal bool) *CheckboxChipCompo {
 func (c *CheckboxChipCompo) Value(value *bool) *CheckboxChipCompo {
 	c.value = value
 	return c
+}
+
+// SelectCompo is a component for selecting one or more options
+type SelectCompo struct {
+	app.Compo
+}
+
+// Select returns a new select component
+func Select[T string | map[string]bool]() *ChipsCompo[T] {
+	return Chips[T]().Select(true).Class("select")
+}
+
+// RadioSelect returns a new select component in which one option can be selected
+func RadioSelect() *ChipsCompo[string] {
+	return Select[string]().Type("radio")
+}
+
+// CheckboxSelect returns a new select component in which multiple options can be selected
+func CheckboxSelect() *ChipsCompo[map[string]bool] {
+	return Select[map[string]bool]().Type("checkbox")
 }

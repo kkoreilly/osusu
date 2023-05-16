@@ -7,6 +7,7 @@
 
 .chips-container {
     display: flex;
+    flex-direction: row;
     column-gap: 10px;
     flex-wrap: wrap;
     row-gap: 10px;
@@ -76,4 +77,43 @@
 
 .chip-label:hover[data-checked=true] {
     background-color: hsl(120, 73%, 40%);
+}
+
+.select>.chips-value {
+    border: 1px solid black;
+    padding: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.5s;
+}
+
+.select>.chips-value:hover {
+    background-color: lightblue;
+}
+
+.select>.chips-value::after {
+    content: "";
+    margin-left: 0.5rem;
+    margin-bottom: 0.125rem;
+    border: solid black;
+    border-width: 0 3px 3px 0;
+    display: inline-block;
+    padding: 3px;
+    -webkit-transform: rotate(45deg);
+    transform: rotate(45deg);
+}
+
+.select>.chips-container {
+    flex-direction: column;
+    row-gap: 0;
+    column-gap: 0;
+    /* position: absolute; */
+    padding: 0.5rem;
+    z-index: 100;
+    border: 1px solid black;
+    border-radius: 5px;
+    background-color: white;
+}
+
+.select .chip-label {
+    border-radius: 0;
 }
