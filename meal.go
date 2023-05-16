@@ -57,6 +57,16 @@ func (m Meal) Score(entries Entries, options Options) Score {
 	// return sum / den
 }
 
+func (m Meal) LatestDate(entries Entries) time.Time {
+	var latestDate time.Time
+	for _, entry := range entries {
+		if entry.Date.After(latestDate) {
+			latestDate = entry.Date
+		}
+	}
+	return latestDate
+}
+
 // RemoveInvalidCuisines returns the the meal with all invalid cuisines removed, using the given cuisine options
 func (m Meal) RemoveInvalidCuisines(cuisines []string) Meal {
 	res := []string{}

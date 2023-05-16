@@ -10,15 +10,15 @@ import (
 // Entries is a slice of multiple entries
 type Entries []Entry
 
-// MissingData returns whether the given user is missing data in any of the given entries
-func (e Entries) MissingData(user User) bool {
-	for _, entry := range e {
-		if entry.MissingData(user) {
-			return true
-		}
-	}
-	return false
-}
+// // MissingData returns whether the given user is missing data in any of the given entries
+// func (e Entries) MissingData(user User) bool {
+// 	for _, entry := range e {
+// 		if entry.MissingData(user) {
+// 			return true
+// 		}
+// 	}
+// 	return false
+// }
 
 type entries struct {
 	app.Compo
@@ -50,17 +50,17 @@ func (e *entries) Render() app.UI {
 			}
 			e.entries = entries
 			sort.Slice(entries, func(i, j int) bool {
-				// prioritize entries with missing data, then date
-				entryI := e.entries[i]
-				iMissingData := entryI.MissingData(e.user)
-				entryJ := e.entries[j]
-				jMissingData := entryJ.MissingData(e.user)
-				if iMissingData && !jMissingData {
-					return true
-				}
-				if !iMissingData && jMissingData {
-					return false
-				}
+				// // prioritize entries with missing data, then date
+				// entryI := e.entries[i]
+				// iMissingData := entryI.MissingData(e.user)
+				// entryJ := e.entries[j]
+				// jMissingData := entryJ.MissingData(e.user)
+				// if iMissingData && !jMissingData {
+				// 	return true
+				// }
+				// if !iMissingData && jMissingData {
+				// 	return false
+				// }
 				return entries[i].Date.After(entries[j].Date)
 			})
 		},
@@ -93,8 +93,8 @@ func (e *entries) Render() app.UI {
 						score := entry.Score(e.options)
 						colorH := strconv.Itoa((score.Total * 12) / 10)
 						scoreText := strconv.Itoa(score.Total)
-						missingData := entry.MissingData(e.user)
-						return app.Tr().ID("entries-page-entry-"+si).Class("entries-page-entry").DataSet("missing-data", missingData).Style("--color-h", colorH).Style("--score", scoreText+"%").
+						// missingData := entry.MissingData(e.user)
+						return app.Tr().ID("entries-page-entry-"+si).Class("entries-page-entry").Style("--color-h", colorH).Style("--score", scoreText+"%").
 							OnClick(func(ctx app.Context, event app.Event) { e.EntryOnClick(ctx, event, entry) }).Body(
 							app.Td().ID("entries-page-entry-date-"+si).Class("entries-page-entry-date").Text(entry.Date.Format("Jan 2, 2006")),
 							MealScore("entries-page-entry-total-"+si, "entries-page-entry-total", score.Total),

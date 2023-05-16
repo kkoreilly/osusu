@@ -4,6 +4,7 @@ import "github.com/maxence-charriere/go-app/v9/pkg/app"
 
 // Options represents meal recommendation options
 type Options struct {
+	Mode              string
 	Users             map[int64]bool   // key is user id, value is whether or not they are included
 	UserNames         map[int64]string // all of the names of the users by their ids. not part of options, but used in displaying them and in other contexts.
 	Type              string
@@ -19,6 +20,7 @@ type Options struct {
 // DefaultOptions returns the default options for a user in the given group
 func DefaultOptions(group Group) Options {
 	options := Options{
+		Mode:              "Search",
 		Users:             make(map[int64]bool),
 		Type:              "Dinner",
 		Source:            map[string]bool{"Cooking": true, "Dine-In": true, "Takeout": true},

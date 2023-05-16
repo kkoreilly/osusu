@@ -89,11 +89,6 @@ div.meal-score-circle {
     --pie-thickness: 5px;
 }
 
-.home-page-meal[data-missing-data="true"] * {
-    text-decoration: underline;
-    font-weight: bold;
-}
-
 #home-page-meal-dialog {
     position: absolute;
     margin: 0;
@@ -102,6 +97,7 @@ div.meal-score-circle {
     display: flex;
     flex-direction: column;
     padding: 8px;
+    row-gap: 0.35rem;
 }
 
 #home-page-meal-dialog>.button {

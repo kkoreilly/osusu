@@ -69,10 +69,10 @@ func (e Entry) Score(options Options) Score {
 	return score
 }
 
-// MissingData returns whether the given user is missing data in the given entry
-func (e Entry) MissingData(user User) bool {
-	return !(e.Cost.HasValueSet(user) && e.Effort.HasValueSet(user) && e.Healthiness.HasValueSet(user) && e.Taste.HasValueSet(user))
-}
+// // MissingData returns whether the given user is missing data in the given entry
+// func (e Entry) MissingData(user User) bool {
+// 	return !(e.Cost.HasValueSet(user) && e.Effort.HasValueSet(user) && e.Healthiness.HasValueSet(user) && e.Taste.HasValueSet(user))
+// }
 
 // FixMissingData fixes any missing data for the given user for the given entry by setting their values to the average of everyone else's ratings and returning the updated entry
 func (e Entry) FixMissingData(user User) Entry {

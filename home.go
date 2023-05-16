@@ -128,7 +128,16 @@ func (h *home) Render() app.UI {
 		Elements: []app.UI{
 			ButtonRow().ID("home-page").Buttons(
 				Button().ID("home-page-new").Class("secondary").Icon("add").Text("New Meal").OnClick(h.NewMeal),
+				Button().ID("home-page-discover").Class("tertiary").Icon("explore").Text("Discover"),
 				Button().ID("home-page-search").Class("primary").Icon("search").Text("Search").OnClick(h.ShowOptions),
+				// app.Label().ID("home-page-mode-label").For("home-page-mode").Body(
+				// 	app.Span().Text("Mode:"),
+				// 	app.Select().ID("home-page-mode").Class("tertiary-button", "button").Body(
+				// 		app.Option().Text("Search"),
+				// 		app.Option().Text("History"),
+				// 		app.Option().Text("Discover"),
+				// 	),
+				// ),
 			),
 			app.Table().ID("home-page-meals-table").Body(
 				app.THead().ID("home-page-meals-table-header").Body(
@@ -152,42 +161,46 @@ func (h *home) Render() app.UI {
 						si := strconv.Itoa(i)
 						entries := h.entriesForEachMeal[meal.ID]
 
-						// check if at least one cuisine satisfies a cuisine requirement
-						gotCuisine := false
-						for _, mealCuisine := range meal.Cuisine {
-							for optionCuisine, value := range h.options.Cuisine {
-								if value && mealCuisine == optionCuisine {
-									gotCuisine = true
-								}
-							}
-						}
-						if !gotCuisine {
-							return app.Text("")
-						}
+						// don't check if it satisfies constraints in history mode
+						if h.options.Mode != "History" {
 
-						// check if at least one entry satisfies the type and source requirements if there is at least one entry.
-						if len(entries) > 0 {
-							gotType := false
-							gotSource := false
-							for _, entry := range entries {
-								if entry.Type == h.options.Type {
-									gotType = true
-								}
-								if h.options.Source[entry.Source] {
-									gotSource = true
+							// check if at least one cuisine satisfies a cuisine requirement
+							gotCuisine := false
+							for _, mealCuisine := range meal.Cuisine {
+								for optionCuisine, value := range h.options.Cuisine {
+									if value && mealCuisine == optionCuisine {
+										gotCuisine = true
+									}
 								}
 							}
-							if !(gotType && gotSource) {
+							if !gotCuisine {
 								return app.Text("")
+							}
+
+							// check if at least one entry satisfies the type and source requirements if there is at least one entry.
+							if len(entries) > 0 {
+								gotType := false
+								gotSource := false
+								for _, entry := range entries {
+									if entry.Type == h.options.Type {
+										gotType = true
+									}
+									if h.options.Source[entry.Source] {
+										gotSource = true
+									}
+								}
+								if !(gotType && gotSource) {
+									return app.Text("")
+								}
 							}
 						}
 
 						score := meal.Score(entries, h.options)
 						colorH := strconv.Itoa((score.Total * 12) / 10)
 						scoreText := strconv.Itoa(score.Total)
-						missingData := entries.MissingData(h.user)
+						// missingData := entries.MissingData(h.user)
 						isCurrentMeal := meal.ID == h.currentMeal.ID
-						return app.Tr().ID("home-page-meal-"+si).Class("home-page-meal").DataSet("missing-data", missingData).DataSet("current-meal", isCurrentMeal).Style("--color-h", colorH).Style("--score", scoreText+"%").
+						return app.Tr().ID("home-page-meal-"+si).Class("home-page-meal").DataSet("current-meal", isCurrentMeal).Style("--color-h", colorH).Style("--score", scoreText+"%").
 							OnClick(func(ctx app.Context, e app.Event) { h.MealOnClick(ctx, e, meal) }).Body(
 							app.Td().ID("home-page-meal-name-"+si).Class("home-page-meal-name").Text(meal.Name),
 							MealScore("home-page-meal-total-"+si, "home-page-meal-total", score.Total),
@@ -220,6 +233,7 @@ func (h *home) Render() app.UI {
 			app.Dialog().ID("home-page-options").Class("modal").OnClick(h.OptionsOnClick).Body(
 				app.Div().ID("home-page-options-container").OnClick(h.OptionsContainerOnClick).Body(
 					app.Form().ID("home-page-options-form").Class("form").OnSubmit(h.SaveOptions).Body(
+						RadioChips().ID("home-page-options-mode").Label("What mode do you want to use?").Default("Search").Value(&h.options.Mode).Options("Search", "History", "Discover"),
 						RadioChips().ID("home-page-options-type").Label("What meal are you eating?").Default("Dinner").Value(&h.options.Type).Options(mealTypes...),
 						CheckboxChips().ID("home-page-options-users").Label("Who are you eating with?").Value(&h.usersOptions).Options(usersStrings...),
 						CheckboxChips().ID("home-page-options-source").Label("What meal sources are okay?").Default(map[string]bool{"Cooking": true, "Dine-In": true, "Takeout": true}).Value(&h.options.Source).Options(mealSources...),
@@ -367,6 +381,7 @@ func (h *home) ConfirmDeleteMeal(ctx app.Context, e app.Event) {
 		return
 	}
 	h.meals = meals
+	h.SortMeals()
 	app.Window().GetElementByID("home-page-confirm-delete-meal").Call("close")
 }
 
@@ -395,19 +410,24 @@ func (h *home) SaveOptions(ctx app.Context, e app.Event) {
 
 func (h *home) SortMeals() {
 	sort.Slice(h.meals, func(i, j int) bool {
-		// prioritize meals with missing data, then score
-		mealI := h.meals[i]
-		entriesI := h.entriesForEachMeal[mealI.ID]
-		iMissingData := entriesI.MissingData(h.user)
-		mealJ := h.meals[j]
-		entriesJ := h.entriesForEachMeal[mealJ.ID]
-		jMissingData := entriesJ.MissingData(h.user)
-		if iMissingData && !jMissingData {
-			return true
-		}
-		if !iMissingData && jMissingData {
-			return false
+		// // prioritize meals with missing data, then score
+		// mealI := h.meals[i]
+		// entriesI := h.entriesForEachMeal[mealI.ID]
+		// iMissingData := entriesI.MissingData(h.user)
+		// mealJ := h.meals[j]
+		// entriesJ := h.entriesForEachMeal[mealJ.ID]
+		// jMissingData := entriesJ.MissingData(h.user)
+		// if iMissingData && !jMissingData {
+		// 	return true
+		// }
+		// if !iMissingData && jMissingData {
+		// 	return false
+		// }
+		// sort by recency in history mode, score otherwise
+		if h.options.Mode == "History" {
+			return h.meals[i].LatestDate(h.entriesForEachMeal[h.meals[i].ID]).After(h.meals[j].LatestDate(h.entriesForEachMeal[h.meals[j].ID]))
 		}
 		return h.meals[i].Score(h.entriesForEachMeal[h.meals[i].ID], h.options).Total > h.meals[j].Score(h.entriesForEachMeal[h.meals[j].ID], h.options).Total
+
 	})
 }
