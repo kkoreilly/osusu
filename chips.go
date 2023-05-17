@@ -27,7 +27,7 @@ type ChipsCompo[T string | map[string]bool] struct {
 func (c *ChipsCompo[T]) Render() app.UI {
 	// get formatted value text for value element only if we are going to display it
 	var valueText string
-	if c.isSelect && !c.selectOpen {
+	if c.isSelect {
 		if actualVal, ok := any(*c.value).(string); ok {
 			valueText = actualVal
 		} else if actualVal, ok := any(*c.value).(map[string]bool); ok {
@@ -37,7 +37,7 @@ func (c *ChipsCompo[T]) Render() app.UI {
 	return app.Div().ID(c.id+"-chips-outer-container").Class("chips-outer-container", c.class).Body(
 		app.Span().ID(c.id+"-chips-label").Class("input-label").Text(c.label),
 		// current value of the chips, used in select
-		app.Span().ID(c.id+"-chips-value").Class("chips-value").Text(valueText).Hidden(!c.isSelect || c.selectOpen).OnClick(c.ToggleSelect),
+		app.Button().ID(c.id+"-chips-value").Class("chips-value button tertiary-button").Text(valueText).Hidden(!c.isSelect).OnClick(c.ToggleSelect),
 		app.Div().ID(c.id+"-chips-container").Class("chips-container").Hidden(c.isSelect && !c.selectOpen).Body(
 			app.Range(c.OptionsVal).Slice(func(i int) app.UI {
 				si := strconv.Itoa(i)
@@ -50,6 +50,7 @@ func (c *ChipsCompo[T]) Render() app.UI {
 				}
 				return app.Label().ID(c.id+"-chip-label-"+si).Class("chip-label").For(c.id+"-chip-input-"+si).DataSet("checked", checked).Body(
 					app.Input().ID(c.id+"-chip-input-"+si).Class("chip-input").Type(c.typ).Name(c.id).Checked(checked).OnChange(func(ctx app.Context, e app.Event) {
+						log.Println("on change")
 						// need to get val again to get updated value
 						optionVal := c.OptionsVal[i]
 						if val, ok := any(optionVal).(T); ok {
@@ -59,6 +60,7 @@ func (c *ChipsCompo[T]) Render() app.UI {
 						} else if actualVal, ok := any(*c.value).(map[string]bool); ok {
 							actualVal[optionVal] = e.Get("target").Get("checked").Bool()
 						}
+						log.Println("change val", *c.value)
 						if c.onChange != nil {
 							c.onChange(ctx, e, optionVal)
 						}
@@ -71,8 +73,7 @@ func (c *ChipsCompo[T]) Render() app.UI {
 }
 
 // OnNav is called when the chips component is loaded. It loads the default value, if it set.
-func (c *ChipsCompo[T]) OnNav(ctx app.Context) {
-	log.Println("ON NAV")
+func (c *ChipsCompo[T]) OnInit() {
 	if val, ok := any(c.defaultVal).(string); ok {
 		if val != "" {
 			c.value = &c.defaultVal
@@ -82,12 +83,17 @@ func (c *ChipsCompo[T]) OnNav(ctx app.Context) {
 			c.value = &c.defaultVal
 		}
 	}
-	log.Println("onNav", c.id, c.isSelect)
 	if c.isSelect {
 		CurrentPage.AddOnClick(func(ctx app.Context, e app.Event) {
-			log.Println(c.id, c.selectOpen)
-			if c.selectOpen {
+			id := e.Get("target").Get("id").String()
+			class := e.Get("target").Get("className").String()
+			// never close if we just opened the select (clicked on the value)
+			// no point in closing if select isn't even open
+			// if type is radio, then always close because they are just selecting one option and that is standard behavior for dropdown
+			// otherwise (if type is checkbox), keep open (return false) if they click anywhere inside the select, so they can change multiple options.
+			if id != c.id+"-chips-value" && c.selectOpen && (c.typ == "radio" || (class != "chips-container" && class != "chip-label" && class != "chip-input")) {
 				c.selectOpen = false
+				c.Update()
 			}
 		})
 	}
@@ -101,7 +107,6 @@ func (c *ChipsCompo[T]) ToggleSelect(ctx app.Context, e app.Event) {
 // Chips returns a new chips component
 func Chips[T string | map[string]bool]() *ChipsCompo[T] {
 	return &ChipsCompo[T]{}
-
 }
 
 // RadioChips returns a new radio chips component

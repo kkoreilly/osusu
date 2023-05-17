@@ -59,7 +59,7 @@
     cursor: pointer;
     display: flex;
     border-radius: 100px;
-    background-color: hsl(48, 92%, 81%);
+    background-color: var(--color-three);
     flex-wrap: wrap;
     -webkit-user-select: none;
     -ms-user-select: none;
@@ -68,26 +68,30 @@
 }
 
 .chip-label:hover {
-    background-color: hsl(48, 92%, 60%);
+    background-color: var(--color-three-dark);
 }
 
 .chip-label[data-checked=true] {
-    background-color: hsl(120, 73%, 50%);
+    background-color: var(--color-four)
 }
 
 .chip-label:hover[data-checked=true] {
-    background-color: hsl(120, 73%, 40%);
+    background-color: var(--color-four-dark);
+}
+
+.select {
+    align-items: initial;
 }
 
 .select>.chips-value {
-    border: 1px solid black;
-    padding: 0.5rem;
+    /* border: 1px solid black; */
+    /* padding: 0.5rem; */
     cursor: pointer;
-    transition: background-color 0.5s;
+    /* transition: background-color 0.5s; */
 }
 
 .select>.chips-value:hover {
-    background-color: lightblue;
+    /* background-color: lightblue; */
 }
 
 .select>.chips-value::after {
@@ -104,16 +108,28 @@
 
 .select>.chips-container {
     flex-direction: column;
-    row-gap: 0;
+    row-gap: 5px;
     column-gap: 0;
     /* position: absolute; */
-    padding: 0.5rem;
+    /* padding: 0.5rem; */
     z-index: 100;
-    border: 1px solid black;
+    /* border: 1px solid black; */
     border-radius: 5px;
     background-color: white;
+    opacity: 1;
+    transition: opacity 5s;
+}
+
+.select>.chips-container[hidden] {
+    opacity: 0;
 }
 
 .select .chip-label {
-    border-radius: 0;
+    border-radius: 5px;
+    flex-wrap: nowrap;
+}
+
+.select .chip-label:nth-child(1),
+.select>.chip-label:nth-last-child(1) {
+    border-radius: 5px;
 }

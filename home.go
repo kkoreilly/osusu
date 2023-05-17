@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"sort"
 	"strconv"
 	"time"
@@ -122,8 +123,9 @@ func (h *home) Render() app.UI {
 				h.entriesForEachMeal[entry.MealID] = entries
 			}
 			h.SortMeals()
+
+			CurrentPage.AddOnClick(h.PageOnClick)
 		},
-		OnClick:      []app.EventHandler{h.PageOnClick},
 		TitleElement: "Welcome, " + h.user.Name,
 		Elements: []app.UI{
 			ButtonRow().ID("home-page").Buttons(
@@ -140,7 +142,10 @@ func (h *home) Render() app.UI {
 				// ),
 			),
 			ButtonRow().ID("home-page-quick-options").Buttons(
-				RadioSelect().ID("home-page-mode").Label("Mode:").Default("Search").Value(&h.options.Mode).Options("Search", "History", "Discover"),
+				RadioSelect().ID("home-page-mode").Label("Mode:").Default("Search").Value(&h.options.Mode).Options("Search", "History", "Discover").OnChange(func(ctx app.Context, e app.Event, val string) {
+					log.Println("mode on change input", h.options.Mode)
+					SetOptions(h.options, ctx)
+				}),
 				RadioSelect().ID("home-page-options-type").Label("Meal:").Default("Dinner").Value(&h.options.Type).Options(mealTypes...),
 				CheckboxSelect().ID("home-page-options-users").Label("People:").Value(&h.usersOptions).Options(usersStrings...),
 				CheckboxSelect().ID("home-page-options-source").Label("Sources:").Default(map[string]bool{"Cooking": true, "Dine-In": true, "Takeout": true}).Value(&h.options.Source).Options(mealSources...),
@@ -239,10 +244,10 @@ func (h *home) Render() app.UI {
 			app.Dialog().ID("home-page-options").Class("modal").OnClick(h.OptionsOnClick).Body(
 				app.Div().ID("home-page-options-container").OnClick(h.OptionsContainerOnClick).Body(
 					app.Form().ID("home-page-options-form").Class("form").OnSubmit(h.SaveOptions).Body(
-						RadioChips().ID("home-page-options-mode").Label("What mode do you want to use?").Default("Search").Value(&h.options.Mode).Options("Search", "History", "Discover"),
-						RadioChips().ID("home-page-options-type").Label("What meal are you eating?").Default("Dinner").Value(&h.options.Type).Options(mealTypes...),
-						CheckboxChips().ID("home-page-options-users").Label("Who are you eating with?").Value(&h.usersOptions).Options(usersStrings...),
-						CheckboxChips().ID("home-page-options-source").Label("What meal sources are okay?").Default(map[string]bool{"Cooking": true, "Dine-In": true, "Takeout": true}).Value(&h.options.Source).Options(mealSources...),
+						// RadioChips().ID("home-page-options-mode").Label("What mode do you want to use?").Default("Search").Value(&h.options.Mode).Options("Search", "History", "Discover"),
+						// RadioChips().ID("home-page-options-type").Label("What meal are you eating?").Default("Dinner").Value(&h.options.Type).Options(mealTypes...),
+						// CheckboxChips().ID("home-page-options-users").Label("Who are you eating with?").Value(&h.usersOptions).Options(usersStrings...),
+						// CheckboxChips().ID("home-page-options-source").Label("What meal sources are okay?").Default(map[string]bool{"Cooking": true, "Dine-In": true, "Takeout": true}).Value(&h.options.Source).Options(mealSources...),
 						CheckboxChips().ID("home-page-options-cuisine").Label("What cuisines are okay?").Value(&h.options.Cuisine).Options(cuisines...),
 						RangeInput().ID("home-page-options-taste").Label("How important is taste?").Value(&h.options.TasteWeight),
 						RangeInput().ID("home-page-options-recency").Label("How important is recency?").Value(&h.options.RecencyWeight),
@@ -283,6 +288,8 @@ func ListMap(list map[string]bool) string {
 			slice = append(slice, k)
 		}
 	}
+	// sort to prevent constant switching
+	sort.Strings(slice)
 	return ListString(slice)
 }
 
@@ -310,6 +317,7 @@ func (h *home) NewMeal(ctx app.Context, e app.Event) {
 }
 
 func (h *home) PageOnClick(ctx app.Context, e app.Event) {
+	log.Println("home page options", h.options)
 	// close meal dialog on page click (this will be stopped by another event if someone clicks on the meal dialog itself)
 	mealDialog := app.Window().GetElementByID("home-page-meal-dialog")
 	// need to check for null because people can click on page before dialog exists

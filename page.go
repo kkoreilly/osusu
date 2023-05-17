@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"time"
 	"unicode"
 
@@ -17,7 +16,7 @@ type Page struct {
 	AuthenticationRequired bool
 	PreOnNavFunc           func(ctx app.Context)
 	OnNavFunc              func(ctx app.Context)
-	OnClick                []app.EventHandler
+	onClick                []app.EventHandler
 	TitleElement           string
 	SubtitleElement        string
 	Elements               []app.UI
@@ -140,7 +139,6 @@ func (p *Page) OnNav(ctx app.Context) {
 	ctx.Defer(func(ctx app.Context) {
 		app.Window().GetElementByID(p.ID+"-page-main").Get("style").Set("opacity", 1)
 		p.dialogElements = app.Window().Get("document").Call("querySelectorAll", ".select, .modal")
-		log.Println(p.dialogElements.Length())
 	})
 	p.loaded = true
 }
@@ -154,10 +152,11 @@ func (p *Page) OnClickEvent(ctx app.Context, e app.Event) {
 	// 	return nil
 	// })
 	// p.dialogElements.Call("forEach", forEachFunc)
-	log.Println(len(p.OnClick), p.OnClick)
-	if p.OnClick != nil {
-		for _, event := range p.OnClick {
-			log.Println(event)
+	// log.Println(len(p.OnClick), p.OnClick)
+	// log.Println("on click", p.onClick != nil, p.onClick)
+	if p.onClick != nil {
+		for _, event := range p.onClick {
+			// log.Println(event)
 			event(ctx, e)
 		}
 	}
@@ -165,10 +164,10 @@ func (p *Page) OnClickEvent(ctx app.Context, e app.Event) {
 
 // AddOnClick adds a new on click event handler to the page
 func (p *Page) AddOnClick(eventHandler app.EventHandler) {
-	if p.OnClick == nil {
-		p.OnClick = []app.EventHandler{}
+	if p.onClick == nil {
+		p.onClick = []app.EventHandler{}
 	}
-	p.OnClick = append(p.OnClick, eventHandler)
+	p.onClick = append(p.onClick, eventHandler)
 }
 
 // OnAppUpdate is called when the updatability of the app changes
