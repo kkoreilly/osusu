@@ -25,19 +25,24 @@ type ChipsCompo[T string | map[string]bool] struct {
 
 // Render returns the UI of the chips component
 func (c *ChipsCompo[T]) Render() app.UI {
-	// get formatted value text for value element only if we are going to display it
-	var valueText string
+	// get formatted value text and value icon for value element only if we are going to display it
+	var valueText, valueIcon string
 	if c.isSelect {
 		if actualVal, ok := any(*c.value).(string); ok {
 			valueText = actualVal
 		} else if actualVal, ok := any(*c.value).(map[string]bool); ok {
 			valueText = ListMap(actualVal)
 		}
+		if c.selectOpen {
+			valueIcon = "expand_less"
+		} else {
+			valueIcon = "expand_more"
+		}
 	}
-	return app.Div().ID(c.id+"-chips-outer-container").Class("chips-outer-container", c.class).Body(
+	return app.Div().ID(c.id+"-chips-outer-container").Class("chips-outer-container", c.class).DataSet("open", c.selectOpen).Body(
 		app.Span().ID(c.id+"-chips-label").Class("input-label").Text(c.label),
 		// current value of the chips, used in select
-		app.Button().ID(c.id+"-chips-value").Class("chips-value button tertiary-button").Text(valueText).Hidden(!c.isSelect).OnClick(c.ToggleSelect),
+		Button().ID(c.id+"-chips-value").Class("tertiary").Icon(valueIcon).Text(valueText).Hidden(!c.isSelect).OnClick(c.ToggleSelect),
 		app.Div().ID(c.id+"-chips-container").Class("chips-container").Hidden(c.isSelect && !c.selectOpen).Body(
 			app.Range(c.OptionsVal).Slice(func(i int) app.UI {
 				si := strconv.Itoa(i)
@@ -50,7 +55,6 @@ func (c *ChipsCompo[T]) Render() app.UI {
 				}
 				return app.Label().ID(c.id+"-chip-label-"+si).Class("chip-label").For(c.id+"-chip-input-"+si).DataSet("checked", checked).Body(
 					app.Input().ID(c.id+"-chip-input-"+si).Class("chip-input").Type(c.typ).Name(c.id).Checked(checked).OnChange(func(ctx app.Context, e app.Event) {
-						log.Println("on change")
 						// need to get val again to get updated value
 						optionVal := c.OptionsVal[i]
 						if val, ok := any(optionVal).(T); ok {
@@ -60,7 +64,6 @@ func (c *ChipsCompo[T]) Render() app.UI {
 						} else if actualVal, ok := any(*c.value).(map[string]bool); ok {
 							actualVal[optionVal] = e.Get("target").Get("checked").Bool()
 						}
-						log.Println("change val", *c.value)
 						if c.onChange != nil {
 							c.onChange(ctx, e, optionVal)
 						}
@@ -74,13 +77,18 @@ func (c *ChipsCompo[T]) Render() app.UI {
 
 // OnNav is called when the chips component is loaded. It loads the default value, if it set.
 func (c *ChipsCompo[T]) OnInit() {
-	if val, ok := any(c.defaultVal).(string); ok {
-		if val != "" {
-			c.value = &c.defaultVal
+	log.Println("chips compo init")
+	if actualDefaultVal, ok := any(c.defaultVal).(string); ok {
+		// only use default if it is set and actual value is unset to prevent overriding existing info
+		actualVal := any(*c.value).(string)
+		if actualDefaultVal != "" && actualVal == "" {
+			*c.value = c.defaultVal
 		}
-	} else if val, ok := any(c.defaultVal).(map[string]bool); ok {
-		if val != nil {
-			c.value = &c.defaultVal
+	} else if actualDefaultVal, ok := any(c.defaultVal).(map[string]bool); ok {
+		// only use default if it is set and actual value is unset to prevent overriding existing info
+		actualVal := any(*c.value).(map[string]bool)
+		if actualDefaultVal != nil && actualVal == nil {
+			*c.value = c.defaultVal
 		}
 	}
 	if c.isSelect {
@@ -91,7 +99,7 @@ func (c *ChipsCompo[T]) OnInit() {
 			// no point in closing if select isn't even open
 			// if type is radio, then always close because they are just selecting one option and that is standard behavior for dropdown
 			// otherwise (if type is checkbox), keep open (return false) if they click anywhere inside the select, so they can change multiple options.
-			if id != c.id+"-chips-value" && c.selectOpen && (c.typ == "radio" || (class != "chips-container" && class != "chip-label" && class != "chip-input")) {
+			if id != c.id+"-chips-value-button" && id != c.id+"-chips-value-button-icon" && id != c.id+"-chips-value-button-text" && c.selectOpen && (c.typ == "radio" || (class != "chips-container" && class != "chip-label" && class != "chip-input")) {
 				c.selectOpen = false
 				c.Update()
 			}

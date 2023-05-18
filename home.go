@@ -23,6 +23,7 @@ type home struct {
 }
 
 func (h *home) Render() app.UI {
+	log.Println("home page render")
 	usersStrings := []string{}
 	for _, u := range h.users {
 		usersStrings = append(usersStrings, u.Name)
@@ -43,6 +44,7 @@ func (h *home) Render() app.UI {
 		Description:            "View, sort, and filter your meals.",
 		AuthenticationRequired: true,
 		OnNavFunc: func(ctx app.Context) {
+			log.Println("home page nav")
 			SetReturnURL("/home", ctx)
 			h.group = CurrentGroup(ctx)
 			if h.group.Name == "" {
@@ -130,25 +132,13 @@ func (h *home) Render() app.UI {
 		Elements: []app.UI{
 			ButtonRow().ID("home-page").Buttons(
 				Button().ID("home-page-new").Class("secondary").Icon("add").Text("New Meal").OnClick(h.NewMeal),
-				// Button().ID("home-page-discover").Class("tertiary").Icon("explore").Text("Discover"),
 				Button().ID("home-page-search").Class("primary").Icon("search").Text("Search").OnClick(h.ShowOptions),
-				// app.Label().ID("home-page-mode-label").For("home-page-mode").Body(
-				// 	app.Span().Text("Mode:"),
-				// 	app.Select().ID("home-page-mode").Class("tertiary-button", "button").Body(
-				// 		app.Option().Text("Search"),
-				// 		app.Option().Text("History"),
-				// 		app.Option().Text("Discover"),
-				// 	),
-				// ),
 			),
 			ButtonRow().ID("home-page-quick-options").Buttons(
-				RadioSelect().ID("home-page-mode").Label("Mode:").Default("Search").Value(&h.options.Mode).Options("Search", "History", "Discover").OnChange(func(ctx app.Context, e app.Event, val string) {
-					log.Println("mode on change input", h.options.Mode)
-					SetOptions(h.options, ctx)
-				}),
-				RadioSelect().ID("home-page-options-type").Label("Meal:").Default("Dinner").Value(&h.options.Type).Options(mealTypes...),
-				CheckboxSelect().ID("home-page-options-users").Label("People:").Value(&h.usersOptions).Options(usersStrings...),
-				CheckboxSelect().ID("home-page-options-source").Label("Sources:").Default(map[string]bool{"Cooking": true, "Dine-In": true, "Takeout": true}).Value(&h.options.Source).Options(mealSources...),
+				RadioSelect().ID("home-page-mode").Label("Mode:").Default("Search").Value(&h.options.Mode).Options("Search", "History", "Discover").OnChange(h.SaveQuickOptions),
+				RadioSelect().ID("home-page-options-type").Label("Meal:").Default("Dinner").Value(&h.options.Type).Options(mealTypes...).OnChange(h.SaveQuickOptions),
+				CheckboxSelect().ID("home-page-options-users").Label("People:").Value(&h.usersOptions).Options(usersStrings...).OnChange(h.SaveQuickOptions),
+				CheckboxSelect().ID("home-page-options-source").Label("Sources:").Default(map[string]bool{"Cooking": true, "Dine-In": true, "Takeout": true}).Value(&h.options.Source).Options(mealSources...).OnChange(h.SaveQuickOptions),
 			),
 			app.Table().ID("home-page-meals-table").Body(
 				app.THead().ID("home-page-meals-table-header").Body(
@@ -317,7 +307,6 @@ func (h *home) NewMeal(ctx app.Context, e app.Event) {
 }
 
 func (h *home) PageOnClick(ctx app.Context, e app.Event) {
-	log.Println("home page options", h.options)
 	// close meal dialog on page click (this will be stopped by another event if someone clicks on the meal dialog itself)
 	mealDialog := app.Window().GetElementByID("home-page-meal-dialog")
 	// need to check for null because people can click on page before dialog exists
@@ -417,6 +406,10 @@ func (h *home) CancelDeleteMeal(ctx app.Context, e app.Event) {
 
 func (h *home) ShowOptions(ctx app.Context, e app.Event) {
 	app.Window().GetElementByID("home-page-options").Call("showModal")
+}
+
+func (h *home) SaveQuickOptions(ctx app.Context, e app.Event, val string) {
+	h.SaveOptions(ctx, e)
 }
 
 func (h *home) SaveOptions(ctx app.Context, e app.Event) {
