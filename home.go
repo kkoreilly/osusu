@@ -23,7 +23,6 @@ type home struct {
 }
 
 func (h *home) Render() app.UI {
-	log.Println("home page render")
 	usersStrings := []string{}
 	for _, u := range h.users {
 		usersStrings = append(usersStrings, u.Name)
@@ -38,13 +37,14 @@ func (h *home) Render() app.UI {
 	sort.Strings(cuisines)
 	width, _ := app.Window().Size()
 	smallScreen := width <= 480
+	nFit := (width - 80) / 50
+	log.Println("nFit", nFit)
 	return &Page{
 		ID:                     "home",
 		Title:                  "Home",
 		Description:            "View, sort, and filter your meals.",
 		AuthenticationRequired: true,
 		OnNavFunc: func(ctx app.Context) {
-			log.Println("home page nav")
 			SetReturnURL("/home", ctx)
 			h.group = CurrentGroup(ctx)
 			if h.group.Name == "" {
@@ -135,10 +135,11 @@ func (h *home) Render() app.UI {
 				Button().ID("home-page-search").Class("primary").Icon("search").Text("Search").OnClick(h.ShowOptions),
 			),
 			ButtonRow().ID("home-page-quick-options").Buttons(
-				RadioSelect().ID("home-page-mode").Label("Mode:").Default("Search").Value(&h.options.Mode).Options("Search", "History", "Discover").OnChange(h.SaveQuickOptions),
-				RadioSelect().ID("home-page-options-type").Label("Meal:").Default("Dinner").Value(&h.options.Type).Options(mealTypes...).OnChange(h.SaveQuickOptions),
+				RadioSelect().ID("home-page-options-mode").Label("Mode:").Default("Search").Value(&h.options.Mode).Options("Search", "History", "Discover").OnChange(h.SaveQuickOptions),
+				RadioSelect().ID("home-page-options-type").Label("Meal:").Default("Dinner").Value(&h.options.Type).Options(append(mealTypes, "Any")...).OnChange(h.SaveQuickOptions),
 				CheckboxSelect().ID("home-page-options-users").Label("People:").Value(&h.usersOptions).Options(usersStrings...).OnChange(h.SaveQuickOptions),
 				CheckboxSelect().ID("home-page-options-source").Label("Sources:").Default(map[string]bool{"Cooking": true, "Dine-In": true, "Takeout": true}).Value(&h.options.Source).Options(mealSources...).OnChange(h.SaveQuickOptions),
+				CheckboxSelect().ID("home-page-options-cuisine").Label("Cuisine:").Value(&h.options.Cuisine).Options(cuisines...),
 			),
 			app.Table().ID("home-page-meals-table").Body(
 				app.THead().ID("home-page-meals-table-header").Body(
@@ -162,37 +163,33 @@ func (h *home) Render() app.UI {
 						si := strconv.Itoa(i)
 						entries := h.entriesForEachMeal[meal.ID]
 
-						// don't check if it satisfies constraints in history mode
-						if h.options.Mode != "History" {
-
-							// check if at least one cuisine satisfies a cuisine requirement
-							gotCuisine := false
-							for _, mealCuisine := range meal.Cuisine {
-								for optionCuisine, value := range h.options.Cuisine {
-									if value && mealCuisine == optionCuisine {
-										gotCuisine = true
-									}
+						// check if at least one cuisine satisfies a cuisine requirement
+						gotCuisine := false
+						for _, mealCuisine := range meal.Cuisine {
+							for optionCuisine, value := range h.options.Cuisine {
+								if value && mealCuisine == optionCuisine {
+									gotCuisine = true
 								}
 							}
-							if !gotCuisine {
+						}
+						if !gotCuisine {
+							return app.Text("")
+						}
+
+						// check if at least one entry satisfies the type and source requirements if there is at least one entry.
+						if len(entries) > 0 {
+							gotType := h.options.Type == "Any"
+							gotSource := false
+							for _, entry := range entries {
+								if entry.Type == h.options.Type {
+									gotType = true
+								}
+								if h.options.Source[entry.Source] {
+									gotSource = true
+								}
+							}
+							if !(gotType && gotSource) {
 								return app.Text("")
-							}
-
-							// check if at least one entry satisfies the type and source requirements if there is at least one entry.
-							if len(entries) > 0 {
-								gotType := false
-								gotSource := false
-								for _, entry := range entries {
-									if entry.Type == h.options.Type {
-										gotType = true
-									}
-									if h.options.Source[entry.Source] {
-										gotSource = true
-									}
-								}
-								if !(gotType && gotSource) {
-									return app.Text("")
-								}
 							}
 						}
 
@@ -238,7 +235,7 @@ func (h *home) Render() app.UI {
 						// RadioChips().ID("home-page-options-type").Label("What meal are you eating?").Default("Dinner").Value(&h.options.Type).Options(mealTypes...),
 						// CheckboxChips().ID("home-page-options-users").Label("Who are you eating with?").Value(&h.usersOptions).Options(usersStrings...),
 						// CheckboxChips().ID("home-page-options-source").Label("What meal sources are okay?").Default(map[string]bool{"Cooking": true, "Dine-In": true, "Takeout": true}).Value(&h.options.Source).Options(mealSources...),
-						CheckboxChips().ID("home-page-options-cuisine").Label("What cuisines are okay?").Value(&h.options.Cuisine).Options(cuisines...),
+						// CheckboxChips().ID("home-page-options-cuisine").Label("What cuisines are okay?").Value(&h.options.Cuisine).Options(cuisines...),
 						RangeInput().ID("home-page-options-taste").Label("How important is taste?").Value(&h.options.TasteWeight),
 						RangeInput().ID("home-page-options-recency").Label("How important is recency?").Value(&h.options.RecencyWeight),
 						RangeInput().ID("home-page-options-cost").Label("How important is cost?").Value(&h.options.CostWeight),

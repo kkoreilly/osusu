@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"strconv"
 
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
@@ -77,7 +76,6 @@ func (c *ChipsCompo[T]) Render() app.UI {
 
 // OnNav is called when the chips component is loaded. It loads the default value, if it set.
 func (c *ChipsCompo[T]) OnInit() {
-	log.Println("chips compo init")
 	if actualDefaultVal, ok := any(c.defaultVal).(string); ok {
 		// only use default if it is set and actual value is unset to prevent overriding existing info
 		actualVal := any(*c.value).(string)
