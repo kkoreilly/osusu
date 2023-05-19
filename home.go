@@ -15,6 +15,7 @@ type home struct {
 	user               User
 	users              Users
 	meals              Meals
+	entries            Entries
 	entriesForEachMeal map[int64]Entries // entries for each meal id
 	recipes            Recipes
 	options            Options
@@ -78,7 +79,17 @@ func (h *home) Render() app.UI {
 			for _, user := range h.users {
 				h.options.UserNames[user.ID] = user.Name
 			}
+			switch ctx.Page().URL().Path {
+			case "/search":
+				h.options.Mode = "Search"
+			case "/history":
+				h.options.Mode = "History"
+			case "/discover":
+				h.options.Mode = "Discover"
+			}
 			SetOptions(h.options, ctx)
+			h.Update()
+
 			h.usersOptions = make(map[string]bool)
 			for _, p := range h.users {
 				if _, ok := h.options.Users[p.ID]; !ok {
@@ -116,8 +127,12 @@ func (h *home) Render() app.UI {
 				CurrentPage.ShowErrorStatus(err)
 				return
 			}
+			h.entries = entries
+			sort.Slice(h.entries, func(i, j int) bool {
+				return h.entries[i].Date.After(h.entries[j].Date)
+			})
 			h.entriesForEachMeal = make(map[int64]Entries)
-			for _, entry := range entries {
+			for _, entry := range h.entries {
 				entries := h.entriesForEachMeal[entry.MealID]
 				if entries == nil {
 					entries = Entries{}
@@ -128,7 +143,7 @@ func (h *home) Render() app.UI {
 			h.SortMeals()
 
 			wordScoreMap := WordScoreMap(h.meals, h.entriesForEachMeal, h.options)
-			recipes, err := RecommendRecipesAPI.Call(wordScoreMap)
+			recipes, err := RecommendRecipesAPI.Call(RecommendRecipesData{wordScoreMap, h.options, 0})
 			if err != nil {
 				CurrentPage.ShowErrorStatus(err)
 				return
@@ -144,7 +159,7 @@ func (h *home) Render() app.UI {
 				Button().ID("home-page-search").Class("primary").Icon("search").Text("Search").OnClick(h.ShowOptions),
 			),
 			ButtonRow().ID("home-page-quick-options").Buttons(
-				RadioSelect().ID("home-page-options-mode").Label("Mode:").Default("Search").Value(&h.options.Mode).Options("Search", "History", "Discover").OnChange(h.SaveQuickOptions),
+				// RadioSelect().ID("home-page-options-mode").Label("Mode:").Default("Search").Value(&h.options.Mode).Options("Search", "History", "Discover").OnChange(h.SaveQuickOptions),
 				RadioSelect().ID("home-page-options-type").Label("Meal:").Default("Dinner").Value(&h.options.Type).Options(append(mealTypes, "Any")...).OnChange(h.SaveQuickOptions),
 				CheckboxSelect().ID("home-page-options-users").Label("People:").Value(&h.usersOptions).Options(usersStrings...).OnChange(h.SaveQuickOptions),
 				CheckboxSelect().ID("home-page-options-source").Label("Sources:").Default(map[string]bool{"Cooking": true, "Dine-In": true, "Takeout": true}).Value(&h.options.Source).Options(mealSources...).OnChange(h.SaveQuickOptions),
@@ -153,21 +168,33 @@ func (h *home) Render() app.UI {
 			app.Table().ID("home-page-meals-table").Body(
 				app.THead().ID("home-page-meals-table-header").Body(
 					app.Tr().ID("home-page-meals-table-header-row").Body(
-						app.Th().ID("home-page-meals-table-header-name").Text("Name"),
+						app.If(h.options.Mode == "History",
+							app.Th().ID("home-page-meals-table-header-date").Text("Date"),
+							app.Th().ID("home-page-meals-table-header-name").Text("Meal"),
+						).Else(
+							app.Th().ID("home-page-meals-table-header-name").Text("Name"),
+						),
 						app.Th().ID("home-page-meals-table-header-total").Class("table-header-score").Text("Total"),
 						app.Th().ID("home-page-meals-table-header-taste").Class("table-header-score").Text("Taste"),
-						app.Th().ID("home-page-meals-table-header-recency").Class("table-header-score").Text("New"),
+						app.If(h.options.Mode != "History",
+							app.Th().ID("home-page-meals-table-header-recency").Class("table-header-score").Text("New"),
+						),
 						app.Th().ID("home-page-meals-table-header-cost").Class("table-header-score").Text("Cost"),
 						app.Th().ID("home-page-meals-table-header-effort").Class("table-header-score").Text("Effort"),
 						app.Th().ID("home-page-meals-table-header-healthiness").Class("table-header-score").Text("Health"),
 						app.If(!smallScreen,
-							app.Th().ID("home-page-meals-table-header-cuisines").Text("Cuisines"),
-							app.Th().ID("home-page-meals-table-header-description").Text("Description"),
+							app.If(h.options.Mode == "History",
+								app.Th().ID("home-page-meals-table-header-type").Text("Type"),
+								app.Th().ID("home-page-meals-table-header-source").Text("Source"),
+							).Else(
+								app.Th().ID("home-page-meals-table-header-cuisines").Text("Cuisines"),
+								app.Th().ID("home-page-meals-table-header-description").Text("Description"),
+							),
 						),
 					),
 				),
 				app.TBody().ID("home-page-meals-table-body").Body(
-					app.If(h.options.Mode == "Search" || h.options.Mode == "History",
+					app.If(h.options.Mode == "Search",
 						app.Range(h.meals).Slice(func(i int) app.UI {
 							meal := h.meals[i]
 							si := strconv.Itoa(i)
@@ -223,9 +250,51 @@ func (h *home) Render() app.UI {
 								),
 							)
 						}),
+					).ElseIf(h.options.Mode == "History",
+						app.Range(h.entries).Slice(func(i int) app.UI {
+							si := strconv.Itoa(i)
+							entry := h.entries[i]
+							score := entry.Score(h.options)
+							entryMeal := Meal{}
+							for _, meal := range h.meals {
+								if meal.ID == entry.MealID {
+									entryMeal = meal
+								}
+							}
+							return app.Tr().ID("home-page-entry-"+si).Class("home-page-entry home-page-meal").OnClick(func(ctx app.Context, e app.Event) {
+								h.EntryOnClick(ctx, e, entry)
+							}).Body(
+								app.Td().ID("home-page-entry-date-"+si).Class("home-page-entry-date home-page-meal-name").Text(entry.Date.Format("Jan 2, 2006")),
+								app.Td().ID("home-page-meal-name-"+si).Class("home-page-meal-name").Text(entryMeal.Name),
+								MealScore("home-page-entry-total-"+si, "home-page-entry-total", score.Total),
+								MealScore("home-page-entry-taste-"+si, "home-page-entry-taste", score.Taste),
+								// MealScore("home-page-meal-recency-"+si, "home-page-meal-recency", score.Recency),
+								MealScore("home-page-entry-cost-"+si, "home-page-entry-cost", score.Cost),
+								MealScore("home-page-entry-effort-"+si, "home-page-entry-effort", score.Effort),
+								MealScore("home-page-entry-healthiness-"+si, "home-page-entry-healthiness", score.Healthiness),
+								app.If(!smallScreen,
+									app.Td().ID("home-page-entry-type-"+si).Class("home-page-entry-type").Text(entry.Type),
+									app.Td().ID("home-page-entry-source-"+si).Class("home-page-entry-source").Text(entry.Source),
+								),
+							)
+						}),
 					).ElseIf(h.options.Mode == "Discover",
 						app.Range(h.recipes).Slice(func(i int) app.UI {
-							return app.Span().Text(h.recipes[i].Name)
+							si := strconv.Itoa(i)
+							recipe := h.recipes[i]
+							return app.Tr().ID("home-page-recipe-"+si).Class("home-page-recipe home-page-meal").Body(
+								app.Td().ID("home-page-recipe-name-"+si).Class("home-page-meal-name").Text(recipe.Name),
+								MealScore("home-page-recipe-total-"+si, "home-page-meal-total", recipe.Score.Total),
+								MealScore("home-page-recipe-taste-"+si, "home-page-meal-taste", recipe.Score.Taste),
+								MealScore("home-page-recipe-recency-"+si, "home-page-meal-recency", recipe.Score.Recency),
+								MealScore("home-page-recipe-cost-"+si, "home-page-meal-cost", recipe.Score.Cost),
+								MealScore("home-page-recipe-effort-"+si, "home-page-meal-effort", recipe.Score.Effort),
+								MealScore("home-page-recipe-healthiness-"+si, "home-page-meal-healthiness", recipe.Score.Healthiness),
+								app.If(!smallScreen,
+									// app.Td().ID("home-page-meal-cuisines-"+si).Class("home-page-meal-cuisines").Text(ListString(meal.Cuisine)),
+									app.Td().ID("home-page-recipe-description-"+si).Class("home-page-meal-description").Text(recipe.Description),
+								),
+							)
 						}),
 					),
 				),
@@ -346,7 +415,11 @@ func (h *home) MealOnClick(ctx app.Context, e app.Event, meal Meal) {
 	}
 	h.UpdateMealDialogPosition(ctx, e, dialog)
 	dialog.Call("show")
+}
 
+func (h *home) EntryOnClick(ctx app.Context, e app.Event, entry Entry) {
+	SetCurrentEntry(entry, ctx)
+	Navigate("/entry", ctx)
 }
 
 func (h *home) UpdateMealDialogPosition(ctx app.Context, e app.Event, dialog app.Value) {

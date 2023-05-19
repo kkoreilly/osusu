@@ -49,9 +49,15 @@ func (p *Page) Render() app.UI {
 	if smallScreen {
 		installIcon = "install_mobile"
 	}
-	homeButtonText := "Home"
+	// homeButtonText := "Home"
+	searchText := "Search"
+	historyText := "History"
+	discoverText := "Discover"
+	installText := "Install"
+	updateText := "Update"
 	if smallScreen {
-		homeButtonText = ""
+		// homeButtonText = ""
+		searchText, historyText, discoverText, installText, updateText = "", "", "", "", ""
 	}
 	nameFirstLetter := ""
 	accountButtonIcon := "person"
@@ -62,7 +68,7 @@ func (p *Page) Render() app.UI {
 	return app.Div().ID(p.ID+"-page-container").Class("page-container").DataSet("small-screen", smallScreen).OnClick(p.OnClickEvent).Body(
 		app.Header().ID(p.ID+"-page-header").Class("page-header").Body(
 			app.Div().ID(p.ID+"-page-top-bar").Class("page-top-bar").Body(
-				Button().ID(p.ID+"-page-top-bar-home").Class("top-bar").Icon("home").Text(homeButtonText).OnClick(NavigateEvent("/")),
+				// Button().ID(p.ID+"-page-top-bar-home").Class("top-bar").Icon("home").Text(homeButtonText).OnClick(NavigateEvent("/")),
 				// app.Dialog().ID(p.ID+"-page-menu").Class("page-menu").Body(
 				// 	Button().ID(p.ID+"-home").Class("page-menu").Icon("home").Text("Home").OnClick(NavigateEvent("/")),
 				// ),
@@ -70,11 +76,13 @@ func (p *Page) Render() app.UI {
 				// 	app.Img().ID(p.ID+"-page-top-bar-icon-img").Class("page-top-bar-icon-img").Src("/web/images/icon-192.png"),
 				// 	app.If(!smallScreen, app.Span().ID(p.ID+"-page-top-bar-icon-text").Class("page-top-bar-icon-text").Text("Osusu")),
 				// ),
-				app.Div().ID(p.ID+"-page-top-bar-buttons").Class("page-top-bar-buttons").Body(
-					Button().ID(p.ID+"-page-top-bar-update").Class("top-bar").Icon("update").Text("Update").OnClick(p.UpdateApp).Hidden(!CurrentPage.updateAvailable),
-					Button().ID(p.ID+"-page-top-bar-install").Class("top-bar").Icon(installIcon).Text("Install").OnClick(p.InstallApp).Hidden(!CurrentPage.installAvailable),
-					Button().ID(p.ID+"-page-top-bar-account").Class("top-bar-account").Icon(accountButtonIcon).Text(nameFirstLetter).OnClick(NavigateEvent("/account")),
-				),
+				Button().ID(p.ID+"page-top-bar-search").Class("top-bar").Icon("search").Text(searchText).OnClick(NavigateEvent("/search")),
+				Button().ID(p.ID+"page-top-bar-history").Class("top-bar").Icon("history").Text(historyText).OnClick(NavigateEvent("/history")),
+				Button().ID(p.ID+"page-top-bar-discover").Class("top-bar").Icon("explore").Text(discoverText).OnClick(NavigateEvent("/discover")),
+				Button().ID(p.ID+"-page-top-bar-update").Class("top-bar").Icon("update").Text(updateText).OnClick(p.UpdateApp).Hidden(!CurrentPage.updateAvailable),
+				Button().ID(p.ID+"-page-top-bar-install").Class("top-bar").Icon(installIcon).Text(installText).OnClick(p.InstallApp).Hidden(!CurrentPage.installAvailable),
+				Button().ID(p.ID+"-page-top-bar-account").Class("top-bar-account").Icon(accountButtonIcon).Text(nameFirstLetter).OnClick(NavigateEvent("/account")),
+				// app.Div().ID(p.ID+"-page-top-bar-buttons").Class("page-top-bar-buttons").Body(),
 			),
 		),
 		app.Main().ID(p.ID+"-page-main").Class("page-main").Body(

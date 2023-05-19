@@ -13,13 +13,13 @@ import (
 type Recipe struct {
 	Name string
 	// Ingredients string
-	URL       string
-	Image     string
-	TotalTime string
-	PrepTime  string
-	CookTime  string
-	Score     Score
-	// Description string
+	URL         string
+	Image       string
+	TotalTime   string
+	PrepTime    string
+	CookTime    string
+	Score       Score
+	Description string
 }
 
 // Recipes is a slice of multiple recipes
@@ -87,8 +87,18 @@ func GenerateWordMap(recipes Recipes) map[string]Recipes {
 	return res
 }
 
-// RecommendRecipes returns a list of recommended new recipes based on the given word score map
-func RecommendRecipes(wordScoreMap map[string]Score) Recipes {
+// RecommendRecipesData is the data used in a recommend recipes call
+type RecommendRecipesData struct {
+	WordScoreMap map[string]Score
+	Options      Options
+	N            int // the iteration that we are on (ie: n = 3 for the fourth time we are getting recipes for the same options), we return 100 new meals each time
+}
+
+// RecommendRecipes returns a list of recommended new recipes based on the given recommend recipes data
+func RecommendRecipes(data RecommendRecipesData) Recipes {
+	if len(allRecipes) == 0 {
+		return Recipes{}
+	}
 	scores := []Score{}
 	indices := []int{}
 	for i, recipe := range allRecipes {
@@ -96,7 +106,7 @@ func RecommendRecipes(wordScoreMap map[string]Score) Recipes {
 		words := GetWords(recipe.Name)
 		recipeScores := []Score{}
 		for _, word := range words {
-			score, ok := wordScoreMap[word]
+			score, ok := data.WordScoreMap[word]
 			if ok {
 				recipeScores = append(recipeScores, score)
 			}
@@ -108,7 +118,15 @@ func RecommendRecipes(wordScoreMap map[string]Score) Recipes {
 		return scores[indices[i]].Total > scores[indices[j]].Total
 	})
 	res := Recipes{}
-	for _, i := range indices[:100] {
+	upper := (data.N + 1) * 100
+	lower := data.N * 100
+	if upper >= len(indices) {
+		upper = len(indices) - 1
+	}
+	if lower >= len(indices) {
+		lower = len(indices) - 1
+	}
+	for _, i := range indices[lower:upper] {
 		recipe := allRecipes[i]
 		recipe.Score = scores[i]
 		log.Println(recipe)

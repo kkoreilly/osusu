@@ -262,6 +262,6 @@ var DeleteEntryAPI = NewAPI(http.MethodDelete, "/api/deleteEntry", func(id int64
 })
 
 // RecommendRecipesAPI returns a list of recommended recipes based on the given word score map
-var RecommendRecipesAPI = NewAPI(http.MethodGet, "/api/recommendRecipes", func(wordScoreMap map[string]Score) (Recipes, error) {
-	return RecommendRecipes(wordScoreMap), nil
+var RecommendRecipesAPI = NewAPI(http.MethodGet, "/api/recommendRecipes", func(data RecommendRecipesData) (Recipes, error) {
+	return RecommendRecipes(data), nil
 })
