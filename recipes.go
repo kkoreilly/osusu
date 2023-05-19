@@ -2,21 +2,24 @@ package main
 
 import (
 	"encoding/json"
+	"log"
 	"os"
+	"sort"
 	"strings"
 	"time"
 )
 
 // A Recipe is an external recipe that can be used for new meal recommendations
 type Recipe struct {
-	Name        string
-	Ingredients string
-	URL         string
-	Image       string
-	TotalTime   string
-	PrepTime    string
-	CookTime    string
-	Description string
+	Name string
+	// Ingredients string
+	URL       string
+	Image     string
+	TotalTime string
+	PrepTime  string
+	CookTime  string
+	Score     Score
+	// Description string
 }
 
 // Recipes is a slice of multiple recipes
@@ -59,6 +62,61 @@ func FixRecipeTimes(recipes Recipes) Recipes {
 	return recipes
 }
 
+// SaveRecipes writes the given recipes to the web/newrecipes.json file
+func SaveRecipes(recipes Recipes) error {
+	jsonData, err := json.Marshal(recipes)
+	if err != nil {
+		return err
+	}
+	err = os.WriteFile("web/newrecipes.json", jsonData, 0666)
+	return err
+}
+
+// GenerateWordMap represents a map with words as keys and all of the recipes that contain them as values
+func GenerateWordMap(recipes Recipes) map[string]Recipes {
+	res := map[string]Recipes{}
+	for _, recipe := range recipes {
+		words := GetWords(recipe.Name)
+		for _, word := range words {
+			if res[word] == nil {
+				res[word] = Recipes{}
+			}
+			res[word] = append(res[word], recipe)
+		}
+	}
+	return res
+}
+
+// RecommendRecipes returns a list of recommended new recipes based on the given word score map
+func RecommendRecipes(wordScoreMap map[string]Score) Recipes {
+	scores := []Score{}
+	indices := []int{}
+	for i, recipe := range allRecipes {
+		indices = append(indices, i)
+		words := GetWords(recipe.Name)
+		recipeScores := []Score{}
+		for _, word := range words {
+			score, ok := wordScoreMap[word]
+			if ok {
+				recipeScores = append(recipeScores, score)
+			}
+		}
+		score := AverageScore(recipeScores)
+		scores = append(scores, score)
+	}
+	sort.Slice(indices, func(i, j int) bool {
+		return scores[indices[i]].Total > scores[indices[j]].Total
+	})
+	res := Recipes{}
+	for _, i := range indices[:100] {
+		recipe := allRecipes[i]
+		recipe.Score = scores[i]
+		log.Println(recipe)
+		res = append(res, recipe)
+	}
+	return res
+}
+
 // ParseDuration parses an ISO 8601 duration (the format used in the recipes source)
 func ParseDuration(duration string) (time.Duration, error) {
 	// remove PT at start
@@ -68,4 +126,24 @@ func ParseDuration(duration string) (time.Duration, error) {
 	// change H, M, etc to h, m, etc
 	duration = strings.ToLower(duration)
 	return time.ParseDuration(duration)
+}
+
+// GetWords gets all of the words contained within the given text
+func GetWords(text string) []string {
+	res := []string{}
+	curStr := ""
+	for _, r := range text {
+		if r == ' ' || r == ',' || r == '.' || r == '(' || r == ')' || r == '+' || r == '–' || r == '—' {
+			if curStr != "" {
+				res = append(res, curStr)
+				curStr = ""
+			}
+			continue
+		}
+		curStr = string(append([]rune(curStr), r))
+	}
+	if curStr != "" {
+		res = append(res, curStr)
+	}
+	return res
 }

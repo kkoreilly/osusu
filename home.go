@@ -16,6 +16,7 @@ type home struct {
 	users              Users
 	meals              Meals
 	entriesForEachMeal map[int64]Entries // entries for each meal id
+	recipes            Recipes
 	options            Options
 	usersOptions       map[string]bool
 	cuisinesInUse      map[string]bool // key is cuisine name, value is if it's being used
@@ -126,6 +127,14 @@ func (h *home) Render() app.UI {
 			}
 			h.SortMeals()
 
+			wordScoreMap := WordScoreMap(h.meals, h.entriesForEachMeal, h.options)
+			recipes, err := RecommendRecipesAPI.Call(wordScoreMap)
+			if err != nil {
+				CurrentPage.ShowErrorStatus(err)
+				return
+			}
+			h.recipes = recipes
+
 			CurrentPage.AddOnClick(h.PageOnClick)
 		},
 		TitleElement: "Welcome, " + h.user.Name,
@@ -158,61 +167,67 @@ func (h *home) Render() app.UI {
 					),
 				),
 				app.TBody().ID("home-page-meals-table-body").Body(
-					app.Range(h.meals).Slice(func(i int) app.UI {
-						meal := h.meals[i]
-						si := strconv.Itoa(i)
-						entries := h.entriesForEachMeal[meal.ID]
+					app.If(h.options.Mode == "Search" || h.options.Mode == "History",
+						app.Range(h.meals).Slice(func(i int) app.UI {
+							meal := h.meals[i]
+							si := strconv.Itoa(i)
+							entries := h.entriesForEachMeal[meal.ID]
 
-						// check if at least one cuisine satisfies a cuisine requirement
-						gotCuisine := false
-						for _, mealCuisine := range meal.Cuisine {
-							for optionCuisine, value := range h.options.Cuisine {
-								if value && mealCuisine == optionCuisine {
-									gotCuisine = true
+							// check if at least one cuisine satisfies a cuisine requirement (or there is no cuisine set)
+							gotCuisine := len(meal.Cuisine) == 0
+							for _, mealCuisine := range meal.Cuisine {
+								for optionCuisine, value := range h.options.Cuisine {
+									if value && mealCuisine == optionCuisine {
+										gotCuisine = true
+									}
 								}
 							}
-						}
-						if !gotCuisine {
-							return app.Text("")
-						}
-
-						// check if at least one entry satisfies the type and source requirements if there is at least one entry.
-						if len(entries) > 0 {
-							gotType := h.options.Type == "Any"
-							gotSource := false
-							for _, entry := range entries {
-								if entry.Type == h.options.Type {
-									gotType = true
-								}
-								if h.options.Source[entry.Source] {
-									gotSource = true
-								}
-							}
-							if !(gotType && gotSource) {
+							if !gotCuisine {
 								return app.Text("")
 							}
-						}
 
-						score := meal.Score(entries, h.options)
-						colorH := strconv.Itoa((score.Total * 12) / 10)
-						scoreText := strconv.Itoa(score.Total)
-						// missingData := entries.MissingData(h.user)
-						isCurrentMeal := meal.ID == h.currentMeal.ID
-						return app.Tr().ID("home-page-meal-"+si).Class("home-page-meal").DataSet("current-meal", isCurrentMeal).Style("--color-h", colorH).Style("--score", scoreText+"%").
-							OnClick(func(ctx app.Context, e app.Event) { h.MealOnClick(ctx, e, meal) }).Body(
-							app.Td().ID("home-page-meal-name-"+si).Class("home-page-meal-name").Text(meal.Name),
-							MealScore("home-page-meal-total-"+si, "home-page-meal-total", score.Total),
-							MealScore("home-page-meal-taste-"+si, "home-page-meal-taste", score.Taste),
-							MealScore("home-page-meal-recency-"+si, "home-page-meal-recency", score.Recency),
-							MealScore("home-page-meal-cost-"+si, "home-page-meal-cost", score.Cost),
-							MealScore("home-page-meal-effort-"+si, "home-page-meal-effort", score.Effort),
-							MealScore("home-page-meal-healthiness-"+si, "home-page-meal-healthiness", score.Healthiness),
-							app.If(!smallScreen,
-								app.Td().ID("home-page-meal-cuisines-"+si).Class("home-page-meal-cuisines").Text(ListString(meal.Cuisine)),
-								app.Td().ID("home-page-meal-description-"+si).Class("home-page-meal-description").Text(meal.Description),
-							),
-						)
-					}),
+							// check if at least one entry satisfies the type and source requirements if there is at least one entry.
+							if len(entries) > 0 {
+								gotType := h.options.Type == "Any"
+								gotSource := false
+								for _, entry := range entries {
+									if entry.Type == h.options.Type {
+										gotType = true
+									}
+									if h.options.Source[entry.Source] {
+										gotSource = true
+									}
+								}
+								if !(gotType && gotSource) {
+									return app.Text("")
+								}
+							}
+
+							score := meal.Score(entries, h.options)
+							colorH := strconv.Itoa((score.Total * 12) / 10)
+							scoreText := strconv.Itoa(score.Total)
+							// missingData := entries.MissingData(h.user)
+							isCurrentMeal := meal.ID == h.currentMeal.ID
+							return app.Tr().ID("home-page-meal-"+si).Class("home-page-meal").DataSet("current-meal", isCurrentMeal).Style("--color-h", colorH).Style("--score", scoreText+"%").
+								OnClick(func(ctx app.Context, e app.Event) { h.MealOnClick(ctx, e, meal) }).Body(
+								app.Td().ID("home-page-meal-name-"+si).Class("home-page-meal-name").Text(meal.Name),
+								MealScore("home-page-meal-total-"+si, "home-page-meal-total", score.Total),
+								MealScore("home-page-meal-taste-"+si, "home-page-meal-taste", score.Taste),
+								MealScore("home-page-meal-recency-"+si, "home-page-meal-recency", score.Recency),
+								MealScore("home-page-meal-cost-"+si, "home-page-meal-cost", score.Cost),
+								MealScore("home-page-meal-effort-"+si, "home-page-meal-effort", score.Effort),
+								MealScore("home-page-meal-healthiness-"+si, "home-page-meal-healthiness", score.Healthiness),
+								app.If(!smallScreen,
+									app.Td().ID("home-page-meal-cuisines-"+si).Class("home-page-meal-cuisines").Text(ListString(meal.Cuisine)),
+									app.Td().ID("home-page-meal-description-"+si).Class("home-page-meal-description").Text(meal.Description),
+								),
+							)
+						}),
+					).ElseIf(h.options.Mode == "Discover",
+						app.Range(h.recipes).Slice(func(i int) app.UI {
+							return app.Span().Text(h.recipes[i].Name)
+						}),
+					),
 				),
 			),
 			app.Dialog().ID("home-page-meal-dialog").OnClick(h.MealDialogOnClick).Body(

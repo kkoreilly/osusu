@@ -28,7 +28,7 @@ func (m Meal) Score(entries Entries, options Options) Score {
 			latestDate = entry.Date
 		}
 	}
-	score := AverageScore(scores...)
+	score := AverageScore(scores)
 	recencyScore := int(2 * time.Now().Truncate(time.Hour*24).UTC().Sub(latestDate) / (time.Hour * 24))
 	if recencyScore > 100 {
 		recencyScore = 100

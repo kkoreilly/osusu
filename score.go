@@ -21,7 +21,7 @@ func (s Score) ComputeTotal(options Options) int {
 }
 
 // AverageScore returns a score with the values set to the average values of the given scores
-func AverageScore(scores ...Score) Score {
+func AverageScore(scores []Score) Score {
 	lenScores := len(scores)
 	if lenScores == 0 {
 		return Score{}

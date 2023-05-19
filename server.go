@@ -20,6 +20,9 @@ const (
 	APIPassword = "gbx5T3*UJSALdxAES$n@w2m6b4o949XKMHsApk@Zt4&q3cf$37Jvf#g4#nd95hSnc4K%#h!JD9ifSkDhQyPMT@brtuU!cFxBJwny!ukC$s^ZVPdPzkJm8DvX4bK7to7d"
 )
 
+// allRecipes are all of the recipes in the web/recipes.json file
+var allRecipes Recipes
+
 func startServer() {
 	http.Handle("/", &app.Handler{
 		Name:  "Osusu",
@@ -62,11 +65,24 @@ func startServer() {
 		log.Println(err)
 	}
 
-	// recipes, err := GetRecipes()
-	// if err != nil {
-	// 	log.Println(err)
-	// } else {
-	// 	recipes = FixRecipeTimes(recipes)
+	recipes, err := GetRecipes()
+	allRecipes = recipes
+	if err != nil {
+		log.Println("load", err)
+	} else {
+		recipes = FixRecipeTimes(recipes)
+		log.Println(SaveRecipes(recipes))
+	}
+	t := time.Now()
+	wordMap := GenerateWordMap(recipes)
+	log.Println(time.Since(t))
+	log.Println(len(wordMap["spinach"]))
+	// for k, v := range wordMap {
+	// 	log.Println(k + ":")
+	// 	for _, recipe := range v {
+	// 		log.Println("	" + recipe.Name)
+	// 	}
+	// }
 	// 	total := 0
 	// 	for i, recipe := range recipes {
 	// 		// if i > 100 {
