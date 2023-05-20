@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"log"
 	"os"
 	"sort"
 	"strings"
@@ -105,13 +104,22 @@ func RecommendRecipes(data RecommendRecipesData) Recipes {
 		indices = append(indices, i)
 		words := GetWords(recipe.Name)
 		recipeScores := []Score{}
+		// use map to track unique matches and simple int to count total
+		matches := map[string]bool{}
+		numMatches := 0
 		for _, word := range words {
 			score, ok := data.WordScoreMap[word]
 			if ok {
+				matches[word] = true
+				numMatches++
 				recipeScores = append(recipeScores, score)
 			}
 		}
+		numUniqueMatches := len(matches)
+
 		score := AverageScore(recipeScores)
+		score.Total += numMatches * numUniqueMatches
+
 		scores = append(scores, score)
 	}
 	sort.Slice(indices, func(i, j int) bool {
@@ -129,7 +137,6 @@ func RecommendRecipes(data RecommendRecipesData) Recipes {
 	for _, i := range indices[lower:upper] {
 		recipe := allRecipes[i]
 		recipe.Score = scores[i]
-		log.Println(recipe)
 		res = append(res, recipe)
 	}
 	return res
@@ -152,7 +159,7 @@ func GetWords(text string) []string {
 	curStr := ""
 	for _, r := range text {
 		if r == ' ' || r == ',' || r == '.' || r == '(' || r == ')' || r == '+' || r == '–' || r == '—' {
-			if curStr != "" {
+			if curStr != "" && curStr != "and" {
 				res = append(res, curStr)
 				curStr = ""
 			}

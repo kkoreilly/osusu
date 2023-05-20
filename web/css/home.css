@@ -83,6 +83,10 @@ td.home-page-meal-description {
     padding-right: 1rem;
 }
 
+td.home-page-meal-description:hover {
+    white-space: normal;
+}
+
 div.meal-score-circle {
     --pie-percent: var(--score);
     --pie-color: hsl(var(--color-h), 100%, 50%);

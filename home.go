@@ -291,7 +291,7 @@ func (h *home) Render() app.UI {
 								MealScore("home-page-recipe-effort-"+si, "home-page-meal-effort", recipe.Score.Effort),
 								MealScore("home-page-recipe-healthiness-"+si, "home-page-meal-healthiness", recipe.Score.Healthiness),
 								app.If(!smallScreen,
-									// app.Td().ID("home-page-meal-cuisines-"+si).Class("home-page-meal-cuisines").Text(ListString(meal.Cuisine)),
+									app.Td().ID("home-page-recipe-cuisines-"+si).Class("home-page-meal-cuisines").Text(""),
 									app.Td().ID("home-page-recipe-description-"+si).Class("home-page-meal-description").Text(recipe.Description),
 								),
 							)
@@ -418,6 +418,7 @@ func (h *home) MealOnClick(ctx app.Context, e app.Event, meal Meal) {
 }
 
 func (h *home) EntryOnClick(ctx app.Context, e app.Event, entry Entry) {
+	SetIsEntryNew(false, ctx)
 	SetCurrentEntry(entry, ctx)
 	Navigate("/entry", ctx)
 }

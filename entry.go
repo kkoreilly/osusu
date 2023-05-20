@@ -65,6 +65,8 @@ func (e Entry) Score(options Options) Score {
 		Healthiness: e.Healthiness.Sum(options.Users, false) / len(e.Healthiness),
 		Taste:       e.Taste.Sum(options.Users, false) / len(e.Taste),
 	}
+	// recency is irrelevant for entries, so ignore it for this calculation
+	options.RecencyWeight = 0
 	score.Total = score.ComputeTotal(options)
 	return score
 }
@@ -202,8 +204,7 @@ func (e *entry) OnSubmit(ctx app.Context, event app.Event) {
 		return
 	}
 	SetCurrentEntry(e.entry, ctx)
-
-	Navigate("/entries", ctx)
+	ReturnToReturnURL(ctx, event)
 }
 
 func (e *entry) InitialDelete(ctx app.Context, event app.Event) {
