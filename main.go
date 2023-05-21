@@ -15,6 +15,7 @@ func main() {
 	app.Route("/history", &home{})
 	app.Route("/discover", &home{})
 	app.Route("/meal", &meal{})
+	app.Route("/recipe", &recipe{})
 	app.Route("/entries", &entries{})
 	app.Route("/entry", &entry{})
 	app.Route("/account", &account{})

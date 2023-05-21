@@ -48,6 +48,7 @@ func startServer() {
 			"/web/css/account.css",
 			"/web/css/pie.css",
 			"/web/css/start.css",
+			"/web/css/recipe.css",
 		},
 		AutoUpdateInterval: 10 * time.Second,
 	})
@@ -77,6 +78,10 @@ func startServer() {
 	wordMap := GenerateWordMap(recipes)
 	log.Println(time.Since(t))
 	log.Println(len(wordMap["spinach"]))
+	// estimate := EstimateValid(recipes)
+	// log.Println("(Estimate) Total Valid:", estimate, "Percent Valid:", strconv.Itoa(100*estimate/len(recipes))+"%")
+	// validRecipes := RemoveInvalidRecipes(recipes)
+	// log.Println("initial:", len(recipes), "valid:", len(validRecipes), "percent:", 100*len(validRecipes)/len(recipes))
 	// for k, v := range wordMap {
 	// 	log.Println(k + ":")
 	// 	for _, recipe := range v {

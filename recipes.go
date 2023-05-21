@@ -2,10 +2,15 @@ package main
 
 import (
 	"encoding/json"
+	"log"
+	"net/http"
 	"os"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
+
+	"github.com/maxence-charriere/go-app/v9/pkg/app"
 )
 
 // A Recipe is an external recipe that can be used for new meal recommendations
@@ -17,12 +22,25 @@ type Recipe struct {
 	TotalTime   string
 	PrepTime    string
 	CookTime    string
-	Score       Score
+	Source      string
 	Description string
+	Score       Score
 }
 
 // Recipes is a slice of multiple recipes
 type Recipes []Recipe
+
+// CurrentRecipe returns the current recipe value from local storage
+func CurrentRecipe(ctx app.Context) Recipe {
+	var recipe Recipe
+	ctx.GetState("currentRecipe", &recipe)
+	return recipe
+}
+
+// SetCurrentRecipe sets the current recipe value in local storage
+func SetCurrentRecipe(recipe Recipe, ctx app.Context) {
+	ctx.SetState("currentRecipe", recipe, app.Persist)
+}
 
 // GetRecipes gets all of the recipes from the recipes.json file
 func GetRecipes() (Recipes, error) {
@@ -59,6 +77,95 @@ func FixRecipeTimes(recipes Recipes) Recipes {
 		recipes[i] = recipe
 	}
 	return recipes
+}
+
+// sourceAccuracy is a map with rough accuracy estimates for every source
+var sourceAccuracy = map[string]int{
+	"bbcfood":              50,
+	"elanaspantry":         100,
+	"lovefood":             100,
+	"delishhh":             100,
+	"thevintagemixer":      100,
+	"backtoherroots":       100,
+	"cookieandkate":        0,
+	"jamieoliver":          80,
+	"paninihappy":          100,
+	"bunkycooks":           0,
+	"steamykitchen":        100,
+	"chow":                 0,
+	"seriouseats":          90,
+	"thelittlekitchen":     100,
+	"williamssonoma":       0,
+	"whatsgabycooking":     60,
+	"cookincanuck":         100,
+	"eatthelove":           100,
+	"naturallyella":        0,
+	"aspicyperspective":    0,
+	"food":                 0,
+	"pickypalate":          100,
+	"thepioneerwoman":      100,
+	"foodnetwork":          100,
+	"epicurious":           0,
+	"tastykitchen":         100,
+	"biggirlssmallkitchen": 70,
+	"bonappetit":           80,
+	"allrecipes":           30,
+	"browneyedbaker":       90,
+	"101cookbooks":         100,
+	"bbcgoodfood":          90,
+	"smittenkitchen":       100,
+}
+
+// EstimateValid estimates what number of the given recipes are valid using the source accuracy map
+func EstimateValid(recipes Recipes) int {
+	sum := 0
+	for _, recipe := range recipes {
+		accuracy := sourceAccuracy[recipe.Source]
+		sum += accuracy
+	}
+	return sum / 100
+}
+
+// RemoveInvalidRecipes returns the given recipes with all recipes that return 404s removed
+func RemoveInvalidRecipes(recipes Recipes) Recipes {
+	// amount valid and invalid per source
+	invalid := map[string]int{}
+	valid := map[string]int{}
+	total := map[string]int{}
+	res := Recipes{}
+	// t := time.Now()
+	for i, recipe := range recipes {
+		if total[recipe.Source] >= 10 {
+			continue
+		}
+		log.Println(total[recipe.Source], recipe.Source)
+		resp, err := http.Get(recipe.URL)
+		if err != nil {
+			log.Println("error fetching recipe in remove invalid recipes:", err)
+			invalid[recipe.Source]++
+			total[recipe.Source]++
+			continue
+		}
+		if resp.StatusCode != 200 {
+			// log.Println("bad status code:", resp.StatusCode, "with source", recipe.Source)
+			invalid[recipe.Source]++
+			total[recipe.Source]++
+			continue
+		}
+		// log.Println("valid recipe found with source", recipe.Source)
+		valid[recipe.Source]++
+		total[recipe.Source]++
+		res = append(res, recipe)
+		if i != 0 {
+			// log.Println("percent valid:", strconv.Itoa(100*len(res)/i)+"%", "total:", i, "valid:", len(res), "invalid:", i-len(res))
+			// log.Println("total time:", time.Since(t), "time per:", time.Since(t)/time.Duration(i), "estimated total:", time.Duration(len(recipes))*time.Since(t)/time.Duration((i)))
+		}
+	}
+	for source, val := range total {
+		nInvalid, nValid := invalid[source], valid[source]
+		log.Println("Keep:", 100*nValid/val > 70, "Percent Valid:", strconv.Itoa(100*nValid/val)+"%", "Source:", source, "Number Invalid:", nInvalid, "Number Valid:", nValid, "Total Number:", val)
+	}
+	return res
 }
 
 // SaveRecipes writes the given recipes to the web/newrecipes.json file

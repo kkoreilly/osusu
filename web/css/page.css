@@ -20,7 +20,7 @@ html,
     min-height: 100vh;
 }
 
-.page-top-bar {
+.page-nav-bar {
     width: 100%;
     background-color: var(--color-one);
     display: flex;
@@ -28,7 +28,7 @@ html,
     align-items: center;
 }
 
-.page-top-bar-icon-button {
+.page-nav-bar-icon-button {
     padding: 0.5rem;
     display: flex;
     align-items: center;
@@ -40,22 +40,22 @@ html,
     transition: background-color 0.5s;
 }
 
-.page-top-bar-icon-button:hover {
+.page-nav-bar-icon-button:hover {
     background-color: var(--color-one-dark);
 }
 
-.page-top-bar-icon-img {
+.page-nav-bar-icon-img {
     width: 3rem;
     height: 3rem;
 }
 
-.page-top-bar-icon-text {
+.page-nav-bar-icon-text {
     font-size: 1.5rem;
     color: black;
     font-weight: bold;
 }
 
-.page-top-bar-buttons {
+.page-nav-bar-buttons {
     display: flex;
     align-items: center;
     justify-content: end;

@@ -37,8 +37,9 @@ func (b *ButtonRowCompo) Buttons(buttons ...app.UI) *ButtonRowCompo {
 type ButtonCompo struct {
 	app.Compo
 	id           string
-	class        string
+	ButtonClass  string // can sometimes change so needs to be exported
 	typ          string
+	DataSet      string
 	ButtonIcon   string // can sometimes change so needs to be exported
 	ButtonText   string // can sometimes change so needs to be exported
 	onClick      app.EventHandler
@@ -50,9 +51,9 @@ func (b *ButtonCompo) Render() app.UI {
 	if b.typ == "" {
 		b.typ = "button"
 	}
-	return app.Button().ID(b.id+"-button").Class(b.class+"-button", "button").Type(b.typ).OnClick(b.onClick).Hidden(b.ButtonHidden).Body(
-		app.Span().ID(b.id+"-button-icon").Class(b.class+"-button-icon", "button-icon", "material-symbols-outlined").Text(b.ButtonIcon).Hidden(b.ButtonIcon == ""),
-		app.Span().ID(b.id+"-button-text").Class(b.class+"-button-text", "button-text").Text(b.ButtonText).Hidden(b.ButtonText == ""),
+	return app.Button().ID(b.id+"-button").Class(b.ButtonClass+"-button", "button").Type(b.typ).OnClick(b.onClick).Hidden(b.ButtonHidden).Body(
+		app.Span().ID(b.id+"-button-icon").Class(b.ButtonClass+"-button-icon", "button-icon", "material-symbols-outlined").Text(b.ButtonIcon).Hidden(b.ButtonIcon == ""),
+		app.Span().ID(b.id+"-button-text").Class(b.ButtonClass+"-button-text", "button-text").Text(b.ButtonText).Hidden(b.ButtonText == ""),
 	)
 }
 
@@ -69,7 +70,7 @@ func (b *ButtonCompo) ID(id string) *ButtonCompo {
 
 // Class sets the class of the button component to the given value (ex: primary, secondary, tertiary)
 func (b *ButtonCompo) Class(class string) *ButtonCompo {
-	b.class = class
+	b.ButtonClass = class
 	return b
 }
 

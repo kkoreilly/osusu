@@ -79,22 +79,30 @@
     background-color: var(--color-five-dark);
 }
 
-.top-bar-button {
+.nav-bar-button {
     height: 100%;
-    padding: 0.875rem 0.5rem;
+    width: calc(100% / 3);
     border: none;
     background-color: var(--color-one);
-    font-size: 1.5rem;
-    line-height: 1.5rem;
+    font-size: 1rem;
+    line-height: 1rem;
     font-weight: bold;
     cursor: pointer;
     color: black;
     border-radius: 0;
     box-shadow: none;
+    flex-direction: column;
+    row-gap: 5px;
+    column-gap: 0;
 }
 
-.top-bar-button:hover {
+.nav-bar-button:hover {
     background-color: var(--color-one-dark);
+}
+
+.nav-bar-button.open-true {
+    border-top: 0.25rem solid black;
+    padding-top: 0.5rem;
 }
 
 .top-bar-account-button {

@@ -152,7 +152,7 @@ func (h *home) Render() app.UI {
 
 			CurrentPage.AddOnClick(h.PageOnClick)
 		},
-		TitleElement: "Welcome, " + h.user.Name,
+		TitleElement: h.options.Mode,
 		Elements: []app.UI{
 			ButtonRow().ID("home-page").Buttons(
 				Button().ID("home-page-new").Class("secondary").Icon("add").Text("New Meal").OnClick(h.NewMeal),
@@ -282,7 +282,7 @@ func (h *home) Render() app.UI {
 						app.Range(h.recipes).Slice(func(i int) app.UI {
 							si := strconv.Itoa(i)
 							recipe := h.recipes[i]
-							return app.Tr().ID("home-page-recipe-"+si).Class("home-page-recipe home-page-meal").Body(
+							return app.Tr().ID("home-page-recipe-"+si).Class("home-page-recipe home-page-meal").OnClick(func(ctx app.Context, e app.Event) { h.RecipeOnClick(ctx, e, recipe) }).Body(
 								app.Td().ID("home-page-recipe-name-"+si).Class("home-page-meal-name").Text(recipe.Name),
 								MealScore("home-page-recipe-total-"+si, "home-page-meal-total", recipe.Score.Total),
 								MealScore("home-page-recipe-taste-"+si, "home-page-meal-taste", recipe.Score.Taste),
@@ -421,6 +421,11 @@ func (h *home) EntryOnClick(ctx app.Context, e app.Event, entry Entry) {
 	SetIsEntryNew(false, ctx)
 	SetCurrentEntry(entry, ctx)
 	Navigate("/entry", ctx)
+}
+
+func (h *home) RecipeOnClick(ctx app.Context, e app.Event, recipe Recipe) {
+	SetCurrentRecipe(recipe, ctx)
+	Navigate("/recipe", ctx)
 }
 
 func (h *home) UpdateMealDialogPosition(ctx app.Context, e app.Event, dialog app.Value) {
