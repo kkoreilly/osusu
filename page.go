@@ -78,8 +78,8 @@ func (p *Page) Render() app.UI {
 		// 	app.If(!smallScreen, app.Span().ID(p.ID+"-page-nav-bar-icon-text").Class("page-nav-bar-icon-text").Text("Osusu")),
 		// ),
 		Button().ID(p.ID+"page-nav-bar-search").Class("open-"+strconv.FormatBool(CurrentPage.mode == "Search")+" nav-bar").Icon("search").Text("Search").OnClick(p.NavBarOnClick("/search", "Search")),
-		Button().ID(p.ID+"page-nav-bar-history").Class("open-"+strconv.FormatBool(CurrentPage.mode == "History")+" nav-bar").Icon("history").Text("History").OnClick(p.NavBarOnClick("/history", "History")),
 		Button().ID(p.ID+"page-nav-bar-discover").Class("open-"+strconv.FormatBool(CurrentPage.mode == "Discover")+" nav-bar").Icon("explore").Text("Discover").OnClick(p.NavBarOnClick("/discover", "Discover")),
+		Button().ID(p.ID+"page-nav-bar-history").Class("open-"+strconv.FormatBool(CurrentPage.mode == "History")+" nav-bar").Icon("history").Text("History").OnClick(p.NavBarOnClick("/history", "History")),
 		// app.If(false, Button().ID(p.ID+"-page-nav-bar-update").Class("nav-bar").Icon("update").Text(updateText).OnClick(p.UpdateApp).Hidden(!CurrentPage.updateAvailable),
 		// 	Button().ID(p.ID+"-page-nav-bar-install").Class("nav-bar").Icon(installIcon).Text(installText).OnClick(p.InstallApp).Hidden(!CurrentPage.installAvailable),
 		// 	Button().ID(p.ID+"-page-nav-bar-account").Class("nav-bar-account").Icon(accountButtonIcon).Text(nameFirstLetter).OnClick(NavigateEvent("/account"))),
@@ -148,10 +148,10 @@ func (p *Page) OnNav(ctx app.Context) {
 	switch ctx.Page().URL().Path {
 	case "/search":
 		p.mode = "Search"
-	case "/history":
-		p.mode = "History"
 	case "/discover":
 		p.mode = "Discover"
+	case "/history":
+		p.mode = "History"
 	default:
 		p.mode = GetOptions(ctx).Mode
 	}

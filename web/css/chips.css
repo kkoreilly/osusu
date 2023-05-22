@@ -55,11 +55,12 @@
 }
 
 .chip-label {
-    padding: 0.75rem 1rem;
+    padding: 0.6rem 0.85rem;
     cursor: pointer;
     display: flex;
-    border-radius: 100px;
-    background-color: var(--color-three);
+    border-radius: 10px;
+    background-color: white;
+    border: 1px solid black;
     flex-wrap: wrap;
     -webkit-user-select: none;
     -ms-user-select: none;
@@ -68,11 +69,12 @@
 }
 
 .chip-label:hover {
-    background-color: var(--color-three-dark);
+    background-color: lightblue;
 }
 
 .chip-label[data-checked=true] {
-    background-color: var(--color-four)
+    background-color: var(--color-four);
+    border: none;
 }
 
 .chip-label:hover[data-checked=true] {

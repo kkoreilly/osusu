@@ -174,8 +174,16 @@ func (m *meal) Render() app.UI {
 				CheckboxChips().ID("meal-page-cuisine").Label("Cuisines:").Value(&m.cuisine).Options(append(cuisines, "+")...).OnChange(m.CuisinesOnChange),
 				cuisinesDialog("meal-page", m.CuisinesDialogOnSave),
 				ButtonRow().ID("meal-page").Buttons(
+					Button().ID("meal-page-delete").Class("danger").Icon("delete").Text("Delete").OnClick(m.DeleteMeal).Hidden(m.isMealNew),
 					Button().ID("meal-page-cancel").Class("secondary").Icon("cancel").Text("Cancel").OnClick(NavigateEvent("/home")),
 					Button().ID("meal-page-save").Class("primary").Type("submit").Icon(saveButtonIcon).Text(saveButtonText),
+				),
+				app.Dialog().ID("meal-page-confirm-delete-meal").Class("modal").Body(
+					app.P().ID("meal-page-confirm-delete-meal-text").Class("confirm-delete-text").Text("Are you sure you want to delete this meal?"),
+					ButtonRow().ID("meal-page-confirm-delete-meal").Buttons(
+						Button().ID("meal-page-confirm-delete-meal-delete").Class("danger").Icon("delete").Text("Yes, Delete").OnClick(m.ConfirmDeleteMeal),
+						Button().ID("meal-page-confirm-delete-meal-cancel").Class("secondary").Icon("cancel").Text("No, Cancel").OnClick(m.CancelDeleteMeal),
+					),
 				),
 			),
 		},
@@ -257,4 +265,27 @@ func (m *meal) ViewEntries(ctx app.Context, event app.Event) {
 	SetCurrentMeal(m.meal, ctx)
 
 	Navigate("/entries", ctx)
+}
+
+func (m *meal) DeleteMeal(ctx app.Context, e app.Event) {
+	e.PreventDefault()
+	app.Window().GetElementByID("meal-page-confirm-delete-meal").Call("showModal")
+}
+
+func (m *meal) ConfirmDeleteMeal(ctx app.Context, e app.Event) {
+	e.PreventDefault()
+
+	_, err := DeleteMealAPI.Call(m.meal.ID)
+	if err != nil {
+		CurrentPage.ShowErrorStatus(err)
+		return
+	}
+	SetCurrentMeal(Meal{}, ctx)
+	app.Window().GetElementByID("meal-page-confirm-delete-meal").Call("close")
+	ReturnToReturnURL(ctx, e)
+}
+
+func (m *meal) CancelDeleteMeal(ctx app.Context, e app.Event) {
+	e.PreventDefault()
+	app.Window().GetElementByID("meal-page-confirm-delete-meal").Call("close")
 }

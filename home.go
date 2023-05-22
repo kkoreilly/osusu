@@ -41,6 +41,15 @@ func (h *home) Render() app.UI {
 	smallScreen := width <= 480
 	nFit := (width - 80) / 50
 	log.Println("nFit", nFit)
+	subtitleText := ""
+	switch h.options.Mode {
+	case "Search":
+		subtitleText = "Find the best of your meals to eat given your current circumstances"
+	case "Discover":
+		subtitleText = "Discover new recipes recommended based on your prior preferences"
+	case "History":
+		subtitleText = "View the history of what meals you've eaten and how they were"
+	}
 	return &Page{
 		ID:                     "home",
 		Title:                  "Home",
@@ -152,7 +161,8 @@ func (h *home) Render() app.UI {
 
 			CurrentPage.AddOnClick(h.PageOnClick)
 		},
-		TitleElement: h.options.Mode,
+		TitleElement:    h.options.Mode,
+		SubtitleElement: subtitleText,
 		Elements: []app.UI{
 			ButtonRow().ID("home-page").Buttons(
 				Button().ID("home-page-new").Class("secondary").Icon("add").Text("New Meal").OnClick(h.NewMeal),
@@ -302,15 +312,7 @@ func (h *home) Render() app.UI {
 			app.Dialog().ID("home-page-meal-dialog").OnClick(h.MealDialogOnClick).Body(
 				Button().ID("home-page-meal-dialog-new-entry").Class("primary").Icon("add").Text("New Entry").OnClick(h.NewEntry),
 				Button().ID("home-page-meal-dialog-view-entries").Class("secondary").Icon("visibility").Text("View Entries").OnClick(h.ViewEntries),
-				Button().ID("home-page-meal-dialog-edit-meal").Class("tertiary").Icon("edit").Text("Edit Meal").OnClick(h.EditMeal),
-				Button().ID("home-page-meal-dialog-delete-meal").Class("danger").Icon("delete").Text("Delete Meal").OnClick(h.DeleteMeal),
-			),
-			app.Dialog().ID("home-page-confirm-delete-meal").Class("modal").Body(
-				app.P().ID("home-page-confirm-delete-meal-text").Class("confirm-delete-text").Text("Are you sure you want to delete this meal?"),
-				ButtonRow().ID("home-page-confirm-delete-meal").Buttons(
-					Button().ID("home-page-confirm-delete-meal-delete").Class("danger").Icon("delete").Text("Yes, Delete").OnClick(h.ConfirmDeleteMeal),
-					Button().ID("home-page-confirm-delete-meal-cancel").Class("secondary").Icon("cancel").Text("No, Cancel").OnClick(h.CancelDeleteMeal),
-				),
+				Button().ID("home-page-meal-dialog-edit-meal").Class("secondary").Icon("edit").Text("Edit Meal").OnClick(h.EditMeal),
 			),
 			app.Dialog().ID("home-page-options").Class("modal").OnClick(h.OptionsOnClick).Body(
 				app.Div().ID("home-page-options-container").OnClick(h.OptionsContainerOnClick).Body(
@@ -464,35 +466,6 @@ func (h *home) ViewEntries(ctx app.Context, e app.Event) {
 func (h *home) EditMeal(ctx app.Context, e app.Event) {
 	SetIsMealNew(false, ctx)
 	Navigate("/meal", ctx)
-}
-
-func (h *home) DeleteMeal(ctx app.Context, e app.Event) {
-	e.PreventDefault()
-	app.Window().GetElementByID("home-page-confirm-delete-meal").Call("showModal")
-}
-
-func (h *home) ConfirmDeleteMeal(ctx app.Context, e app.Event) {
-	e.PreventDefault()
-
-	_, err := DeleteMealAPI.Call(h.currentMeal.ID)
-	if err != nil {
-		CurrentPage.ShowErrorStatus(err)
-		return
-	}
-	SetCurrentMeal(Meal{}, ctx)
-	meals, err := GetMealsAPI.Call(h.group.ID)
-	if err != nil {
-		CurrentPage.ShowErrorStatus(err)
-		return
-	}
-	h.meals = meals
-	h.SortMeals()
-	app.Window().GetElementByID("home-page-confirm-delete-meal").Call("close")
-}
-
-func (h *home) CancelDeleteMeal(ctx app.Context, e app.Event) {
-	e.PreventDefault()
-	app.Window().GetElementByID("home-page-confirm-delete-meal").Call("close")
 }
 
 func (h *home) ShowOptions(ctx app.Context, e app.Event) {
