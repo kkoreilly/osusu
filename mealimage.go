@@ -1,8 +1,6 @@
 package main
 
 import (
-	"strconv"
-
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
 )
 
@@ -19,8 +17,12 @@ type MealImageCompo struct {
 func (m *MealImageCompo) Render() app.UI {
 	return app.Div().ID(m.id+"-meal-image-container").Class("meal-image-container", m.class).Body(
 		app.Img().ID(m.id+"-meal-image").Class("meal-image").Src(m.img),
-		app.Span().ID(m.id+"-meal-image-main-text").Class("meal-image-main-text").Text(m.mainText+" - "+strconv.Itoa(m.score.Total)),
-		// app.Span().ID(m.id+"-meal-image-score-text").Class("meal-image-score-text").Text("Score: "+strconv.Itoa(s))
+		app.Div().ID(m.id+"-meal-image-info-container").Class("meal-image-info-container").Body(
+			app.Span().ID(m.id+"-meal-image-main-text").Class("meal-image-main-text").Text(m.mainText),
+			MealScore(m.id+"-meal-image", "meal-image-score", m.score.Total),
+		),
+
+		// app.Span().ID(m.id+"-meal-image-score-text").Class("meal-image-score-text").Text("Score: "+strconv.Itoa(m.score.Total)),
 	)
 }
 

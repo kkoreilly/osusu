@@ -5,10 +5,6 @@
     border-spacing: 0;
     border: none;
     overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    row-gap: 10px;
 }
 
 #home-page-meals-table-header,
@@ -46,13 +42,6 @@ th#home-page-meals-table-header-cuisines {
 
 th#home-page-meals-table-header-description {
     width: initial;
-}
-
-#home-page-meals-table-body {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    row-gap: 10px;
 }
 
 .home-page-meal,
