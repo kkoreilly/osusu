@@ -1,0 +1,34 @@
+.meal-image-container {
+    width: min(500px, 95vw);
+    height: auto;
+    border-radius: 20px;
+    color: white;
+    position: relative;
+}
+
+.meal-image-container::before {
+    content: "";
+    position: absolute;
+    border-radius: 20px;
+    background: linear-gradient(0deg, hsla(0, 0%, 0%, 0.6) 30%, hsla(0, 0%, 100%, 0.2) 100%);
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+}
+
+.meal-image {
+    width: inherit;
+    height: inherit;
+    border-radius: 20px;
+}
+
+.meal-image-main-text {
+    position: absolute;
+    bottom: 1rem;
+    left: 0;
+    width: 100%;
+    font-size: 1.5rem;
+    text-align: center;
+    font-weight: bold;
+}

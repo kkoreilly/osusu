@@ -222,7 +222,7 @@ func (e *entry) ConfirmDelete(ctx app.Context, event app.Event) {
 	}
 	SetCurrentEntry(Entry{}, ctx)
 
-	Navigate("/entries", ctx)
+	ReturnToReturnURL(ctx, event)
 }
 
 func (e *entry) CancelDelete(ctx app.Context, event app.Event) {
