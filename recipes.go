@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"html"
 	"log"
 	"net/http"
 	"os"
@@ -15,16 +16,21 @@ import (
 
 // A Recipe is an external recipe that can be used for new meal recommendations
 type Recipe struct {
-	Name string
-	// Ingredients string
-	URL         string
-	Image       string
-	TotalTime   string
-	PrepTime    string
-	CookTime    string
-	Source      string
-	Description string
-	Score       Score
+	Name         string
+	URL          string
+	Description  string
+	Image        string
+	Ingredients  string
+	TotalTime    string
+	PrepTime     string
+	CookTime     string
+	RatingValue  string
+	RatingCount  string
+	RatingScore  int `json:"-"`
+	RatingWeight int `json:"-"`
+	Source       string
+
+	Score Score
 }
 
 // Recipes is a slice of multiple recipes
@@ -42,8 +48,8 @@ func SetCurrentRecipe(recipe Recipe, ctx app.Context) {
 	ctx.SetState("currentRecipe", recipe, app.Persist)
 }
 
-// GetRecipes gets all of the recipes from the recipes.json file
-func GetRecipes() (Recipes, error) {
+// LoadRecipes gets all of the recipes from the recipes.json file
+func LoadRecipes() (Recipes, error) {
 	recipes := Recipes{}
 	b, err := os.ReadFile("web/recipes.json")
 	if err != nil {
@@ -52,6 +58,32 @@ func GetRecipes() (Recipes, error) {
 	err = json.Unmarshal(b, &recipes)
 	if err != nil {
 		return nil, err
+	}
+	for i, recipe := range recipes {
+		if recipe.RatingValue == "" {
+			continue
+		}
+		ratingValue, err := strconv.ParseFloat(recipe.RatingValue, 64)
+		if err != nil {
+			return nil, err
+		}
+		ratingCount, err := strconv.Atoi(recipe.RatingCount)
+		if err != nil {
+			return nil, err
+		}
+		recipe.RatingScore = int(100 * ratingValue / 5)
+		recipe.RatingWeight = ratingCount
+		if recipe.RatingWeight < 50 {
+			recipe.RatingWeight = 50
+		}
+		if recipe.RatingWeight > 150 {
+			recipe.RatingWeight = 150
+		}
+		// unescape strings because they were escaped to encode in json
+		recipe.Name = html.UnescapeString(recipe.Name)
+		recipe.Description = html.UnescapeString(recipe.Description)
+		recipe.Ingredients = html.UnescapeString(recipe.Ingredients)
+		recipes[i] = recipe
 	}
 	return recipes, nil
 }
@@ -226,6 +258,7 @@ func RecommendRecipes(data RecommendRecipesData) Recipes {
 
 		score := AverageScore(recipeScores)
 		score.Total += numMatches * numUniqueMatches
+		score.Total = (100*score.Total + recipe.RatingWeight*recipe.RatingScore) / (100 + recipe.RatingWeight)
 
 		scores = append(scores, score)
 	}

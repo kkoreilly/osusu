@@ -183,7 +183,7 @@ func (h *home) Render() app.UI {
 						if recipe.Image == "" {
 							return app.Text("")
 						}
-						return MealImage().ID("home-page-recipe-" + si).Class("home-page-recipe").Img(recipe.Image).MainText(recipe.Name).Score(recipe.Score)
+						return MealImage().ID("home-page-recipe-" + si).Class("home-page-recipe").Img(recipe.Image).MainText(recipe.Name).Score(recipe.Score).OnClick(func(ctx app.Context, e app.Event) { h.RecipeOnClick(ctx, e, recipe) })
 					}),
 				),
 			),

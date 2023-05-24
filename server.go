@@ -67,18 +67,19 @@ func startServer() {
 		log.Println(err)
 	}
 
-	recipes, err := GetRecipes()
+	recipes, err := LoadRecipes()
 	allRecipes = recipes
 	if err != nil {
 		log.Println("load", err)
-	} else {
-		recipes = FixRecipeTimes(recipes)
-		log.Println(SaveRecipes(recipes))
 	}
-	t := time.Now()
-	wordMap := GenerateWordMap(recipes)
-	log.Println(time.Since(t))
-	log.Println(len(wordMap["spinach"]))
+	// } else {
+	// 	recipes = FixRecipeTimes(recipes)
+	// 	log.Println(SaveRecipes(recipes))
+	// }
+	// t := time.Now()
+	// wordMap := GenerateWordMap(recipes)
+	// log.Println(time.Since(t))
+	// log.Println(len(wordMap["spinach"]))
 	// estimate := EstimateValid(recipes)
 	// log.Println("(Estimate) Total Valid:", estimate, "Percent Valid:", strconv.Itoa(100*estimate/len(recipes))+"%")
 	// validRecipes := RemoveInvalidRecipes(recipes)
