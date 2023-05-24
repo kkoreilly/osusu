@@ -1,6 +1,7 @@
 .meal-image-container {
-    width: min(500px, 95vw);
+    width: min(300px, 95vw);
     height: auto;
+    min-height: 200px;
     border-radius: 20px;
     color: white;
     position: relative;
@@ -25,13 +26,22 @@
 
 .meal-image-info-container {
     display: flex;
+    flex-direction: row;
     align-items: center;
     justify-content: center;
+    position: absolute;
+    bottom: 1rem;
+    left: 0;
+    width: 100%;
 }
 
 .meal-image-main-text {
-    width: 100%;
+    width: 90%;
     font-size: 1.5rem;
     text-align: center;
     font-weight: bold;
+    position: absolute;
+    bottom: 40%;
+    left: 0;
+    margin: 0 5%;
 }

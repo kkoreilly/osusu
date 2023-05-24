@@ -175,7 +175,19 @@ func (h *home) Render() app.UI {
 				CheckboxSelect().ID("home-page-options-source").Label("Sources:").Default(map[string]bool{"Cooking": true, "Dine-In": true, "Takeout": true}).Value(&h.options.Source).Options(mealSources...).OnChange(h.SaveQuickOptions),
 				CheckboxSelect().ID("home-page-options-cuisine").Label("Cuisine:").Value(&h.options.Cuisine).Options(cuisines...),
 			),
-			MealImage().ID("test").Img("https://static01.nyt.com/images/2021/02/17/dining/17tootired-grilled-cheese/17tootired-grilled-cheese-articleLarge.jpg?quality=75&auto=webp&disable=upscale").MainText("Grilled Cheese").Score(Score{Total: 76}),
+			app.If(h.options.Mode == "Discover",
+				app.Div().ID("home-page-recipes-container").Body(
+					app.Range(h.recipes).Slice(func(i int) app.UI {
+						si := strconv.Itoa(i)
+						recipe := h.recipes[i]
+						if recipe.Image == "" {
+							return app.Text("")
+						}
+						return MealImage().ID("home-page-recipe-" + si).Class("home-page-recipe").Img(recipe.Image).MainText(recipe.Name).Score(recipe.Score)
+					}),
+				),
+			),
+			// MealImage().ID("test").Img("https://static01.nyt.com/images/2021/02/17/dining/17tootired-grilled-cheese/17tootired-grilled-cheese-articleLarge.jpg?quality=75&auto=webp&disable=upscale").MainText("Grilled Cheese").Score(Score{Total: 76}),
 			app.Table().ID("home-page-meals-table").Body(
 				app.THead().ID("home-page-meals-table-header").Body(
 					app.Tr().ID("home-page-meals-table-header-row").Body(
@@ -293,20 +305,20 @@ func (h *home) Render() app.UI {
 						app.Range(h.recipes).Slice(func(i int) app.UI {
 							si := strconv.Itoa(i)
 							recipe := h.recipes[i]
-							return MealImage().ID("home-page-recipe-" + si).Class("home-page-recipe-image").Img(recipe.Image).MainText(recipe.Name).Score(recipe.Score)
-							// return app.Tr().ID("home-page-recipe-"+si).Class("home-page-recipe home-page-meal").OnClick(func(ctx app.Context, e app.Event) { h.RecipeOnClick(ctx, e, recipe) }).Body(
-							// 	app.Td().ID("home-page-recipe-name-"+si).Class("home-page-meal-name").Text(recipe.Name),
-							// 	MealScore("home-page-recipe-total-"+si, "home-page-meal-total", recipe.Score.Total),
-							// 	MealScore("home-page-recipe-taste-"+si, "home-page-meal-taste", recipe.Score.Taste),
-							// 	MealScore("home-page-recipe-recency-"+si, "home-page-meal-recency", recipe.Score.Recency),
-							// 	MealScore("home-page-recipe-cost-"+si, "home-page-meal-cost", recipe.Score.Cost),
-							// 	MealScore("home-page-recipe-effort-"+si, "home-page-meal-effort", recipe.Score.Effort),
-							// 	MealScore("home-page-recipe-healthiness-"+si, "home-page-meal-healthiness", recipe.Score.Healthiness),
-							// 	app.If(!smallScreen,
-							// 		app.Td().ID("home-page-recipe-cuisines-"+si).Class("home-page-meal-cuisines").Text(""),
-							// 		app.Td().ID("home-page-recipe-description-"+si).Class("home-page-meal-description").Text(recipe.Description),
-							// 	),
-							// )
+							// return MealImage().ID("home-page-recipe-" + si).Class("home-page-recipe-image").Img(recipe.Image).MainText(recipe.Name).Score(recipe.Score)
+							return app.Tr().ID("home-page-recipe-"+si).Class("home-page-recipe home-page-meal").Style("--img", "url("+recipe.Image+")").OnClick(func(ctx app.Context, e app.Event) { h.RecipeOnClick(ctx, e, recipe) }).Body(
+								app.Td().ID("home-page-recipe-name-"+si).Class("home-page-meal-name").Text(recipe.Name),
+								MealScore("home-page-recipe-total-"+si, "home-page-meal-total", recipe.Score.Total),
+								MealScore("home-page-recipe-taste-"+si, "home-page-meal-taste", recipe.Score.Taste),
+								MealScore("home-page-recipe-recency-"+si, "home-page-meal-recency", recipe.Score.Recency),
+								MealScore("home-page-recipe-cost-"+si, "home-page-meal-cost", recipe.Score.Cost),
+								MealScore("home-page-recipe-effort-"+si, "home-page-meal-effort", recipe.Score.Effort),
+								MealScore("home-page-recipe-healthiness-"+si, "home-page-meal-healthiness", recipe.Score.Healthiness),
+								app.If(!smallScreen,
+									app.Td().ID("home-page-recipe-cuisines-"+si).Class("home-page-meal-cuisines").Text(""),
+									app.Td().ID("home-page-recipe-description-"+si).Class("home-page-meal-description").Text(recipe.Description),
+								),
+							)
 						}),
 					),
 				),

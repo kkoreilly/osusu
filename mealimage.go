@@ -17,8 +17,8 @@ type MealImageCompo struct {
 func (m *MealImageCompo) Render() app.UI {
 	return app.Div().ID(m.id+"-meal-image-container").Class("meal-image-container", m.class).Body(
 		app.Img().ID(m.id+"-meal-image").Class("meal-image").Src(m.img),
+		app.Span().ID(m.id+"-meal-image-main-text").Class("meal-image-main-text").Text(m.mainText),
 		app.Div().ID(m.id+"-meal-image-info-container").Class("meal-image-info-container").Body(
-			app.Span().ID(m.id+"-meal-image-main-text").Class("meal-image-main-text").Text(m.mainText),
 			MealScore(m.id+"-meal-image", "meal-image-score", m.score.Total),
 		),
 
