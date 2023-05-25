@@ -12,6 +12,8 @@ type Meal struct {
 	GroupID     int64
 	Name        string
 	Description string
+	Source      string
+	Image       string
 	Cuisine     []string
 }
 
@@ -171,6 +173,9 @@ func (m *meal) Render() app.UI {
 			app.Form().ID("meal-page-form").Class("form").OnSubmit(m.OnSubmit).Body(
 				TextInput().ID("meal-page-name").Label("Name:").Value(&m.meal.Name).AutoFocus(true),
 				Textarea().ID("meal-page-description").Label("Description:").Value(&m.meal.Description),
+				TextInput().ID("meal-page-source").Label("Source:").Value(&m.meal.Source),
+				// Button().ID("meal-page-view-source").Class("secondary").Value()
+				TextInput().ID("meal-page-image").Label("Image:").Value(&m.meal.Image),
 				CheckboxChips().ID("meal-page-cuisine").Label("Cuisines:").Value(&m.cuisine).Options(append(cuisines, "+")...).OnChange(m.CuisinesOnChange),
 				cuisinesDialog("meal-page", m.CuisinesDialogOnSave),
 				ButtonRow().ID("meal-page").Buttons(

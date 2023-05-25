@@ -193,7 +193,7 @@ func UpdateGroupDB(group Group) error {
 
 // GetMealsDB gets the meals from the database that are associated with the given group id
 func GetMealsDB(groupID int64) (Meals, error) {
-	statement := `SELECT id, name, description, cuisine FROM meals WHERE group_id=$1`
+	statement := `SELECT id, name, description, source, image, cuisine FROM meals WHERE group_id=$1`
 	rows, err := db.Query(statement, groupID)
 	if err != nil {
 		return nil, err
@@ -202,7 +202,7 @@ func GetMealsDB(groupID int64) (Meals, error) {
 	var res Meals
 	for rows.Next() {
 		var meal Meal
-		err := rows.Scan(&meal.ID, &meal.Name, &meal.Description, pq.Array(&meal.Cuisine))
+		err := rows.Scan(&meal.ID, &meal.Name, &meal.Description, &meal.Source, &meal.Image, pq.Array(&meal.Cuisine))
 		if err != nil {
 			return nil, err
 		}
@@ -213,9 +213,9 @@ func GetMealsDB(groupID int64) (Meals, error) {
 
 // CreateMealDB creates a meal in the database with the given information and returns the created meal if successful and an error if not
 func CreateMealDB(meal Meal) (Meal, error) {
-	statement := `INSERT INTO meals (group_id, name, description, cuisine)
-	VALUES ($1, $2, $3, $4) RETURNING id`
-	row := db.QueryRow(statement, meal.GroupID, meal.Name, meal.Description, pq.Array(meal.Cuisine))
+	statement := `INSERT INTO meals (group_id, name, description, source, image, cuisine)
+	VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`
+	row := db.QueryRow(statement, meal.GroupID, meal.Name, meal.Description, meal.Source, meal.Image, pq.Array(meal.Cuisine))
 	err := row.Scan(&meal.ID)
 	if err != nil {
 		return Meal{}, err
@@ -226,9 +226,9 @@ func CreateMealDB(meal Meal) (Meal, error) {
 // UpdateMealDB updates a meal in the database
 func UpdateMealDB(meal Meal) error {
 	statement := `UPDATE meals
-	SET name = $1, description = $2, cuisine = $3
-	WHERE id = $4`
-	_, err := db.Exec(statement, meal.Name, meal.Description, pq.Array(meal.Cuisine), meal.ID)
+	SET name = $1, description = $2, source = $3, image = $4, cuisine = $5
+	WHERE id = $6`
+	_, err := db.Exec(statement, meal.Name, meal.Description, meal.Source, meal.Image, pq.Array(meal.Cuisine), meal.ID)
 	return err
 }
 

@@ -19,6 +19,8 @@ type Recipe struct {
 	Name         string
 	URL          string
 	Description  string
+	Cuisine      string `json:"recipeCuisine"`
+	Category     string `json:"recipeCategory"`
 	Image        string
 	Ingredients  string
 	TotalTime    string
@@ -29,8 +31,7 @@ type Recipe struct {
 	RatingScore  int `json:"-"`
 	RatingWeight int `json:"-"`
 	Source       string
-
-	Score Score
+	Score        Score
 }
 
 // Recipes is a slice of multiple recipes

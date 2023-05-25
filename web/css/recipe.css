@@ -1,3 +1,14 @@
 #recipe-page-info-container>span {
     text-align: center;
 }
+
+#recipe-page-image {
+    border-radius: 10px;
+    width: auto;
+    height: 350px;
+}
+
+.page-container[data-small-screen="true"] #recipe-page-image {
+    width: 95vw;
+    height: auto;
+}
