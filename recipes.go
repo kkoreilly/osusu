@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
 )
@@ -19,23 +20,49 @@ type Recipe struct {
 	Name         string
 	URL          string
 	Description  string
-	Cuisine      string `json:"recipeCuisine"`
-	Category     string `json:"recipeCategory"`
 	Image        string
-	Ingredients  string
+	Category     []string
+	Cuisine      []string
+	Ingredients  []string
 	TotalTime    string
 	PrepTime     string
 	CookTime     string
 	RatingValue  string
 	RatingCount  string
-	RatingScore  int `json:"-"`
-	RatingWeight int `json:"-"`
+	RatingScore  int
+	RatingWeight int
+	Nutrition    Nutrition
 	Source       string
 	Score        Score
 }
 
 // Recipes is a slice of multiple recipes
 type Recipes []Recipe
+
+// Nutrition represents the nutritional information of a recipe
+type Nutrition struct {
+	Calories       int // unit: Calories (kcal)
+	Carbohydrate   int // g
+	Cholesterol    int // mg
+	Fiber          int // g
+	Protein        int // g
+	Fat            int // g
+	SaturatedFat   int // g
+	UnsaturatedFat int // g
+	Sodium         int // mg
+	Sugar          int // g
+}
+
+// ParseInt parses the given int string into an int, ignoring all non-numeric characters in the string
+func ParseInt(nutrition string) (int, error) {
+	runes := []rune{}
+	for _, r := range nutrition {
+		if unicode.IsDigit(r) {
+			runes = append(runes, r)
+		}
+	}
+	return strconv.Atoi(string(runes))
+}
 
 // CurrentRecipe returns the current recipe value from local storage
 func CurrentRecipe(ctx app.Context) Recipe {
@@ -83,7 +110,7 @@ func LoadRecipes() (Recipes, error) {
 		// unescape strings because they were escaped to encode in json
 		recipe.Name = html.UnescapeString(recipe.Name)
 		recipe.Description = html.UnescapeString(recipe.Description)
-		recipe.Ingredients = html.UnescapeString(recipe.Ingredients)
+		// recipe.Ingredients = html.UnescapeString(recipe.Ingredients)
 		recipes[i] = recipe
 	}
 	return recipes, nil
@@ -283,14 +310,20 @@ func RecommendRecipes(data RecommendRecipesData) Recipes {
 	return res
 }
 
-// ParseDuration parses an ISO 8601 duration (the format used in the recipes source)
-func ParseDuration(duration string) (time.Duration, error) {
+// FormatDuration converts an ISO 8601 duration to a Go-formatted duration
+func FormatDuration(duration string) string {
 	// remove PT at start
 	if len(duration) > 2 {
 		duration = duration[2:]
 	}
 	// change H, M, etc to h, m, etc
 	duration = strings.ToLower(duration)
+	return duration
+}
+
+// ParseDuration parses an ISO 8601 duration (the format used in the recipes source)
+func ParseDuration(duration string) (time.Duration, error) {
+	duration = FormatDuration(duration)
 	return time.ParseDuration(duration)
 }
 

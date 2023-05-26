@@ -66,6 +66,12 @@ func startServer() {
 	if err != nil {
 		log.Println(err)
 	}
+	// if we have scrape flag, scrape
+	for _, arg := range os.Args {
+		if arg == "scrape" {
+			ScrapeAllRecipes()
+		}
+	}
 
 	recipes, err := LoadRecipes()
 	allRecipes = recipes

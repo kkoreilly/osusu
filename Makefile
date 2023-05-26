@@ -7,6 +7,5 @@ build:
 run: build
 	./osusu
 
-scrape:
-	go build -o scraper/scraper ./scraper/ 
-	./scraper/scraper 
+scrape: build
+	./osusu scrape
