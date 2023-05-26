@@ -27,8 +27,8 @@ type Recipe struct {
 	TotalTime    string
 	PrepTime     string
 	CookTime     string
-	RatingValue  string
-	RatingCount  string
+	RatingValue  float64 // out of 5
+	RatingCount  int
 	RatingScore  int
 	RatingWeight int
 	Nutrition    Nutrition
@@ -53,8 +53,8 @@ type Nutrition struct {
 	Sugar          int // g
 }
 
-// ParseInt parses the given int string into an int, ignoring all non-numeric characters in the string
-func ParseInt(nutrition string) (int, error) {
+// AtoiIgnore parses the given int string into an int, ignoring all non-numeric characters in the string
+func AtoiIgnore(nutrition string) (int, error) {
 	runes := []rune{}
 	for _, r := range nutrition {
 		if unicode.IsDigit(r) {
