@@ -4,6 +4,7 @@ import (
 	"net/url"
 	"strconv"
 	"time"
+	"unicode"
 
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
 )
@@ -61,12 +62,12 @@ func (p *Page) Render() app.UI {
 	// 	// homeButtonText = ""
 	// 	searchText, historyText, discoverText, installText, updateText = "", "", "", "", ""
 	// }
-	// nameFirstLetter := ""
-	// accountButtonIcon := "person"
-	// if len(CurrentPage.user.Name) > 0 {
-	// 	nameFirstLetter = string(unicode.ToUpper(rune(CurrentPage.user.Name[0])))
-	// 	accountButtonIcon = ""
-	// }
+	nameFirstLetter := ""
+	accountButtonIcon := "person"
+	if len(CurrentPage.user.Name) > 0 {
+		nameFirstLetter = string(unicode.ToUpper(rune(CurrentPage.user.Name[0])))
+		accountButtonIcon = ""
+	}
 	// we display nav bar on top on big screen and on bottom on small screen, so we need to have it as separate thing that is easy to insert
 	navBar := app.Div().ID(p.ID+"-page-nav-bar").Class("page-nav-bar").Body(
 		// Button().ID(p.ID+"-page-nav-bar-home").Class("nav-bar").Icon("home").Text(homeButtonText).OnClick(NavigateEvent("/")),
@@ -88,13 +89,17 @@ func (p *Page) Render() app.UI {
 	)
 	return app.Div().ID(p.ID+"-page-container").Class("page-container").DataSet("small-screen", smallScreen).OnClick(p.OnClickEvent).Body(
 		app.Header().ID(p.ID+"-page-header").Class("page-header").Body(
-		// navBar,
+		// app.Div().ID(p.ID+"-page-top-bar").Class("page-top-bar", "page-nav-bar").Body(
+		// 	Button().ID(p.ID+"-page-top-bar-update").Class("nav-bar").Icon("update").Text("Update").OnClick(p.UpdateApp).Hidden(!CurrentPage.updateAvailable),
+		// 	Button().ID(p.ID+"-page-top-bar-install").Class("nav-bar").Icon(installIcon).Text("Install").OnClick(p.InstallApp).Hidden(!CurrentPage.installAvailable),
+		// ),
 		),
 		app.Main().ID(p.ID+"-page-main").Class("page-main").Body(
 			app.Dialog().ID(p.ID+"-page-status").Class("page-status").DataSet("status-type", p.statusType).Body(
 				app.Span().ID(p.ID+"-page-status-text").Class("page-status-text").Text(p.statusText),
 				Button().ID(p.ID+"page-status-close-button").Class("page-status-close").Icon("close").OnClick(p.ClosePageStatus),
 			),
+			Button().ID(p.ID+"-page-top-bar-account").Class("top-bar-account").Icon(accountButtonIcon).Text(nameFirstLetter).OnClick(NavigateEvent("/account")),
 			app.If(p.TitleElement != "", app.H1().ID(p.ID+"-page-title").Class("page-title").Text(p.TitleElement)),
 			app.If(p.SubtitleElement != "", app.P().ID(p.ID+"-page-subtitle").Class("page-subtitle").Text(p.SubtitleElement)),
 			app.If(true, elements...),

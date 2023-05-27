@@ -175,18 +175,18 @@ func (h *home) Render() app.UI {
 				CheckboxSelect().ID("home-page-options-source").Label("Sources:").Default(map[string]bool{"Cooking": true, "Dine-In": true, "Takeout": true}).Value(&h.options.Source).Options(mealSources...).OnChange(h.SaveQuickOptions),
 				CheckboxSelect().ID("home-page-options-cuisine").Label("Cuisine:").Value(&h.options.Cuisine).Options(cuisines...),
 			),
-			app.If(h.options.Mode == "Discover",
-				app.Div().ID("home-page-recipes-container").Body(
-					app.Range(h.recipes).Slice(func(i int) app.UI {
-						si := strconv.Itoa(i)
-						recipe := h.recipes[i]
-						if recipe.Image == "" {
-							return app.Text("")
-						}
-						return MealImage().ID("home-page-recipe-" + si).Class("home-page-recipe").Img(recipe.Image).MainText(recipe.Name).Score(recipe.Score).OnClick(func(ctx app.Context, e app.Event) { h.RecipeOnClick(ctx, e, recipe) })
-					}),
-				),
-			),
+			// app.If(h.options.Mode == "Discover",
+			// 	app.Div().ID("home-page-recipes-container").Body(
+			// 		app.Range(h.recipes).Slice(func(i int) app.UI {
+			// 			si := strconv.Itoa(i)
+			// 			recipe := h.recipes[i]
+			// 			if recipe.Image == "" {
+			// 				return app.Text("")
+			// 			}
+			// 			return MealImage().ID("home-page-recipe-" + si).Class("home-page-recipe").Img(recipe.Image).MainText(recipe.Name).Score(recipe.Score).OnClick(func(ctx app.Context, e app.Event) { h.RecipeOnClick(ctx, e, recipe) })
+			// 		}),
+			// 	),
+			// ),
 			// MealImage().ID("test").Img("https://static01.nyt.com/images/2021/02/17/dining/17tootired-grilled-cheese/17tootired-grilled-cheese-articleLarge.jpg?quality=75&auto=webp&disable=upscale").MainText("Grilled Cheese").Score(Score{Total: 76}),
 			app.Table().ID("home-page-meals-table").Body(
 				app.THead().ID("home-page-meals-table-header").Body(

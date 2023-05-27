@@ -2,39 +2,49 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
+	"os"
 	"strconv"
+	"time"
+	"unicode"
 
 	"github.com/gocolly/colly/v2"
 )
 
 // AllRecipesData contains the data from the allrecipes.com recipe information json text
 type AllRecipesData struct {
-	Type             []any `json:"@type"`
+	Type             []string `json:"@type"`
 	Name             string
 	Description      string
 	Image            map[string]any
-	RecipeCategory   []any
-	RecipeCuisine    []any
-	RecipeIngredient []any
+	Author           []map[string]string
+	DatePublished    string
+	DateModified     string
+	RecipeCategory   []string
+	RecipeCuisine    []string
+	RecipeIngredient []string
 	TotalTime        string
 	PrepTime         string
 	CookTime         string
-	AggregateRating  map[string]any
-	Nutrition        map[string]any
+	RecipeYield      []string
+	AggregateRating  map[string]string
+	Nutrition        map[string]string
 }
 
 // ScrapeAllRecipes crawls allrecipes.com and saves the recipes it scrapes to web/data/allrecipes.csv
 func ScrapeAllRecipes() {
 	c := colly.NewCollector(colly.AllowedDomains("www.allrecipes.com"))
 
+	recipes := []Recipe{}
+
 	c.OnXML("//sitemapindex/sitemap/loc", func(e *colly.XMLElement) {
 		e.Request.Visit(e.Text)
 	})
 
-	total := 0
 	c.OnXML("//urlset/url/loc", func(e *colly.XMLElement) {
+		// if len(recipes) > 100 {
+		// 	return
+		// }
 		e.Request.Visit(e.Text)
 	})
 
@@ -47,158 +57,75 @@ func ScrapeAllRecipes() {
 			return
 		}
 		data := initialData[0]
+		// check if it is actually recipe
+		gotType := false
+		for _, typ := range data.Type {
+			if typ == "Recipe" {
+				gotType = true
+			}
+		}
+		if !gotType {
+			log.Println("discarding", e.Request.URL, "because no type Recipe in", data.Type)
+			return
+		}
+		author := ""
+		for i, v := range data.Author {
+			author += v["name"]
+			if i != len(data.Author)-1 {
+				author += " "
+			}
+		}
+		yield := ""
+		if len(data.RecipeYield) > 0 {
+			yield = data.RecipeYield[0]
+		}
+		datePublished, _ := time.Parse(time.RFC3339, data.DatePublished)
+		dateModified, _ := time.Parse(time.RFC3339, data.DateModified)
+		// NOTE: the reason we force many things and ignore errors is that some recipes have some data missing, and if they do, we still want to use them and we don't care about the errors
 		recipe := Recipe{
-			Name:        data.Name,
-			URL:         e.Request.URL.String(),
-			Description: data.Description,
-			Image:       ForceType[string](data.Image["url"]),
-			Category:    ForceSliceType[string](data.RecipeCategory),
-			Cuisine:     ForceSliceType[string](data.RecipeCuisine),
-			Ingredients: ForceSliceType[string](data.RecipeCategory),
-			TotalTime:   FormatDuration(data.TotalTime),
-			PrepTime:    FormatDuration(data.PrepTime),
-			CookTime:    FormatDuration(data.CookTime),
-			RatingValue: ForceTypeFunc(data.AggregateRating["ratingValue"], func(value string) (float64, error) { return strconv.ParseFloat(value, 64) }),
-			RatingCount: ForceTypeFunc(data.AggregateRating["ratingCount"], strconv.Atoi),
+			Name:          data.Name,
+			URL:           e.Request.URL.String(),
+			Description:   data.Description,
+			Image:         ForceType[string](data.Image["url"]),
+			Author:        author,
+			DatePublished: datePublished,
+			DateModified:  dateModified,
+			Category:      data.RecipeCategory,
+			Cuisine:       data.RecipeCuisine,
+			Ingredients:   data.RecipeIngredient,
+			TotalTime:     FormatDuration(data.TotalTime),
+			PrepTime:      FormatDuration(data.PrepTime),
+			CookTime:      FormatDuration(data.CookTime),
+			Yield:         ForceFunc(yield, AtoiIgnore),
+			RatingValue:   ForceFunc(data.AggregateRating["ratingValue"], ParseFloat64),
+			RatingCount:   ForceFunc(data.AggregateRating["ratingCount"], AtoiIgnore),
 			Nutrition: Nutrition{
-				Calories: ForceTypeFunc(data.Nutrition["calories"], AtoiIgnore),
+				Calories:       ForceFunc(data.Nutrition["calories"], AtoiIgnore),
+				Carbohydrate:   ForceFunc(data.Nutrition["carbohydrateContent"], AtoiIgnore),
+				Cholesterol:    ForceFunc(data.Nutrition["cholesterolContent"], AtoiIgnore),
+				Fiber:          ForceFunc(data.Nutrition["fiberContent"], AtoiIgnore),
+				Protein:        ForceFunc(data.Nutrition["proteinContent"], AtoiIgnore),
+				Fat:            ForceFunc(data.Nutrition["fatContent"], AtoiIgnore),
+				SaturatedFat:   ForceFunc(data.Nutrition["saturatedFatContent"], AtoiIgnore),
+				UnsaturatedFat: ForceFunc(data.Nutrition["unsaturatedFatContent"], AtoiIgnore),
+				Sodium:         ForceFunc(data.Nutrition["sodiumContent"], AtoiIgnore),
+				Sugar:          ForceFunc(data.Nutrition["sugarContent"], AtoiIgnore),
 			},
 		}
-		log.Println("got recipe", recipe)
-		// // check if it is actually a recipe
-		// types, ok := data["@type"].([]any)
-		// if !ok {
-		// 	log.Println("discarded", e.Request.URL, "because couldn't load type")
-		// 	return
-		// }
-		// gotType := false
-		// for _, typ := range types {
-		// 	if typ == "Recipe" {
-		// 		gotType = true
-		// 	}
-		// }
-		// if !gotType {
-		// 	log.Println("discarded", e.Request.URL, "because type", types, "does not contain Recipe")
-		// 	return
-		// }
-		// recipe := Recipe{}
-		// recipe.URL = e.Request.URL.String()
-		// recipe.Name, ok = data["name"].(string)
-		// if !ok {
-		// 	log.Println("discarded", e.Request.URL, "because couldn't load name")
-		// 	return
-		// }
-		// recipe.Description, ok = data["description"].(string)
-		// if !ok {
-		// 	log.Println("discarded", e.Request.URL, "because couldn't load description")
-		// 	return
-		// }
-		// // image is map with url as object, so need to do this
-		// image, ok := data["image"].(map[string]any)
-		// if !ok {
-		// 	log.Println("discarded", e.Request.URL, "because couldn't load image")
-		// 	return
-		// }
-		// recipe.Image, ok = image["url"].(string)
-		// if !ok {
-		// 	log.Println("discarded", e.Request.URL, "because couldn't load image URL")
-		// 	return
-		// }
-		// // categories are a slice of any, so we need to loop over to get in terms of slice of strings
-		// categories, ok := data["recipeCategory"].([]any)
-		// if !ok {
-		// 	log.Println("discarded", e.Request.URL, "because couldn't load category")
-		// 	return
-		// }
-		// recipe.Category = []string{}
-		// for _, category := range categories {
-		// 	categoryString, ok := category.(string)
-		// 	if !ok {
-		// 		continue
-		// 	}
-		// 	recipe.Category = append(recipe.Category, categoryString)
-		// }
-		// // cuisines are also a slice of any, so we need to loop over to get in terms of slice of strings
-		// cuisines, ok := data["recipeCuisine"].([]any)
-		// if !ok {
-		// 	log.Println("discarded", e.Request.URL, "because couldn't load cuisine")
-		// 	return
-		// }
-		// recipe.Cuisine = []string{}
-		// for _, cuisine := range cuisines {
-		// 	cuisineString, ok := cuisine.(string)
-		// 	if !ok {
-		// 		continue
-		// 	}
-		// 	recipe.Cuisine = append(recipe.Cuisine, cuisineString)
-		// }
-		// // for ingredients, once again need to loop over slice of any to get slice of strings
-		// ingredients, ok := data["recipeIngredient"].([]any)
-		// if !ok {
-		// 	log.Println("discarded", e.Request.URL, "because couldn't load ingredients")
-		// 	return
-		// }
-		// recipe.Ingredients = []string{}
-		// for _, ingredient := range ingredients {
-		// 	ingredientString, ok := ingredient.(string)
-		// 	if !ok {
-		// 		continue
-		// 	}
-		// 	recipe.Ingredients = append(recipe.Ingredients, ingredientString)
-		// }
-		// recipe.TotalTime, ok = data["totalTime"].(string)
-		// if !ok {
-		// 	log.Println("discarded", e.Request.URL, "because couldn't load total time")
-		// 	return
-		// }
-		// recipe.TotalTime = FormatDuration(recipe.TotalTime)
-		// recipe.PrepTime, ok = data["prepTime"].(string)
-		// if !ok {
-		// 	log.Println("discarded", e.Request.URL, "because couldn't load prep time")
-		// 	return
-		// }
-		// recipe.PrepTime = FormatDuration(recipe.PrepTime)
-		// recipe.CookTime, ok = data["cookTime"].(string)
-		// if !ok {
-		// 	log.Println("discarded", e.Request.URL, "because couldn't load cook time")
-		// 	return
-		// }
-		// recipe.CookTime = FormatDuration(recipe.CookTime)
-		// rating, ok := data["aggregateRating"].(map[string]any)
-		// if !ok {
-		// 	log.Println("discarded", e.Request.URL, "because couldn't load rating")
-		// 	return
-		// }
-		// recipe.RatingValue, ok = rating["ratingValue"].(string)
-		// if !ok {
-		// 	log.Println("discarded", e.Request.URL, "because couldn't load rating value")
-		// 	return
-		// }
-		// recipe.RatingCount, ok = rating["ratingCount"].(string)
-		// if !ok {
-		// 	log.Println("discarded", e.Request.URL, "because couldn't load rating count")
-		// 	return
-		// }
-		// nutrition, ok := data["nutrition"].(map[string]any)
-		// if !ok {
-		// 	log.Println("discarded", e.Request.URL, "because couldn't load nutrition information")
-		// 	return
-		// }
-		// calories, ok := nutrition["calories"].(string)
-		// if !ok {
-		// 	log.Println("discarded", e.Request.URL, "because couldn't load calories")
-		// 	return
-		// }
-		// recipe.Nutrition.Calories, err = ParseInt(calories)
-		// if err != nil {
-		// 	log.Println("discarded", e.Request.URL, "because error with parsing calories:", err)
-		// 	return
-		// }
-		// log.Println("got recipe:", recipe)
+		recipes = append(recipes, recipe)
+		log.Println("got recipe, total recipes:", len(recipes), "new recipe:", recipe)
 	})
 
 	c.Visit("https://www.allrecipes.com/sitemap.xml")
-	fmt.Println(total)
+
+	data, err := json.Marshal(recipes)
+	if err != nil {
+		log.Println("failed to save as json because", err)
+	}
+	err = os.WriteFile("web/data/allrecipes.json", data, 0666)
+	if err != nil {
+		log.Println("failed to save json to file because", err)
+	}
 }
 
 // ForceType converts the given value to the given type and returns the zero value of the given type if the value can not be converted
@@ -206,6 +133,12 @@ func ForceType[T any](value any) T {
 	// need to catch ok value to prevent panic even if we don't use it
 	val, _ := value.(T)
 	return val
+}
+
+// ForceFunc calls the given function with the given value and returns the result, ignoring any error.
+func ForceFunc[I, O any](value I, fun func(value I) (O, error)) O {
+	res, _ := fun(value)
+	return res
 }
 
 // ForceTypeFunc converts the given value to the given type T by first converting the value to type I and then calling the given function with that value. If the function returns an error, ForceTypeFunc returns the zero value of the given type.
@@ -224,4 +157,20 @@ func ForceSliceType[T any](value []any) []T {
 		res[i] = val
 	}
 	return res
+}
+
+// AtoiIgnore parses the given int string into an int, ignoring all non-numeric characters in the string
+func AtoiIgnore(nutrition string) (int, error) {
+	runes := []rune{}
+	for _, r := range nutrition {
+		if unicode.IsDigit(r) {
+			runes = append(runes, r)
+		}
+	}
+	return strconv.Atoi(string(runes))
+}
+
+// ParseFloat64 parses the given string as a float64
+func ParseFloat64(s string) (float64, error) {
+	return strconv.ParseFloat(s, 64)
 }

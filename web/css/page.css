@@ -22,6 +22,7 @@ html,
 
 .page-nav-bar {
     width: 100%;
+    height: 4rem;
     background-color: var(--color-one);
     display: flex;
     justify-content: space-evenly;

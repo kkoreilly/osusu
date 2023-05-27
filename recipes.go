@@ -10,30 +10,33 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"unicode"
 
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
 )
 
 // A Recipe is an external recipe that can be used for new meal recommendations
 type Recipe struct {
-	Name         string
-	URL          string
-	Description  string
-	Image        string
-	Category     []string
-	Cuisine      []string
-	Ingredients  []string
-	TotalTime    string
-	PrepTime     string
-	CookTime     string
-	RatingValue  float64 // out of 5
-	RatingCount  int
-	RatingScore  int
-	RatingWeight int
-	Nutrition    Nutrition
-	Source       string
-	Score        Score
+	Name          string
+	URL           string
+	Description   string
+	Image         string
+	Author        string
+	DatePublished time.Time
+	DateModified  time.Time
+	Category      []string
+	Cuisine       []string
+	Ingredients   []string
+	TotalTime     string
+	PrepTime      string
+	CookTime      string
+	Yield         int
+	RatingValue   float64 // out of 5
+	RatingCount   int
+	RatingScore   int `json:"-"`
+	RatingWeight  int `json:"-"`
+	Nutrition     Nutrition
+	Source        string `json:"-"`
+	Score         Score  `json:"-"`
 }
 
 // Recipes is a slice of multiple recipes
@@ -51,17 +54,6 @@ type Nutrition struct {
 	UnsaturatedFat int // g
 	Sodium         int // mg
 	Sugar          int // g
-}
-
-// AtoiIgnore parses the given int string into an int, ignoring all non-numeric characters in the string
-func AtoiIgnore(nutrition string) (int, error) {
-	runes := []rune{}
-	for _, r := range nutrition {
-		if unicode.IsDigit(r) {
-			runes = append(runes, r)
-		}
-	}
-	return strconv.Atoi(string(runes))
 }
 
 // CurrentRecipe returns the current recipe value from local storage
@@ -88,19 +80,8 @@ func LoadRecipes() (Recipes, error) {
 		return nil, err
 	}
 	for i, recipe := range recipes {
-		if recipe.RatingValue == "" {
-			continue
-		}
-		ratingValue, err := strconv.ParseFloat(recipe.RatingValue, 64)
-		if err != nil {
-			return nil, err
-		}
-		ratingCount, err := strconv.Atoi(recipe.RatingCount)
-		if err != nil {
-			return nil, err
-		}
-		recipe.RatingScore = int(100 * ratingValue / 5)
-		recipe.RatingWeight = ratingCount
+		recipe.RatingScore = int(100 * recipe.RatingValue / 5)
+		recipe.RatingWeight = recipe.RatingCount
 		if recipe.RatingWeight < 50 {
 			recipe.RatingWeight = 50
 		}
