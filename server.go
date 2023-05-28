@@ -6,6 +6,7 @@ import (
 	"crypto/subtle"
 	"encoding/base64"
 	"encoding/hex"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -20,7 +21,7 @@ const (
 	APIPassword = "gbx5T3*UJSALdxAES$n@w2m6b4o949XKMHsApk@Zt4&q3cf$37Jvf#g4#nd95hSnc4K%#h!JD9ifSkDhQyPMT@brtuU!cFxBJwny!ukC$s^ZVPdPzkJm8DvX4bK7to7d"
 )
 
-// allRecipes are all of the recipes in the web/recipes.json file
+// allRecipes are all of the recipes external recipes stored in the web/data/recipes.json file
 var allRecipes Recipes
 
 func startServer() {
@@ -74,10 +75,16 @@ func startServer() {
 	}
 
 	recipes, err := LoadRecipes()
-	allRecipes = recipes
 	if err != nil {
-		log.Println("load", err)
+		log.Println(fmt.Errorf("error loading recipes: %w", err))
 	}
+	allRecipes = recipes
+	allRecipes = allRecipes.ComputeBaseScores()
+	log.Println(allRecipes.CountCategories())
+	log.Println(allRecipes.CountCuisines())
+	// for _, recipe := range allRecipes {
+	// 	log.Println(recipe.BaseScore)
+	// }
 	// } else {
 	// 	recipes = FixRecipeTimes(recipes)
 	// 	log.Println(SaveRecipes(recipes))

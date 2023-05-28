@@ -38,7 +38,7 @@ func (h *home) Render() app.UI {
 	// need to sort so options don't keep swapping
 	sort.Strings(cuisines)
 	width, _ := app.Window().Size()
-	smallScreen := width <= 480
+	// smallScreen := width <= 480
 	nFit := (width - 80) / 50
 	log.Println("nFit", nFit)
 	subtitleText := ""
@@ -175,154 +175,212 @@ func (h *home) Render() app.UI {
 				CheckboxSelect().ID("home-page-options-source").Label("Sources:").Default(map[string]bool{"Cooking": true, "Dine-In": true, "Takeout": true}).Value(&h.options.Source).Options(mealSources...).OnChange(h.SaveQuickOptions),
 				CheckboxSelect().ID("home-page-options-cuisine").Label("Cuisine:").Value(&h.options.Cuisine).Options(cuisines...),
 			),
-			// app.If(h.options.Mode == "Discover",
-			// 	app.Div().ID("home-page-recipes-container").Body(
-			// 		app.Range(h.recipes).Slice(func(i int) app.UI {
-			// 			si := strconv.Itoa(i)
-			// 			recipe := h.recipes[i]
-			// 			if recipe.Image == "" {
-			// 				return app.Text("")
-			// 			}
-			// 			return MealImage().ID("home-page-recipe-" + si).Class("home-page-recipe").Img(recipe.Image).MainText(recipe.Name).Score(recipe.Score).OnClick(func(ctx app.Context, e app.Event) { h.RecipeOnClick(ctx, e, recipe) })
-			// 		}),
+			app.Div().ID("home-page-meals-container").Hidden(h.options.Mode != "Search").Body(
+				app.Range(h.meals).Slice(func(i int) app.UI {
+					si := strconv.Itoa(i)
+					meal := h.meals[i]
+					entries := h.entriesForEachMeal[meal.ID]
+
+					// check if at least one cuisine satisfies a cuisine requirement (or there is no cuisine set)
+					gotCuisine := len(meal.Cuisine) == 0
+					for _, mealCuisine := range meal.Cuisine {
+						for optionCuisine, value := range h.options.Cuisine {
+							if value && mealCuisine == optionCuisine {
+								gotCuisine = true
+							}
+						}
+					}
+					if !gotCuisine {
+						return app.Text("")
+					}
+
+					// check if at least one entry satisfies the type and source requirements if there is at least one entry.
+					if len(entries) > 0 {
+						gotType := h.options.Type == "Any"
+						gotSource := false
+						for _, entry := range entries {
+							if entry.Type == h.options.Type {
+								gotType = true
+							}
+							if h.options.Source[entry.Source] {
+								gotSource = true
+							}
+						}
+						if !(gotType && gotSource) {
+							return app.Text("")
+						}
+					}
+					score := meal.Score(entries, h.options)
+					// scoreText := strconv.Itoa(score.Total)
+					// isCurrentMeal := meal.ID == h.currentMeal.ID
+					return MealImage().ID("home-page-meal-" + si).Class("home-page-meal").Img(meal.Image).MainText(meal.Name).SecondaryText("").Score(score).OnClick(func(ctx app.Context, e app.Event) { h.MealOnClick(ctx, e, meal) })
+				}),
+			),
+			app.Div().ID("home-page-recipes-container").Hidden(h.options.Mode != "Discover").Body(
+				app.Range(h.recipes).Slice(func(i int) app.UI {
+					si := strconv.Itoa(i)
+					recipe := h.recipes[i]
+					// only put • between category and cuisine if both exist
+					secondaryText := ""
+					if len(recipe.Category) != 0 && len(recipe.Cuisine) != 0 {
+						secondaryText = ListString(recipe.Category) + " • " + ListString(recipe.Cuisine)
+					} else {
+						secondaryText = ListString(recipe.Category) + ListString(recipe.Cuisine)
+					}
+					return MealImage().ID("home-page-recipe-" + si).Class("home-page-recipe").Img(recipe.Image).MainText(recipe.Name).SecondaryText(secondaryText).Score(recipe.Score).OnClick(func(ctx app.Context, e app.Event) { h.RecipeOnClick(ctx, e, recipe) })
+				}),
+			),
+			app.Div().ID("home-page-entries-container").Hidden(h.options.Mode != "History").Body(
+				app.Range(h.entries).Slice(func(i int) app.UI {
+					si := strconv.Itoa(i)
+					entry := h.entries[i]
+					score := entry.Score(h.options)
+					entryMeal := Meal{}
+					for _, meal := range h.meals {
+						if meal.ID == entry.MealID {
+							entryMeal = meal
+							break
+						}
+					}
+					return MealImage().ID("home-page-entry-" + si).Class("home-page-entry").Img(entryMeal.Image).MainText(entryMeal.Name).SecondaryText(entry.Date.Format("Monday, January 2, 2006")).Score(score).OnClick(func(ctx app.Context, e app.Event) { h.EntryOnClick(ctx, e, entry) })
+				}),
+			),
+			// MealImage().ID("test").Img("https://static01.nyt.com/images/2021/02/17/dining/17tootired-grilled-cheese/17tootired-grilled-cheese-articleLarge.jpg?quality=75&auto=webp&disable=upscale").MainText("Grilled Cheese").Score(Score{Total: 76}),
+			// app.Table().ID("home-page-meals-table").Body(
+			// 	app.THead().ID("home-page-meals-table-header").Body(
+			// 		app.Tr().ID("home-page-meals-table-header-row").Body(
+			// 			app.If(h.options.Mode == "History",
+			// 				app.Th().ID("home-page-meals-table-header-date").Text("Date"),
+			// 				app.Th().ID("home-page-meals-table-header-name").Text("Meal"),
+			// 			).Else(
+			// 				app.Th().ID("home-page-meals-table-header-name").Text("Name"),
+			// 			),
+			// 			app.Th().ID("home-page-meals-table-header-total").Class("table-header-score").Text("Total"),
+			// 			app.Th().ID("home-page-meals-table-header-taste").Class("table-header-score").Text("Taste"),
+			// 			app.If(h.options.Mode != "History",
+			// 				app.Th().ID("home-page-meals-table-header-recency").Class("table-header-score").Text("New"),
+			// 			),
+			// 			app.Th().ID("home-page-meals-table-header-cost").Class("table-header-score").Text("Cost"),
+			// 			app.Th().ID("home-page-meals-table-header-effort").Class("table-header-score").Text("Effort"),
+			// 			app.Th().ID("home-page-meals-table-header-healthiness").Class("table-header-score").Text("Health"),
+			// 			app.If(!smallScreen,
+			// 				app.If(h.options.Mode == "History",
+			// 					app.Th().ID("home-page-meals-table-header-type").Text("Type"),
+			// 					app.Th().ID("home-page-meals-table-header-source").Text("Source"),
+			// 				).Else(
+			// 					app.Th().ID("home-page-meals-table-header-cuisines").Text("Cuisines"),
+			// 					app.Th().ID("home-page-meals-table-header-description").Text("Description"),
+			// 				),
+			// 			),
+			// 		),
+			// 	),
+			// 	app.TBody().ID("home-page-meals-table-body").Body(
+			// 		app.If(h.options.Mode == "Search",
+			// 			app.Range(h.meals).Slice(func(i int) app.UI {
+			// 				meal := h.meals[i]
+			// 				si := strconv.Itoa(i)
+			// 				entries := h.entriesForEachMeal[meal.ID]
+
+			// 				// check if at least one cuisine satisfies a cuisine requirement (or there is no cuisine set)
+			// 				gotCuisine := len(meal.Cuisine) == 0
+			// 				for _, mealCuisine := range meal.Cuisine {
+			// 					for optionCuisine, value := range h.options.Cuisine {
+			// 						if value && mealCuisine == optionCuisine {
+			// 							gotCuisine = true
+			// 						}
+			// 					}
+			// 				}
+			// 				if !gotCuisine {
+			// 					return app.Text("")
+			// 				}
+
+			// 				// check if at least one entry satisfies the type and source requirements if there is at least one entry.
+			// 				if len(entries) > 0 {
+			// 					gotType := h.options.Type == "Any"
+			// 					gotSource := false
+			// 					for _, entry := range entries {
+			// 						if entry.Type == h.options.Type {
+			// 							gotType = true
+			// 						}
+			// 						if h.options.Source[entry.Source] {
+			// 							gotSource = true
+			// 						}
+			// 					}
+			// 					if !(gotType && gotSource) {
+			// 						return app.Text("")
+			// 					}
+			// 				}
+
+			// 				score := meal.Score(entries, h.options)
+			// 				colorH := strconv.Itoa((score.Total * 12) / 10)
+			// 				scoreText := strconv.Itoa(score.Total)
+			// 				// missingData := entries.MissingData(h.user)
+			// 				isCurrentMeal := meal.ID == h.currentMeal.ID
+			// 				return app.Tr().ID("home-page-meal-"+si).Class("home-page-meal").DataSet("current-meal", isCurrentMeal).Style("--color-h", colorH).Style("--score", scoreText+"%").
+			// 					OnClick(func(ctx app.Context, e app.Event) { h.MealOnClick(ctx, e, meal) }).Body(
+			// 					app.Td().ID("home-page-meal-name-"+si).Class("home-page-meal-name").Text(meal.Name),
+			// 					MealScore("home-page-meal-total-"+si, "home-page-meal-total", score.Total, "Total"),
+			// 					MealScore("home-page-meal-taste-"+si, "home-page-meal-taste", score.Taste, "Taste"),
+			// 					MealScore("home-page-meal-recency-"+si, "home-page-meal-recency", score.Recency, "Recency"),
+			// 					MealScore("home-page-meal-cost-"+si, "home-page-meal-cost", score.Cost, "Cost"),
+			// 					MealScore("home-page-meal-effort-"+si, "home-page-meal-effort", score.Effort, "Effort"),
+			// 					MealScore("home-page-meal-healthiness-"+si, "home-page-meal-healthiness", score.Healthiness, "Healthiness"),
+			// 					app.If(!smallScreen,
+			// 						app.Td().ID("home-page-meal-cuisines-"+si).Class("home-page-meal-cuisines").Text(ListString(meal.Cuisine)),
+			// 						app.Td().ID("home-page-meal-description-"+si).Class("home-page-meal-description").Text(meal.Description),
+			// 					),
+			// 				)
+			// 			}),
+			// 		).ElseIf(h.options.Mode == "History",
+			// 			app.Range(h.entries).Slice(func(i int) app.UI {
+			// 				si := strconv.Itoa(i)
+			// 				entry := h.entries[i]
+			// 				score := entry.Score(h.options)
+			// 				entryMeal := Meal{}
+			// 				for _, meal := range h.meals {
+			// 					if meal.ID == entry.MealID {
+			// 						entryMeal = meal
+			// 					}
+			// 				}
+			// 				return app.Tr().ID("home-page-entry-"+si).Class("home-page-entry home-page-meal").OnClick(func(ctx app.Context, e app.Event) {
+			// 					h.EntryOnClick(ctx, e, entry)
+			// 				}).Body(
+			// 					app.Td().ID("home-page-entry-date-"+si).Class("home-page-entry-date home-page-meal-name").Text(entry.Date.Format("Jan 2, 2006")),
+			// 					app.Td().ID("home-page-meal-name-"+si).Class("home-page-meal-name").Text(entryMeal.Name),
+			// 					MealScore("home-page-entry-total-"+si, "home-page-entry-total", score.Total, "Total"),
+			// 					MealScore("home-page-entry-taste-"+si, "home-page-entry-taste", score.Taste, "Taste"),
+			// 					// MealScore("home-page-meal-recency-"+si, "home-page-meal-recency", score.Recency),
+			// 					MealScore("home-page-entry-cost-"+si, "home-page-entry-cost", score.Cost, "Cost"),
+			// 					MealScore("home-page-entry-effort-"+si, "home-page-entry-effort", score.Effort, "Effort"),
+			// 					MealScore("home-page-entry-healthiness-"+si, "home-page-entry-healthiness", score.Healthiness, "Healthiness"),
+			// 					app.If(!smallScreen,
+			// 						app.Td().ID("home-page-entry-type-"+si).Class("home-page-entry-type").Text(entry.Type),
+			// 						app.Td().ID("home-page-entry-source-"+si).Class("home-page-entry-source").Text(entry.Source),
+			// 					),
+			// 				)
+			// 			}),
+			// 		).ElseIf(h.options.Mode == "Discover",
+			// 			app.Range(h.recipes).Slice(func(i int) app.UI {
+			// 				si := strconv.Itoa(i)
+			// 				recipe := h.recipes[i]
+			// 				// return MealImage().ID("home-page-recipe-" + si).Class("home-page-recipe-image").Img(recipe.Image).MainText(recipe.Name).Score(recipe.Score)
+			// 				return app.Tr().ID("home-page-recipe-"+si).Class("home-page-recipe home-page-meal").Style("--img", "url("+recipe.Image+")").OnClick(func(ctx app.Context, e app.Event) { h.RecipeOnClick(ctx, e, recipe) }).Body(
+			// 					app.Td().ID("home-page-recipe-name-"+si).Class("home-page-meal-name").Text(recipe.Name),
+			// 					MealScore("home-page-recipe-total-"+si, "home-page-meal-total", recipe.Score.Total, "Total"),
+			// 					MealScore("home-page-recipe-taste-"+si, "home-page-meal-taste", recipe.Score.Taste, "Taste"),
+			// 					MealScore("home-page-recipe-recency-"+si, "home-page-meal-recency", recipe.Score.Recency, "Recency"),
+			// 					MealScore("home-page-recipe-cost-"+si, "home-page-meal-cost", recipe.Score.Cost, "Cost"),
+			// 					MealScore("home-page-recipe-effort-"+si, "home-page-meal-effort", recipe.Score.Effort, "Effort"),
+			// 					MealScore("home-page-recipe-healthiness-"+si, "home-page-meal-healthiness", recipe.Score.Healthiness, "Healthiness"),
+			// 					app.If(!smallScreen,
+			// 						app.Td().ID("home-page-recipe-cuisines-"+si).Class("home-page-meal-cuisines").Text(ListString(recipe.Cuisine)),
+			// 						app.Td().ID("home-page-recipe-description-"+si).Class("home-page-meal-description").Text(recipe.Description),
+			// 					),
+			// 				)
+			// 			}),
+			// 		),
 			// 	),
 			// ),
-			// MealImage().ID("test").Img("https://static01.nyt.com/images/2021/02/17/dining/17tootired-grilled-cheese/17tootired-grilled-cheese-articleLarge.jpg?quality=75&auto=webp&disable=upscale").MainText("Grilled Cheese").Score(Score{Total: 76}),
-			app.Table().ID("home-page-meals-table").Body(
-				app.THead().ID("home-page-meals-table-header").Body(
-					app.Tr().ID("home-page-meals-table-header-row").Body(
-						app.If(h.options.Mode == "History",
-							app.Th().ID("home-page-meals-table-header-date").Text("Date"),
-							app.Th().ID("home-page-meals-table-header-name").Text("Meal"),
-						).Else(
-							app.Th().ID("home-page-meals-table-header-name").Text("Name"),
-						),
-						app.Th().ID("home-page-meals-table-header-total").Class("table-header-score").Text("Total"),
-						app.Th().ID("home-page-meals-table-header-taste").Class("table-header-score").Text("Taste"),
-						app.If(h.options.Mode != "History",
-							app.Th().ID("home-page-meals-table-header-recency").Class("table-header-score").Text("New"),
-						),
-						app.Th().ID("home-page-meals-table-header-cost").Class("table-header-score").Text("Cost"),
-						app.Th().ID("home-page-meals-table-header-effort").Class("table-header-score").Text("Effort"),
-						app.Th().ID("home-page-meals-table-header-healthiness").Class("table-header-score").Text("Health"),
-						app.If(!smallScreen,
-							app.If(h.options.Mode == "History",
-								app.Th().ID("home-page-meals-table-header-type").Text("Type"),
-								app.Th().ID("home-page-meals-table-header-source").Text("Source"),
-							).Else(
-								app.Th().ID("home-page-meals-table-header-cuisines").Text("Cuisines"),
-								app.Th().ID("home-page-meals-table-header-description").Text("Description"),
-							),
-						),
-					),
-				),
-				app.TBody().ID("home-page-meals-table-body").Body(
-					app.If(h.options.Mode == "Search",
-						app.Range(h.meals).Slice(func(i int) app.UI {
-							meal := h.meals[i]
-							si := strconv.Itoa(i)
-							entries := h.entriesForEachMeal[meal.ID]
-
-							// check if at least one cuisine satisfies a cuisine requirement (or there is no cuisine set)
-							gotCuisine := len(meal.Cuisine) == 0
-							for _, mealCuisine := range meal.Cuisine {
-								for optionCuisine, value := range h.options.Cuisine {
-									if value && mealCuisine == optionCuisine {
-										gotCuisine = true
-									}
-								}
-							}
-							if !gotCuisine {
-								return app.Text("")
-							}
-
-							// check if at least one entry satisfies the type and source requirements if there is at least one entry.
-							if len(entries) > 0 {
-								gotType := h.options.Type == "Any"
-								gotSource := false
-								for _, entry := range entries {
-									if entry.Type == h.options.Type {
-										gotType = true
-									}
-									if h.options.Source[entry.Source] {
-										gotSource = true
-									}
-								}
-								if !(gotType && gotSource) {
-									return app.Text("")
-								}
-							}
-
-							score := meal.Score(entries, h.options)
-							colorH := strconv.Itoa((score.Total * 12) / 10)
-							scoreText := strconv.Itoa(score.Total)
-							// missingData := entries.MissingData(h.user)
-							isCurrentMeal := meal.ID == h.currentMeal.ID
-							return app.Tr().ID("home-page-meal-"+si).Class("home-page-meal").DataSet("current-meal", isCurrentMeal).Style("--color-h", colorH).Style("--score", scoreText+"%").
-								OnClick(func(ctx app.Context, e app.Event) { h.MealOnClick(ctx, e, meal) }).Body(
-								app.Td().ID("home-page-meal-name-"+si).Class("home-page-meal-name").Text(meal.Name),
-								MealScore("home-page-meal-total-"+si, "home-page-meal-total", score.Total),
-								MealScore("home-page-meal-taste-"+si, "home-page-meal-taste", score.Taste),
-								MealScore("home-page-meal-recency-"+si, "home-page-meal-recency", score.Recency),
-								MealScore("home-page-meal-cost-"+si, "home-page-meal-cost", score.Cost),
-								MealScore("home-page-meal-effort-"+si, "home-page-meal-effort", score.Effort),
-								MealScore("home-page-meal-healthiness-"+si, "home-page-meal-healthiness", score.Healthiness),
-								app.If(!smallScreen,
-									app.Td().ID("home-page-meal-cuisines-"+si).Class("home-page-meal-cuisines").Text(ListString(meal.Cuisine)),
-									app.Td().ID("home-page-meal-description-"+si).Class("home-page-meal-description").Text(meal.Description),
-								),
-							)
-						}),
-					).ElseIf(h.options.Mode == "History",
-						app.Range(h.entries).Slice(func(i int) app.UI {
-							si := strconv.Itoa(i)
-							entry := h.entries[i]
-							score := entry.Score(h.options)
-							entryMeal := Meal{}
-							for _, meal := range h.meals {
-								if meal.ID == entry.MealID {
-									entryMeal = meal
-								}
-							}
-							return app.Tr().ID("home-page-entry-"+si).Class("home-page-entry home-page-meal").OnClick(func(ctx app.Context, e app.Event) {
-								h.EntryOnClick(ctx, e, entry)
-							}).Body(
-								app.Td().ID("home-page-entry-date-"+si).Class("home-page-entry-date home-page-meal-name").Text(entry.Date.Format("Jan 2, 2006")),
-								app.Td().ID("home-page-meal-name-"+si).Class("home-page-meal-name").Text(entryMeal.Name),
-								MealScore("home-page-entry-total-"+si, "home-page-entry-total", score.Total),
-								MealScore("home-page-entry-taste-"+si, "home-page-entry-taste", score.Taste),
-								// MealScore("home-page-meal-recency-"+si, "home-page-meal-recency", score.Recency),
-								MealScore("home-page-entry-cost-"+si, "home-page-entry-cost", score.Cost),
-								MealScore("home-page-entry-effort-"+si, "home-page-entry-effort", score.Effort),
-								MealScore("home-page-entry-healthiness-"+si, "home-page-entry-healthiness", score.Healthiness),
-								app.If(!smallScreen,
-									app.Td().ID("home-page-entry-type-"+si).Class("home-page-entry-type").Text(entry.Type),
-									app.Td().ID("home-page-entry-source-"+si).Class("home-page-entry-source").Text(entry.Source),
-								),
-							)
-						}),
-					).ElseIf(h.options.Mode == "Discover",
-						app.Range(h.recipes).Slice(func(i int) app.UI {
-							si := strconv.Itoa(i)
-							recipe := h.recipes[i]
-							// return MealImage().ID("home-page-recipe-" + si).Class("home-page-recipe-image").Img(recipe.Image).MainText(recipe.Name).Score(recipe.Score)
-							return app.Tr().ID("home-page-recipe-"+si).Class("home-page-recipe home-page-meal").Style("--img", "url("+recipe.Image+")").OnClick(func(ctx app.Context, e app.Event) { h.RecipeOnClick(ctx, e, recipe) }).Body(
-								app.Td().ID("home-page-recipe-name-"+si).Class("home-page-meal-name").Text(recipe.Name),
-								MealScore("home-page-recipe-total-"+si, "home-page-meal-total", recipe.Score.Total),
-								MealScore("home-page-recipe-taste-"+si, "home-page-meal-taste", recipe.Score.Taste),
-								MealScore("home-page-recipe-recency-"+si, "home-page-meal-recency", recipe.Score.Recency),
-								MealScore("home-page-recipe-cost-"+si, "home-page-meal-cost", recipe.Score.Cost),
-								MealScore("home-page-recipe-effort-"+si, "home-page-meal-effort", recipe.Score.Effort),
-								MealScore("home-page-recipe-healthiness-"+si, "home-page-meal-healthiness", recipe.Score.Healthiness),
-								app.If(!smallScreen,
-									app.Td().ID("home-page-recipe-cuisines-"+si).Class("home-page-meal-cuisines").Text(""),
-									app.Td().ID("home-page-recipe-description-"+si).Class("home-page-meal-description").Text(recipe.Description),
-								),
-							)
-						}),
-					),
-				),
-			),
 			app.Dialog().ID("home-page-meal-dialog").OnClick(h.MealDialogOnClick).Body(
 				Button().ID("home-page-meal-dialog-new-entry").Class("primary").Icon("add").Text("New Entry").OnClick(h.NewEntry),
 				Button().ID("home-page-meal-dialog-view-entries").Class("secondary").Icon("visibility").Text("View Entries").OnClick(h.ViewEntries),
@@ -381,8 +439,9 @@ func ListMap(list map[string]bool) string {
 }
 
 // MealScore returns a table cell with a score pie circle containing score information for a meal or entry
-func MealScore(id string, class string, score int) app.UI {
-	return app.Td().ID(id).Class("meal-score", class).Style("--score", strconv.Itoa(score)).Style("--color-h", strconv.Itoa(score*12/10)).Body(
+func MealScore(id string, class string, score int, label string) app.UI {
+	return app.Div().ID(id).Class("meal-score", class).Style("--score", strconv.Itoa(score)).Style("--color-l", strconv.Itoa(score/4+45)+"%").Body(
+		app.Span().ID(id+"-label").Class("meal-score-label", class+"-label").Text(label),
 		app.Div().ID(id+"-circle").Class("meal-score-circle", "pie", class+"-circle").Text(score),
 	)
 }

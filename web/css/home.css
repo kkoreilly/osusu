@@ -1,4 +1,6 @@
-#home-page-recipes-container {
+#home-page-recipes-container,
+#home-page-meals-container,
+#home-page-entries-container {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
@@ -6,6 +8,12 @@
     row-gap: 10px;
     align-items: center;
     justify-content: center;
+    padding-bottom: 10px;
+}
+
+/* hide new metric for entries (we don't use it) */
+#home-page-entries-container .meal-score:nth-child(3) {
+    display: none;
 }
 
 #home-page-meals-table,
@@ -89,7 +97,7 @@ th#home-page-meals-table-header-description {
 .home-page-meal:hover,
 .home-page-meal[data-current-meal="true"],
 .entries-page-entry:hover {
-    background-color: lightblue;
+    /* background-color: lightblue; */
 }
 
 .home-page-meal>td,
@@ -118,11 +126,22 @@ td.home-page-meal-description:hover {
     white-space: normal;
 }
 
+.meal-score {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    row-gap: 5px;
+}
+
+.meal-score-label {
+    font-size: 0.875rem;
+}
+
 div.meal-score-circle {
     --pie-percent: var(--score);
-    --pie-color: hsl(var(--color-h), 100%, 50%);
-    --pie-size: 50px;
-    --pie-thickness: 5px;
+    --pie-color: hsl(0, 0%, var(--color-l));
+    --pie-size: 45px;
+    --pie-thickness: 2px;
 }
 
 #home-page-meal-dialog {

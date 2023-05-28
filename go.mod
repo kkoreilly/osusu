@@ -7,6 +7,7 @@ require (
 	github.com/lib/pq v1.10.9
 	github.com/maxence-charriere/go-app/v9 v9.6.7
 	golang.org/x/crypto v0.9.0
+	golang.org/x/exp v0.0.0-20230522175609-2e198f4a06a1
 )
 
 require (

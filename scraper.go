@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -33,6 +34,7 @@ type AllRecipesData struct {
 
 // ScrapeAllRecipes crawls allrecipes.com and saves the recipes it scrapes to web/data/allrecipes.csv
 func ScrapeAllRecipes() {
+	log.Println("Scraping allrecipes.com")
 	c := colly.NewCollector(colly.AllowedDomains("www.allrecipes.com"))
 
 	recipes := []Recipe{}
@@ -42,9 +44,6 @@ func ScrapeAllRecipes() {
 	})
 
 	c.OnXML("//urlset/url/loc", func(e *colly.XMLElement) {
-		// if len(recipes) > 100 {
-		// 	return
-		// }
 		e.Request.Visit(e.Text)
 	})
 
@@ -53,7 +52,7 @@ func ScrapeAllRecipes() {
 		initialData := []AllRecipesData{}
 		err := json.Unmarshal([]byte(e.Text), &initialData)
 		if err != nil {
-			log.Println("error unmarshaling data for", e.Request.URL.String()+":", err)
+			log.Println(fmt.Errorf("error unmarshaling data for %v: %w", e.Request.URL.String(), err))
 			return
 		}
 		data := initialData[0]
@@ -113,18 +112,18 @@ func ScrapeAllRecipes() {
 			},
 		}
 		recipes = append(recipes, recipe)
-		log.Println("got recipe, total recipes:", len(recipes), "new recipe:", recipe)
+		log.Println("total recipes:", len(recipes), "\ngot new recipe:", recipe)
 	})
 
 	c.Visit("https://www.allrecipes.com/sitemap.xml")
 
 	data, err := json.Marshal(recipes)
 	if err != nil {
-		log.Println("failed to save as json because", err)
+		log.Println(fmt.Errorf("failed to save crawled recipes as json: %w", err))
 	}
 	err = os.WriteFile("web/data/allrecipes.json", data, 0666)
 	if err != nil {
-		log.Println("failed to save json to file because", err)
+		log.Println(fmt.Errorf("failed to save crawled recipes to file: %w", err))
 	}
 }
 

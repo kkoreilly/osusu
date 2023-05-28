@@ -22,10 +22,11 @@ type Meals []Meal
 
 // Score produces a score object for the meal based on the given entries and options
 func (m Meal) Score(entries Entries, options Options) Score {
-	scores := []Score{}
+	scores := []ScoreWeight{}
 	var latestDate time.Time
 	for _, entry := range entries {
-		scores = append(scores, entry.Score(options))
+		// importance is hours since 1970--makes more recent ones more important
+		scores = append(scores, ScoreWeight{Score: entry.Score(options), Weight: int(entry.Date.Unix() / 3600)})
 		if entry.Date.After(latestDate) {
 			latestDate = entry.Date
 		}

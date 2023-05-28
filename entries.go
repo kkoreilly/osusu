@@ -97,11 +97,11 @@ func (e *entries) Render() app.UI {
 						return app.Tr().ID("entries-page-entry-"+si).Class("entries-page-entry").Style("--color-h", colorH).Style("--score", scoreText+"%").
 							OnClick(func(ctx app.Context, event app.Event) { e.EntryOnClick(ctx, event, entry) }).Body(
 							app.Td().ID("entries-page-entry-date-"+si).Class("entries-page-entry-date").Text(entry.Date.Format("Jan 2, 2006")),
-							MealScore("entries-page-entry-total-"+si, "entries-page-entry-total", score.Total),
-							MealScore("entries-page-entry-taste-"+si, "entries-page-entry-taste", score.Taste),
-							MealScore("entries-page-entry-cost-"+si, "entries-page-entry-cost", score.Cost),
-							MealScore("entries-page-entry-effort-"+si, "entries-page-entry-effort", score.Effort),
-							MealScore("entries-page-entry-healthiness-"+si, "entries-page-entry-healthiness", score.Healthiness),
+							MealScore("entries-page-entry-total-"+si, "entries-page-entry-total", score.Total, "Total"),
+							MealScore("entries-page-entry-taste-"+si, "entries-page-entry-taste", score.Taste, "Taste"),
+							MealScore("entries-page-entry-cost-"+si, "entries-page-entry-cost", score.Cost, "Cost"),
+							MealScore("entries-page-entry-effort-"+si, "entries-page-entry-effort", score.Effort, "Effort"),
+							MealScore("entries-page-entry-healthiness-"+si, "entries-page-entry-healthiness", score.Healthiness, "Healthiness"),
 							app.If(!smallScreen,
 								app.Td().ID("entries-page-entry-type-"+si).Class("entries-page-entry-type").Text(entry.Type),
 								app.Td().ID("entries-page-entry-source-"+si).Class("entries-page-entry-source").Text(entry.Source),
