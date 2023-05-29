@@ -169,11 +169,10 @@ func (h *home) Render() app.UI {
 				Button().ID("home-page-search").Class("primary").Icon("search").Text("Search").OnClick(h.ShowOptions),
 			),
 			ButtonRow().ID("home-page-quick-options").Buttons(
-				// RadioSelect().ID("home-page-options-mode").Label("Mode:").Default("Search").Value(&h.options.Mode).Options("Search", "History", "Discover").OnChange(h.SaveQuickOptions),
 				RadioSelect().ID("home-page-options-type").Label("Meal:").Default("Dinner").Value(&h.options.Type).Options(append(mealTypes, "Any")...).OnChange(h.SaveQuickOptions),
 				CheckboxSelect().ID("home-page-options-users").Label("People:").Value(&h.usersOptions).Options(usersStrings...).OnChange(h.SaveQuickOptions),
 				CheckboxSelect().ID("home-page-options-source").Label("Sources:").Default(map[string]bool{"Cooking": true, "Dine-In": true, "Takeout": true}).Value(&h.options.Source).Options(mealSources...).OnChange(h.SaveQuickOptions),
-				CheckboxSelect().ID("home-page-options-cuisine").Label("Cuisine:").Value(&h.options.Cuisine).Options(cuisines...),
+				CheckboxSelect().ID("home-page-options-cuisine").Label("Cuisine:").Value(&h.options.Cuisine).Options(cuisines...).OnChange(h.SaveQuickOptions),
 			),
 			app.Div().ID("home-page-meals-container").Hidden(h.options.Mode != "Search").Body(
 				app.Range(h.meals).Slice(func(i int) app.UI {
@@ -187,7 +186,11 @@ func (h *home) Render() app.UI {
 						for optionCuisine, value := range h.options.Cuisine {
 							if value && mealCuisine == optionCuisine {
 								gotCuisine = true
+								break
 							}
+						}
+						if gotCuisine {
+							break
 						}
 					}
 					if !gotCuisine {
@@ -425,6 +428,14 @@ func ListString(list []string) string {
 	return res
 }
 
+// ListString returns a formatted string of the given list of items, replacing any number of the elements above the specified number with "n more"
+func ListStringNum(list []string, num int) string {
+	if len(list) <= num {
+		return ListString(list)
+	}
+	return ListString(append(list[:num-1], strconv.Itoa(len(list)-num+1)+" more"))
+}
+
 // ListMap returns a formatted string of the given list of items in which the key is the item and the value is whether it should be included in the string
 func ListMap(list map[string]bool) string {
 	slice := []string{}
@@ -436,6 +447,20 @@ func ListMap(list map[string]bool) string {
 	// sort to prevent constant switching
 	sort.Strings(slice)
 	return ListString(slice)
+}
+
+// ListMapNum returns a formatted string of the given list of items in which the key is the item and the value is whether it should be included in the string.
+// ListMapNum limits the number of items to the provided number and adds "and n more" to the end if this limit is exceeded.
+func ListMapNum(list map[string]bool, num int) string {
+	slice := []string{}
+	for k, v := range list {
+		if v {
+			slice = append(slice, k)
+		}
+	}
+	// sort to prevent constant switching
+	sort.Strings(slice)
+	return ListStringNum(slice, num)
 }
 
 // MealScore returns a table cell with a score pie circle containing score information for a meal or entry

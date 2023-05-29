@@ -12,7 +12,7 @@ type MealImageCompo struct {
 	img           string
 	mainText      string
 	secondaryText string
-	score         Score
+	MealScore     Score // can change so needs to be exported
 	onClick       app.EventHandler
 }
 
@@ -22,12 +22,12 @@ func (m *MealImageCompo) Render() app.UI {
 		app.Span().ID(m.id+"-meal-image-main-text").Class("meal-image-main-text").Text(m.mainText),
 		app.Span().ID(m.id+"-meal-image-secondary-text").Class("meal-image-secondary-text").Text(m.secondaryText),
 		app.Div().ID(m.id+"-meal-image-info-container").Class("meal-image-info-container").Body(
-			MealScore(m.id+"-meal-image-total", "meal-image-score", m.score.Total, "Total"),
-			MealScore(m.id+"-meal-image-taste", "meal-image-score", m.score.Taste, "Taste"),
-			MealScore(m.id+"-meal-image-recency", "meal-image-score", m.score.Recency, "New"),
-			MealScore(m.id+"-meal-image-cost", "meal-image-score", m.score.Cost, "Cost"),
-			MealScore(m.id+"-meal-image-effort", "meal-image-score", m.score.Effort, "Effort"),
-			MealScore(m.id+"-meal-image-healthiness", "meal-image-score", m.score.Healthiness, "Health"),
+			MealScore(m.id+"-meal-image-total", "meal-image-score", m.MealScore.Total, "Total"),
+			MealScore(m.id+"-meal-image-taste", "meal-image-score", m.MealScore.Taste, "Taste"),
+			MealScore(m.id+"-meal-image-recency", "meal-image-score", m.MealScore.Recency, "New"),
+			MealScore(m.id+"-meal-image-cost", "meal-image-score", m.MealScore.Cost, "Cost"),
+			MealScore(m.id+"-meal-image-effort", "meal-image-score", m.MealScore.Effort, "Effort"),
+			MealScore(m.id+"-meal-image-healthiness", "meal-image-score", m.MealScore.Healthiness, "Health"),
 		),
 
 		// app.Span().ID(m.id+"-meal-image-score-text").Class("meal-image-score-text").Text("Score: "+strconv.Itoa(m.score.Total)),
@@ -71,7 +71,7 @@ func (m *MealImageCompo) SecondaryText(secondaryText string) *MealImageCompo {
 
 // Score sets the score of the meal image component
 func (m *MealImageCompo) Score(score Score) *MealImageCompo {
-	m.score = score
+	m.MealScore = score
 	return m
 }
 

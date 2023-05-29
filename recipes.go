@@ -216,48 +216,148 @@ func Max[T constraints.Ordered](x, y T) T {
 	return y
 }
 
-// CountCategories returns how many of each category there are in the given recipes
-func (r Recipes) CountCategories() map[string]int {
+// CountCategories returns how many of each category there are in the given recipes and how many recipes have any category
+func (r Recipes) CountCategories() (map[string]int, int) {
 	res := map[string]int{}
+	total := 0
 	for _, recipe := range r {
+		if len(recipe.Category) != 0 {
+			total++
+		}
 		for _, category := range recipe.Category {
 			res[category]++
 		}
 	}
-	return res
+	return res, total
 }
 
-// CountCuisines returns how many of each cuisine there are in the given recipes
-func (r Recipes) CountCuisines() map[string]int {
+// CountCuisines returns how many of each cuisine there are in the given recipes and how many recipes have any cuisine
+func (r Recipes) CountCuisines() (map[string]int, int) {
 	res := map[string]int{}
+	total := 0
 	for _, recipe := range r {
+		if len(recipe.Cuisine) != 0 {
+			total++
+		}
 		for _, cuisine := range recipe.Cuisine {
 			res[cuisine]++
 		}
 	}
-	return res
+	return res, total
 }
 
-// ConsolidateCategories consolidates the categories of the given recipes into a conciser set
+// ConsolidateCategories consolidates the categories of the given recipes into a more concise set
 func (r Recipes) ConsolidateCategories() Recipes {
-	for _, recipe := range r {
-		newCategory := []string{}
+	categoryMap := map[string][]string{
+		"Dinner":     {"Dinner", "Entree", "Pasta"},
+		"Drink":      {"Drink", "Beverage", "Cocktail", "Coffee"},
+		"Dessert":    {"Dessert", "Cake", "Candy", "Pie"},
+		"Lunch":      {"Lunch", "Sandwich"},
+		"Ingredient": {"Ingredient", "Bread", "Condiment", "Jam / Jelly", "Sauce", "Spice Mix"},
+		"Appetizer":  {"Appetizer", "Salad", "Soup"},
+		"Side":       {"Side Dish"},
+		"Breakfast":  {"Breakfast"},
+		"Snack":      {"Snack"},
+		"Brunch":     {"Brunch"},
+	}
+	for i, recipe := range r {
+		// need unique categories so use map to prevent duplicates
+		categories := map[string]bool{}
 		for _, category := range recipe.Category {
-			switch category {
-			case "Dinner", "Entree":
-				newCategory = append(newCategory, "Dinner")
-			case "Drink", "Beverage", "Cocktail", "Coffee":
-				newCategory = append(newCategory, "Drink")
-			case "Dessert", "Cake", "Candy", "Pie":
-				newCategory = append(newCategory, "Dessert")
-			case "Lunch", "Salad", "Sandwich":
-				newCategory = append(newCategory, "Lunch")
-			case "Ingredient", "Bread", "Condiment", "Jam / Jelly", "Sauce", "Spice Mix":
-				newCategory = append(newCategory, "Ingredient")
-				// need to finish
+			for k, v := range categoryMap {
+				for _, mapCategory := range v {
+					if mapCategory == category {
+						categories[k] = true
+					}
+				}
 			}
 		}
+		newCategory := []string{}
+		for category := range categories {
+			newCategory = append(newCategory, category)
+		}
+		r[i].Category = newCategory
 	}
+	return r
+}
+
+// ConsolidateCuisines consolidates the cuisines of the given recipes into a more concise set
+func (r Recipes) ConsolidateCuisines() Recipes {
+	cuisineMap := map[string][]string{
+		"African":        {"African", "East African", "North African", "South African", "West African", "Algerian"},
+		"American":       {"American", "New England", "North American", "Tex Mex", "Tex-Mex", "U.S.", "Pennsylvania Dutch", "Native American", "Southern", "Southwestern", "Amish"},
+		"Asian":          {"Asian", "Asian Inspired", "East And Southeast Asian", "South And Central Asian"},
+		"Authentic":      {"Authentic"},
+		"British":        {"British", "English", "Uk and Ireland", "Scottish", "Welsh"},
+		"Canadian":       {"Canadian", "French Canadian"},
+		"Chinese":        {"Chinese", "Chinese Inspired"},
+		"European":       {"European", "Eastern European"},
+		"French":         {"French", "French Inspired"},
+		"Fusion":         {"Fusion"},
+		"Greek":          {"Greek", "Greek Inspired"},
+		"Indian":         {"Indian", "Indian Inspired"},
+		"Inspired":       {"Inspired"},
+		"Irish":          {"Irish", "Uk And Ireland"},
+		"Italian":        {"Italian", "Italian Inspired"},
+		"Japanese":       {"Japanese", "Japanese Inspired"},
+		"Jewish":         {"Jewish", "Kosher"},
+		"Korean":         {"Korean", "Korean Inspired"},
+		"Latin American": {"Latin American", "Latin", "South American", "Argentine"},
+		"Mediterranean":  {"Mediterranean Inspired"},
+		"Mexican":        {"Mexican", "Mexican Inspired"},
+		"Middle Eastern": {"Middle Eastern", "Middle Eastern Inspired", "Afghan"},
+		"Thai":           {"Thai", "Thai Inspired"},
+	}
+	for i, recipe := range r {
+		// need unique cuisines so use map to prevent duplicates
+		cuisines := map[string]bool{}
+		// if len(recipe.Cuisine) == 0 {
+		// 	log.Println(recipe.Name, recipe.Description)
+		// }
+		for _, cuisine := range recipe.Cuisine {
+			got := false
+			for k, v := range cuisineMap {
+				for _, mapCuisine := range v {
+					if mapCuisine == cuisine {
+						cuisines[k] = true
+						got = true
+					}
+				}
+			}
+			if !got {
+				cuisines[cuisine] = true
+			}
+		}
+		for _, cuisine := range allCuisines {
+			cuisineLower := strings.ToLower(cuisine)
+			if strings.Contains(recipe.Name, cuisine) || strings.Contains(recipe.Name, cuisineLower) || strings.Contains(recipe.Description, cuisine) || strings.Contains(recipe.Description, cuisineLower) {
+				cuisines[cuisine] = true
+			}
+			for _, ingredient := range recipe.Ingredients {
+				if strings.Contains(ingredient, cuisine) || strings.Contains(ingredient, cuisineLower) {
+					cuisines[cuisine] = true
+				}
+			}
+		}
+		// for cuisine, words := range cuisineWords {
+		// 	for _, word := range words {
+		// 		if strings.Contains(recipe.Name, word) || strings.Contains(recipe.Description, word) {
+		// 			cuisines[cuisine] = true
+		// 		}
+		// 		for _, ingredient := range recipe.Ingredients {
+		// 			if strings.Contains(ingredient, word) {
+		// 				cuisines[cuisine] = true
+		// 			}
+		// 		}
+		// 	}
+		// }
+		newCuisine := []string{}
+		for cuisine := range cuisines {
+			newCuisine = append(newCuisine, cuisine)
+		}
+		r[i].Cuisine = newCuisine
+	}
+	return r
 }
 
 // // FixRecipeTimes returns the given recipes with durations formatted correctly
@@ -411,8 +511,46 @@ func RecommendRecipes(data RecommendRecipesData) Recipes {
 	}
 	scores := []Score{}
 	indices := []int{}
+	numSkipped := 0
+	recipes := []Recipe{}
 	for i, recipe := range allRecipes {
+		// check that at least one category satisfies at least one type option, or the type option is any
+		gotCategory := data.Options.Type == "Any"
+		if !gotCategory {
+			for _, recipeCategory := range recipe.Category {
+				if recipeCategory == data.Options.Type {
+					gotCategory = true
+					break
+				}
+			}
+			if !gotCategory {
+				numSkipped++
+				continue
+			}
+		}
+
+		// check that at least one cuisine satisfies at least one cuisine option
+		gotCuisine := false
+		for _, recipeCuisine := range recipe.Cuisine {
+			for optionsCuisine, val := range data.Options.Cuisine {
+				if val && recipeCuisine == optionsCuisine {
+					gotCuisine = true
+					break
+				}
+			}
+			if gotCuisine {
+				break
+			}
+		}
+		if !gotCuisine {
+			numSkipped++
+			continue
+		}
+		// need to subtract num skipped so that i stays in line with the number of items in the indices slice
+		i -= numSkipped
+		// only append to indices and recipes if it matches conditions above
 		indices = append(indices, i)
+		recipes = append(recipes, recipe)
 		words := GetWords(recipe.Name)
 		recipeScores := []ScoreWeight{}
 		// use map to track unique matches and simple int to count total
@@ -449,7 +587,7 @@ func RecommendRecipes(data RecommendRecipesData) Recipes {
 		lower = len(indices) - 1
 	}
 	for _, i := range indices[lower:upper] {
-		recipe := allRecipes[i]
+		recipe := recipes[i]
 		recipe.Score = scores[i]
 		res = append(res, recipe)
 	}

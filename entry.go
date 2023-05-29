@@ -34,24 +34,26 @@ func NewEntry(group Group, user User, meal Meal, entries Entries) Entry {
 		Healthiness: UserMap{user.ID: 50},
 		Taste:       UserMap{user.ID: 50},
 	}
-	// if there are previous entries, copy the values from the latest (the entries are already sorted with the latest first by OnNav)
+	// if there are previous entries, copy the values from the latest entry where the person has rated things, if there is one.
 	// we only copy the person map values for the person creating the new entry.
 	if len(entries) > 0 {
 		sort.Slice(entries, func(i, j int) bool {
 			return entries[i].Date.After(entries[j].Date)
 		})
-		previousEntry := entries[0]
-		previousEntry = previousEntry.FixMissingData(user)
-		newEntry = Entry{
-			GroupID:     group.ID,
-			MealID:      meal.ID,
-			Date:        time.Now(),
-			Type:        previousEntry.Type,
-			Source:      previousEntry.Source,
-			Cost:        UserMap{user.ID: previousEntry.Cost[user.ID]},
-			Effort:      UserMap{user.ID: previousEntry.Effort[user.ID]},
-			Healthiness: UserMap{user.ID: previousEntry.Healthiness[user.ID]},
-			Taste:       UserMap{user.ID: previousEntry.Taste[user.ID]},
+		for _, previousEntry := range entries {
+			if previousEntry.Cost[user.ID] != 0 {
+				newEntry = Entry{
+					GroupID:     group.ID,
+					MealID:      meal.ID,
+					Date:        time.Now(),
+					Type:        previousEntry.Type,
+					Source:      previousEntry.Source,
+					Cost:        UserMap{user.ID: previousEntry.Cost[user.ID]},
+					Effort:      UserMap{user.ID: previousEntry.Effort[user.ID]},
+					Healthiness: UserMap{user.ID: previousEntry.Healthiness[user.ID]},
+					Taste:       UserMap{user.ID: previousEntry.Taste[user.ID]},
+				}
+			}
 		}
 	}
 	return newEntry
@@ -76,22 +78,22 @@ func (e Entry) Score(options Options) Score {
 // 	return !(e.Cost.HasValueSet(user) && e.Effort.HasValueSet(user) && e.Healthiness.HasValueSet(user) && e.Taste.HasValueSet(user))
 // }
 
-// FixMissingData fixes any missing data for the given user for the given entry by setting their values to the average of everyone else's ratings and returning the updated entry
-func (e Entry) FixMissingData(user User) Entry {
-	if !e.Cost.HasValueSet(user) {
-		e.Cost[user.ID] = e.Cost.Average()
-	}
-	if !e.Effort.HasValueSet(user) {
-		e.Effort[user.ID] = e.Effort.Average()
-	}
-	if !e.Healthiness.HasValueSet(user) {
-		e.Healthiness[user.ID] = e.Healthiness.Average()
-	}
-	if !e.Taste.HasValueSet(user) {
-		e.Taste[user.ID] = e.Taste.Average()
-	}
-	return e
-}
+// // FixMissingData fixes any missing data for the given user for the given entry by setting their values to the average of everyone else's ratings and returning the updated entry
+// func (e Entry) FixMissingData(user User) Entry {
+// 	if !e.Cost.HasValueSet(user) {
+// 		e.Cost[user.ID] = e.Cost.Average()
+// 	}
+// 	if !e.Effort.HasValueSet(user) {
+// 		e.Effort[user.ID] = e.Effort.Average()
+// 	}
+// 	if !e.Healthiness.HasValueSet(user) {
+// 		e.Healthiness[user.ID] = e.Healthiness.Average()
+// 	}
+// 	if !e.Taste.HasValueSet(user) {
+// 		e.Taste[user.ID] = e.Taste.Average()
+// 	}
+// 	return e
+// }
 
 // RemoveInvalid returns the entry with all invalid entries associated with nonexistent users removed
 func (e Entry) RemoveInvalid(users []User) Entry {
@@ -155,7 +157,7 @@ func (e *entry) Render() app.UI {
 				CurrentPage.UpdatePageTitle(ctx)
 			}
 			e.user = CurrentUser(ctx)
-			e.entry = e.entry.FixMissingData(e.user)
+			// e.entry = e.entry.FixMissingData(e.user)
 		},
 		TitleElement: titleText,
 		Elements: []app.UI{

@@ -24,6 +24,7 @@
     transition: background-color 0.5s;
     box-shadow: 0.25rem 0.25rem 0.25rem var(--box-shadow-color);
     height: fit-content;
+    max-width: 70vw;
 }
 
 .button:active {

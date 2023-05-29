@@ -30,7 +30,7 @@ func (c *ChipsCompo[T]) Render() app.UI {
 		if actualVal, ok := any(*c.value).(string); ok {
 			valueText = actualVal
 		} else if actualVal, ok := any(*c.value).(map[string]bool); ok {
-			valueText = ListMap(actualVal)
+			valueText = ListMapNum(actualVal, 3)
 		}
 		if c.selectOpen {
 			valueIcon = "expand_less"
@@ -229,11 +229,6 @@ func (c *CheckboxChipCompo) Default(defaultVal bool) *CheckboxChipCompo {
 func (c *CheckboxChipCompo) Value(value *bool) *CheckboxChipCompo {
 	c.value = value
 	return c
-}
-
-// SelectCompo is a component for selecting one or more options
-type SelectCompo struct {
-	app.Compo
 }
 
 // Select returns a new select component
