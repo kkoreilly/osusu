@@ -109,7 +109,7 @@ func SetIsMealNew(isMealNew bool, ctx app.Context) {
 }
 
 var (
-	mealTypes   = []string{"Breakfast", "Lunch", "Dinner"}
+	mealTypes   = []string{"Breakfast", "Brunch", "Lunch", "Dinner", "Dessert", "Snack", "Appetizer", "Side", "Drink", "Ingredient"}
 	mealSources = []string{"Cooking", "Dine-In", "Takeout"}
 )
 

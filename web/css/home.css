@@ -1,21 +1,3 @@
-#home-page-recipes-container,
-#home-page-meals-container,
-#home-page-entries-container {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    column-gap: 10px;
-    row-gap: 10px;
-    align-items: center;
-    justify-content: center;
-    padding-bottom: 10px;
-}
-
-/* hide new metric for entries (we don't use it) */
-#home-page-entries-container .meal-score:nth-child(3) {
-    display: none;
-}
-
 #home-page-meals-table,
 #entries-page-entries-table {
     width: 100%;

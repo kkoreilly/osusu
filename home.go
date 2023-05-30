@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"sort"
 	"strconv"
 	"time"
@@ -37,10 +36,8 @@ func (h *home) Render() app.UI {
 	}
 	// need to sort so options don't keep swapping
 	sort.Strings(cuisines)
-	width, _ := app.Window().Size()
+	// width, _ := app.Window().Size()
 	// smallScreen := width <= 480
-	nFit := (width - 80) / 50
-	log.Println("nFit", nFit)
 	subtitleText := ""
 	switch h.options.Mode {
 	case "Search":
@@ -151,13 +148,7 @@ func (h *home) Render() app.UI {
 			}
 			h.SortMeals()
 
-			wordScoreMap := WordScoreMap(h.meals, h.entriesForEachMeal, h.options)
-			recipes, err := RecommendRecipesAPI.Call(RecommendRecipesData{wordScoreMap, h.options, 0})
-			if err != nil {
-				CurrentPage.ShowErrorStatus(err)
-				return
-			}
-			h.recipes = recipes
+			h.RecommendRecipes()
 
 			CurrentPage.AddOnClick(h.PageOnClick)
 		},
@@ -169,12 +160,12 @@ func (h *home) Render() app.UI {
 				Button().ID("home-page-search").Class("primary").Icon("search").Text("Search").OnClick(h.ShowOptions),
 			),
 			ButtonRow().ID("home-page-quick-options").Buttons(
-				RadioSelect().ID("home-page-options-type").Label("Meal:").Default("Dinner").Value(&h.options.Type).Options(append(mealTypes, "Any")...).OnChange(h.SaveQuickOptions),
+				CheckboxSelect().ID("home-page-options-type").Label("Categories:").Default(map[string]bool{"Dinner": true}).Value(&h.options.Type).Options(mealTypes...).OnChange(h.SaveQuickOptions),
 				CheckboxSelect().ID("home-page-options-users").Label("People:").Value(&h.usersOptions).Options(usersStrings...).OnChange(h.SaveQuickOptions),
 				CheckboxSelect().ID("home-page-options-source").Label("Sources:").Default(map[string]bool{"Cooking": true, "Dine-In": true, "Takeout": true}).Value(&h.options.Source).Options(mealSources...).OnChange(h.SaveQuickOptions),
 				CheckboxSelect().ID("home-page-options-cuisine").Label("Cuisine:").Value(&h.options.Cuisine).Options(cuisines...).OnChange(h.SaveQuickOptions),
 			),
-			app.Div().ID("home-page-meals-container").Hidden(h.options.Mode != "Search").Body(
+			app.Div().ID("home-page-meals-container").Class("meal-images-container").Hidden(h.options.Mode != "Search").Body(
 				app.Range(h.meals).Slice(func(i int) app.UI {
 					si := strconv.Itoa(i)
 					meal := h.meals[i]
@@ -199,10 +190,10 @@ func (h *home) Render() app.UI {
 
 					// check if at least one entry satisfies the type and source requirements if there is at least one entry.
 					if len(entries) > 0 {
-						gotType := h.options.Type == "Any"
+						gotType := false
 						gotSource := false
 						for _, entry := range entries {
-							if entry.Type == h.options.Type {
+							if h.options.Type[entry.Type] {
 								gotType = true
 							}
 							if h.options.Source[entry.Source] {
@@ -216,10 +207,10 @@ func (h *home) Render() app.UI {
 					score := meal.Score(entries, h.options)
 					// scoreText := strconv.Itoa(score.Total)
 					// isCurrentMeal := meal.ID == h.currentMeal.ID
-					return MealImage().ID("home-page-meal-" + si).Class("home-page-meal").Img(meal.Image).MainText(meal.Name).SecondaryText("").Score(score).OnClick(func(ctx app.Context, e app.Event) { h.MealOnClick(ctx, e, meal) })
+					return MealImage().ID("home-page-meal-" + si).Class("home-page-meal").Img(meal.Image).MainText(meal.Name).SecondaryText("").Score(score).OnClick(func(ctx app.Context, e app.Event) { h.MealOnClick(ctx, e, meal) }).OnClickScope(meal.ID)
 				}),
 			),
-			app.Div().ID("home-page-recipes-container").Hidden(h.options.Mode != "Discover").Body(
+			app.Div().ID("home-page-recipes-container").Class("meal-images-container").Hidden(h.options.Mode != "Discover").Body(
 				app.Range(h.recipes).Slice(func(i int) app.UI {
 					si := strconv.Itoa(i)
 					recipe := h.recipes[i]
@@ -230,10 +221,10 @@ func (h *home) Render() app.UI {
 					} else {
 						secondaryText = ListString(recipe.Category) + ListString(recipe.Cuisine)
 					}
-					return MealImage().ID("home-page-recipe-" + si).Class("home-page-recipe").Img(recipe.Image).MainText(recipe.Name).SecondaryText(secondaryText).Score(recipe.Score).OnClick(func(ctx app.Context, e app.Event) { h.RecipeOnClick(ctx, e, recipe) })
+					return MealImage().ID("home-page-recipe-" + si).Class("home-page-recipe").Img(recipe.Image).MainText(recipe.Name).SecondaryText(secondaryText).Score(recipe.Score).OnClick(func(ctx app.Context, e app.Event) { h.RecipeOnClick(ctx, e, recipe) }).OnClickScope(recipe.URL)
 				}),
 			),
-			app.Div().ID("home-page-entries-container").Hidden(h.options.Mode != "History").Body(
+			app.Div().ID("home-page-entries-container").Class("meal-images-container").Hidden(h.options.Mode != "History").Body(
 				app.Range(h.entries).Slice(func(i int) app.UI {
 					si := strconv.Itoa(i)
 					entry := h.entries[i]
@@ -245,7 +236,7 @@ func (h *home) Render() app.UI {
 							break
 						}
 					}
-					return MealImage().ID("home-page-entry-" + si).Class("home-page-entry").Img(entryMeal.Image).MainText(entryMeal.Name).SecondaryText(entry.Date.Format("Monday, January 2, 2006")).Score(score).OnClick(func(ctx app.Context, e app.Event) { h.EntryOnClick(ctx, e, entry) })
+					return MealImage().ID("home-page-entry-" + si).Class("home-page-entry").Img(entryMeal.Image).MainText(entryMeal.Name).SecondaryText(entry.Date.Format("Monday, January 2, 2006")).Score(score).OnClick(func(ctx app.Context, e app.Event) { h.EntryOnClick(ctx, e, entry) }).OnClickScope(entry.ID)
 				}),
 			),
 			// MealImage().ID("test").Img("https://static01.nyt.com/images/2021/02/17/dining/17tootired-grilled-cheese/17tootired-grilled-cheese-articleLarge.jpg?quality=75&auto=webp&disable=upscale").MainText("Grilled Cheese").Score(Score{Total: 76}),
@@ -585,7 +576,22 @@ func (h *home) SaveOptions(ctx app.Context, e app.Event) {
 
 	app.Window().GetElementByID("home-page-options").Call("close")
 
-	h.SortMeals()
+	if h.options.Mode == "Search" {
+		h.SortMeals()
+	} else if h.options.Mode == "Discover" {
+		h.RecommendRecipes()
+	}
+}
+
+// RecommendRecipes loads recipe recommendations for discover mode
+func (h *home) RecommendRecipes() {
+	wordScoreMap := WordScoreMap(h.meals, h.entriesForEachMeal, h.options)
+	recipes, err := RecommendRecipesAPI.Call(RecommendRecipesData{wordScoreMap, h.options, 0})
+	if err != nil {
+		CurrentPage.ShowErrorStatus(err)
+		return
+	}
+	h.recipes = recipes
 }
 
 func (h *home) SortMeals() {

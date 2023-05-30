@@ -514,11 +514,11 @@ func RecommendRecipes(data RecommendRecipesData) Recipes {
 	numSkipped := 0
 	recipes := []Recipe{}
 	for i, recipe := range allRecipes {
-		// check that at least one category satisfies at least one type option, or the type option is any
-		gotCategory := data.Options.Type == "Any"
+		// check that at least one category satisfies at least one type option
+		gotCategory := false
 		if !gotCategory {
 			for _, recipeCategory := range recipe.Category {
-				if recipeCategory == data.Options.Type {
+				if data.Options.Type[recipeCategory] {
 					gotCategory = true
 					break
 				}
@@ -573,6 +573,10 @@ func RecommendRecipes(data RecommendRecipesData) Recipes {
 		score.Total = score.ComputeTotal(data.Options)
 
 		scores = append(scores, score)
+	}
+	// if we got nothing, bail now to prevent slice bounds error later
+	if len(indices) == 0 {
+		return Recipes{}
 	}
 	sort.Slice(indices, func(i, j int) bool {
 		return scores[indices[i]].Total > scores[indices[j]].Total

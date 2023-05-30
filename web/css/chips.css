@@ -82,8 +82,20 @@
 }
 
 .select {
-    align-items: initial;
+    display: inline-block;
+    position: relative;
 }
+
+.select>span {
+    display: inline-block;
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+/* .select[data-open="true"] {
+    max-height: 0px;
+    overflow: visible;
+} */
 
 /* .select>.chips-value::after {
     content: "";
@@ -106,22 +118,34 @@
 
 .select>.chips-container {
     flex-direction: column;
-    row-gap: 5px;
+    row-gap: 0;
     column-gap: 0;
-    /* position: absolute; */
+    position: absolute;
     /* padding: 0.5rem; */
     z-index: 100;
-    /* border: 1px solid black; */
+    border: 1px solid black;
     border-radius: 5px;
-    background-color: white;
+    /* background-color: white; */
+    min-width: 100%;
+    width: fit-content;
+    margin-top: 10px;
+    box-shadow: 0.25rem 0.25rem 0.25rem hsla(0, 0%, 0%, 60%);
 }
 
 .select .chip-label {
-    border-radius: 5px;
+    border-radius: 0;
     flex-wrap: nowrap;
+    border: none;
 }
 
-.select .chip-label:nth-child(1),
-.select>.chip-label:nth-last-child(1) {
+.select .chip-label:nth-child(1) {
+    border-radius: 5px 5px 0 0;
+}
+
+.select .chip-label:nth-last-child(1) {
+    border-radius: 0 0 5px 5px;
+}
+
+.select .chip-label:nth-child(1):nth-last-child(1) {
     border-radius: 5px;
 }

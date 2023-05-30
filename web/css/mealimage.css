@@ -1,3 +1,20 @@
+.meal-images-container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    column-gap: 10px;
+    row-gap: 10px;
+    align-items: center;
+    justify-content: center;
+    padding-bottom: 10px;
+}
+
+/* hide recency metric for entries because we don't use it */
+#home-page-entries-container .meal-score:nth-child(3),
+#entries-page-entries-container .meal-score:nth-child(3) {
+    display: none;
+}
+
 .meal-image-container {
     width: 350px;
     min-height: 200px;
@@ -8,11 +25,10 @@
     display: flex;
     flex-direction: column;
     row-gap: 10px;
-    /* padding-bottom: 10px; */
 }
 
-.meal-image-container:hover {
-    /* background-color: lightblue; */
+.meal-image-container[data-no-image="true"] {
+    background: var(--color-two-dark);
 }
 
 .page-container[data-small-screen="true"] .meal-image-container {
@@ -30,6 +46,11 @@
     top: 0;
 }
 
+/* lower height on entries page because there is always no image, so we just want enough space for information */
+.entries-page-entry::before {
+    height: 200px;
+}
+
 .meal-image-container:hover::before {
     background: linear-gradient(0deg, hsla(0, 0%, 0%, 0.9) 30%, hsla(0, 0%, 100%, 0.2) 100%);
 }
@@ -40,6 +61,16 @@
     -o-object-fit: cover;
     object-fit: cover;
     border-radius: inherit;
+}
+
+/* lower height on entries page because there is always no image, so we just want enough space for information */
+.entries-page-entry>.meal-image {
+    height: 200px;
+}
+
+/* prevent annoying image icon from showing up if there is no image */
+.meal-image-container[data-no-image="true"]>.meal-image {
+    visibility: hidden;
 }
 
 .meal-image-main-text {

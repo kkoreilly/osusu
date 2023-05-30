@@ -7,7 +7,7 @@ type Options struct {
 	Mode              string
 	Users             map[int64]bool   // key is user id, value is whether or not they are included
 	UserNames         map[int64]string // all of the names of the users by their ids. not part of options, but used in displaying them and in other contexts.
-	Type              string
+	Type              map[string]bool
 	Source            map[string]bool
 	Cuisine           map[string]bool
 	CostWeight        int
@@ -22,7 +22,7 @@ func DefaultOptions(group Group) Options {
 	options := Options{
 		Mode:              "Search",
 		Users:             make(map[int64]bool),
-		Type:              "Dinner",
+		Type:              map[string]bool{"Dinner": true},
 		Source:            map[string]bool{"Cooking": true, "Dine-In": true, "Takeout": true},
 		Cuisine:           map[string]bool{},
 		CostWeight:        50,
