@@ -10,16 +10,17 @@ import (
 // If it contains checkbox chips, it will be of type map[string]bool, and if it has radio chips, it will be of type string.
 type ChipsCompo[T string | map[string]bool] struct {
 	app.Compo
-	id         string
-	class      string
-	isSelect   bool
-	typ        string
-	label      string
-	defaultVal T
-	value      *T
-	OptionsVal []string // can change so needs to be exported
-	onChange   func(ctx app.Context, e app.Event, val string)
-	selectOpen bool
+	id           string
+	class        string
+	isSelect     bool
+	typ          string
+	label        string
+	defaultVal   T
+	value        *T
+	OptionsValue []string // can change so needs to be exported
+	onChange     func(ctx app.Context, e app.Event, val string)
+	HiddenValue  bool // can change so needs to be exported
+	selectOpen   bool
 }
 
 // Render returns the UI of the chips component
@@ -38,14 +39,14 @@ func (c *ChipsCompo[T]) Render() app.UI {
 			valueIcon = "expand_more"
 		}
 	}
-	return app.Div().ID(c.id+"-chips-outer-container").Class("chips-outer-container", c.class).DataSet("open", c.selectOpen).Body(
+	return app.Div().ID(c.id+"-chips-outer-container").Class("chips-outer-container", c.class).DataSet("open", c.selectOpen).Hidden(c.HiddenValue).Body(
 		app.Span().ID(c.id+"-chips-label").Class("input-label").Text(c.label),
 		// current value of the chips, used in select
 		Button().ID(c.id+"-chips-value").Class("tertiary").Icon(valueIcon).Text(valueText).Hidden(!c.isSelect).OnClick(c.ToggleSelect),
 		app.Div().ID(c.id+"-chips-container").Class("chips-container").Hidden(c.isSelect && !c.selectOpen).Body(
-			app.Range(c.OptionsVal).Slice(func(i int) app.UI {
+			app.Range(c.OptionsValue).Slice(func(i int) app.UI {
 				si := strconv.Itoa(i)
-				optionVal := c.OptionsVal[i]
+				optionVal := c.OptionsValue[i]
 				var checked bool
 				if actualVal, ok := any(*c.value).(string); ok {
 					checked = optionVal == actualVal
@@ -55,7 +56,7 @@ func (c *ChipsCompo[T]) Render() app.UI {
 				return app.Label().ID(c.id+"-chip-label-"+si).Class("chip-label").For(c.id+"-chip-input-"+si).DataSet("checked", checked).Body(
 					app.Input().ID(c.id+"-chip-input-"+si).Class("chip-input").Type(c.typ).Name(c.id).Checked(checked).OnChange(func(ctx app.Context, e app.Event) {
 						// need to get val again to get updated value
-						optionVal := c.OptionsVal[i]
+						optionVal := c.OptionsValue[i]
 						if val, ok := any(optionVal).(T); ok {
 							if e.Get("target").Get("checked").Bool() {
 								*c.value = val
@@ -169,12 +170,19 @@ func (c *ChipsCompo[T]) Value(value *T) *ChipsCompo[T] {
 
 // Options sets the options for the chips component to the given value
 func (c *ChipsCompo[T]) Options(options ...string) *ChipsCompo[T] {
-	c.OptionsVal = options
+	c.OptionsValue = options
 	return c
 }
 
+// OnChange sets the function to be called when the value of the chips component changes
 func (c *ChipsCompo[T]) OnChange(onChange func(ctx app.Context, e app.Event, val string)) *ChipsCompo[T] {
 	c.onChange = onChange
+	return c
+}
+
+// Hidden sets whether the chips component is hidden
+func (c *ChipsCompo[T]) Hidden(hidden bool) *ChipsCompo[T] {
+	c.HiddenValue = hidden
 	return c
 }
 

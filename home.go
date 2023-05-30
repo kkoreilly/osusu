@@ -162,7 +162,7 @@ func (h *home) Render() app.UI {
 			ButtonRow().ID("home-page-quick-options").Buttons(
 				CheckboxSelect().ID("home-page-options-type").Label("Categories:").Default(map[string]bool{"Dinner": true}).Value(&h.options.Type).Options(mealTypes...).OnChange(h.SaveQuickOptions),
 				CheckboxSelect().ID("home-page-options-users").Label("People:").Value(&h.usersOptions).Options(usersStrings...).OnChange(h.SaveQuickOptions),
-				CheckboxSelect().ID("home-page-options-source").Label("Sources:").Default(map[string]bool{"Cooking": true, "Dine-In": true, "Takeout": true}).Value(&h.options.Source).Options(mealSources...).OnChange(h.SaveQuickOptions),
+				CheckboxSelect().ID("home-page-options-source").Label("Sources:").Default(map[string]bool{"Cooking": true, "Dine-In": true, "Takeout": true}).Value(&h.options.Source).Options(mealSources...).OnChange(h.SaveQuickOptions).Hidden(h.options.Mode == "Discover"),
 				CheckboxSelect().ID("home-page-options-cuisine").Label("Cuisine:").Value(&h.options.Cuisine).Options(cuisines...).OnChange(h.SaveQuickOptions),
 			),
 			app.Div().ID("home-page-meals-container").Class("meal-images-container").Hidden(h.options.Mode != "Search").Body(
@@ -205,9 +205,16 @@ func (h *home) Render() app.UI {
 						}
 					}
 					score := meal.Score(entries, h.options)
-					// scoreText := strconv.Itoa(score.Total)
 					// isCurrentMeal := meal.ID == h.currentMeal.ID
-					return MealImage().ID("home-page-meal-" + si).Class("home-page-meal").Img(meal.Image).MainText(meal.Name).SecondaryText("").Score(score).OnClick(func(ctx app.Context, e app.Event) { h.MealOnClick(ctx, e, meal) }).OnClickScope(meal.ID)
+
+					// only put • between category and cuisine if both exist
+					secondaryText := ""
+					if len(meal.Category) != 0 && len(meal.Cuisine) != 0 {
+						secondaryText = ListString(meal.Category) + " • " + ListString(meal.Cuisine)
+					} else {
+						secondaryText = ListString(meal.Category) + ListString(meal.Cuisine)
+					}
+					return MealImage().ID("home-page-meal-" + si).Class("home-page-meal").Img(meal.Image).MainText(meal.Name).SecondaryText(secondaryText).Score(score).OnClick(func(ctx app.Context, e app.Event) { h.MealOnClick(ctx, e, meal) }).OnClickScope(meal.ID)
 				}),
 			),
 			app.Div().ID("home-page-recipes-container").Class("meal-images-container").Hidden(h.options.Mode != "Discover").Body(

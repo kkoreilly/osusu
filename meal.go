@@ -14,6 +14,7 @@ type Meal struct {
 	Description string
 	Source      string
 	Image       string
+	Category    []string
 	Cuisine     []string
 }
 
@@ -109,8 +110,9 @@ func SetIsMealNew(isMealNew bool, ctx app.Context) {
 }
 
 var (
-	mealTypes   = []string{"Breakfast", "Brunch", "Lunch", "Dinner", "Dessert", "Snack", "Appetizer", "Side", "Drink", "Ingredient"}
-	mealSources = []string{"Cooking", "Dine-In", "Takeout"}
+	mealTypes    = []string{"Breakfast", "Brunch", "Lunch", "Dinner", "Dessert", "Snack", "Appetizer", "Side", "Drink", "Ingredient"}
+	mealSources  = []string{"Cooking", "Dine-In", "Takeout"}
+	mealCuisines = []string{"American", "Chinese", "Indian", "Italian", "Japanese", "Korean", "Mexican"}
 )
 
 type meal struct {
@@ -119,6 +121,7 @@ type meal struct {
 	user      User
 	meal      Meal
 	isMealNew bool
+	category  map[string]bool
 	cuisine   map[string]bool
 }
 
@@ -160,10 +163,17 @@ func (m *meal) Render() app.UI {
 
 			m.meal = m.meal.RemoveInvalidCuisines(m.group.Cuisines)
 
-			if m.meal.Cuisine == nil {
-				m.meal.Cuisine = []string{"American"}
+			if m.isMealNew {
+				m.meal.Category = []string{"Dinner"}
+			}
+			m.category = make(map[string]bool)
+			for _, category := range m.meal.Category {
+				m.category[category] = true
 			}
 
+			if m.isMealNew {
+				m.meal.Cuisine = []string{"American"}
+			}
 			m.cuisine = make(map[string]bool)
 			for _, cuisine := range m.meal.Cuisine {
 				m.cuisine[cuisine] = true
@@ -177,6 +187,7 @@ func (m *meal) Render() app.UI {
 				TextInput().ID("meal-page-source").Label("Source:").Value(&m.meal.Source),
 				// Button().ID("meal-page-view-source").Class("secondary").Value()
 				TextInput().ID("meal-page-image").Label("Image:").Value(&m.meal.Image),
+				CheckboxChips().ID("meal-page-category").Label("Categories:").Value(&m.category).Options(mealTypes...),
 				CheckboxChips().ID("meal-page-cuisine").Label("Cuisines:").Value(&m.cuisine).Options(append(cuisines, "+")...).OnChange(m.CuisinesOnChange),
 				cuisinesDialog("meal-page", m.CuisinesDialogOnSave),
 				ButtonRow().ID("meal-page").Buttons(
@@ -214,6 +225,13 @@ func (m *meal) CuisinesDialogOnSave(ctx app.Context, event app.Event) {
 
 func (m *meal) OnSubmit(ctx app.Context, event app.Event) {
 	event.PreventDefault()
+
+	m.meal.Category = []string{}
+	for category, value := range m.category {
+		if value {
+			m.meal.Category = append(m.meal.Category, category)
+		}
+	}
 
 	m.meal.Cuisine = []string{}
 	for cuisine, value := range m.cuisine {

@@ -103,6 +103,7 @@ func CreateMealsTableDB() error {
 		description text NOT NULL DEFAULT ''::text,
 		source text NOT NULL DEFAULT ''::text,
 		image text NOT NULL DEFAULT ''::text,
+		category text[] NOT NULL DEFAULT '{}'::text[],
 		cuisine text[] NOT NULL DEFAULT '{}'::text[],
 		CONSTRAINT meals_pkey PRIMARY KEY (id),
 		CONSTRAINT meals_group_id_fkey FOREIGN KEY (group_id)
