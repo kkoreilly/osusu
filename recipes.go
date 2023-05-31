@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html"
 	"log"
+	"math"
 	"os"
 	"sort"
 	"strings"
@@ -360,6 +361,58 @@ func (r Recipes) ConsolidateCuisines() Recipes {
 	return r
 }
 
+// InferCuisines infers the cuisines of the recipes in the given recipes that don't have a cuisine set.
+// It uses the values of the recipes with cuisines already set to do this.
+func (r Recipes) InferCuisines(numRecipesPerCuisine map[string]int) Recipes {
+	wordCuisineMap := map[string](map[string]int){} // map[word](map[cuisine]numTimes){}
+	// get word cuisine map
+	for _, recipe := range r {
+		// won't add to map if no cuisine
+		if len(recipe.Cuisine) == 0 {
+			continue
+		}
+		words := GetWords(recipe.Name)
+		for _, word := range words {
+			if wordCuisineMap[word] == nil {
+				wordCuisineMap[word] = map[string]int{}
+			}
+			for _, cuisine := range recipe.Cuisine {
+				wordCuisineMap[word][cuisine]++
+			}
+		}
+	}
+	// use it to infer cuisines
+	for i, recipe := range r {
+		// not needed if we already have cuisine
+		if len(recipe.Cuisine) != 0 {
+			continue
+		}
+		cuisineMap := map[string]int{}
+		words := append(GetWords(recipe.Name), GetWords(recipe.Description)...)
+		for _, ingredient := range recipe.Ingredients {
+			words = append(words, GetWords(ingredient)...)
+		}
+		for _, word := range words {
+			for cuisine, value := range wordCuisineMap[word] {
+				cuisineMap[cuisine] += value
+			}
+		}
+		highestCuisine := ""
+		highestValue := 0
+		for cuisine, value := range cuisineMap {
+			actualValue := value / int(math.Sqrt(float64(numRecipesPerCuisine[cuisine])))
+			if actualValue > highestValue {
+				highestCuisine = cuisine
+				highestValue = actualValue
+			}
+		}
+
+		recipe.Cuisine = []string{highestCuisine}
+		r[i] = recipe
+	}
+	return r
+}
+
 // // FixRecipeTimes returns the given recipes with durations formatted correctly
 // func FixRecipeTimes(recipes Recipes) Recipes {
 // 	for i, recipe := range recipes {
@@ -627,7 +680,7 @@ func GetWords(text string) []string {
 	curStr := ""
 	for _, r := range text {
 		if r == ' ' || r == ',' || r == '.' || r == '(' || r == ')' || r == '+' || r == '–' || r == '—' {
-			if curStr != "" && curStr != "and" {
+			if curStr != "" {
 				res = append(res, curStr)
 				curStr = ""
 			}

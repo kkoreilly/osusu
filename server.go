@@ -85,6 +85,9 @@ func startServer() {
 	log.Println(allRecipes.CountCategories())
 	log.Println(allRecipes.CountCuisines())
 	allRecipes = allRecipes.ConsolidateCuisines()
+	cuisinesMap, count := allRecipes.CountCuisines()
+	log.Println(cuisinesMap, count)
+	allRecipes = allRecipes.InferCuisines(cuisinesMap)
 	log.Println(allRecipes.CountCuisines())
 	// for _, recipe := range allRecipes {
 	// 	log.Println(recipe.BaseScore)
