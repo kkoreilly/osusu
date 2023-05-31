@@ -501,6 +501,7 @@ func GenerateWordMap(recipes Recipes) map[string]Recipes {
 type RecommendRecipesData struct {
 	WordScoreMap map[string]Score
 	Options      Options
+	UsedSources  map[string]bool
 	N            int // the iteration that we are on (ie: n = 3 for the fourth time we are getting recipes for the same options), we return 100 new meals each time
 }
 
@@ -514,11 +515,16 @@ func RecommendRecipes(data RecommendRecipesData) Recipes {
 	numSkipped := 0
 	recipes := []Recipe{}
 	for i, recipe := range allRecipes {
+		// if we have already used this recipe URL (and by extension this recipe), skip to prevent duplicates
+		if data.UsedSources[recipe.URL] {
+			numSkipped++
+			continue
+		}
 		// check that at least one category satisfies at least one type option
 		gotCategory := false
 		if !gotCategory {
 			for _, recipeCategory := range recipe.Category {
-				if data.Options.Type[recipeCategory] {
+				if data.Options.Category[recipeCategory] {
 					gotCategory = true
 					break
 				}

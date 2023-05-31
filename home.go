@@ -160,10 +160,10 @@ func (h *home) Render() app.UI {
 				Button().ID("home-page-search").Class("primary").Icon("search").Text("Search").OnClick(h.ShowOptions),
 			),
 			ButtonRow().ID("home-page-quick-options").Buttons(
-				CheckboxSelect().ID("home-page-options-type").Label("Categories:").Default(map[string]bool{"Dinner": true}).Value(&h.options.Type).Options(mealTypes...).OnChange(h.SaveQuickOptions),
+				CheckboxSelect().ID("home-page-options-category").Label("Categories:").Default(map[string]bool{"Dinner": true}).Value(&h.options.Category).Options(append(mealCategories, "Unset")...).OnChange(h.SaveQuickOptions),
 				CheckboxSelect().ID("home-page-options-users").Label("People:").Value(&h.usersOptions).Options(usersStrings...).OnChange(h.SaveQuickOptions),
 				CheckboxSelect().ID("home-page-options-source").Label("Sources:").Default(map[string]bool{"Cooking": true, "Dine-In": true, "Takeout": true}).Value(&h.options.Source).Options(mealSources...).OnChange(h.SaveQuickOptions).Hidden(h.options.Mode == "Discover"),
-				CheckboxSelect().ID("home-page-options-cuisine").Label("Cuisine:").Value(&h.options.Cuisine).Options(cuisines...).OnChange(h.SaveQuickOptions),
+				CheckboxSelect().ID("home-page-options-cuisine").Label("Cuisines:").Value(&h.options.Cuisine).Options(append(cuisines, "Unset")...).OnChange(h.SaveQuickOptions),
 			),
 			app.Div().ID("home-page-meals-container").Class("meal-images-container").Hidden(h.options.Mode != "Search").Body(
 				app.Range(h.meals).Slice(func(i int) app.UI {
@@ -171,36 +171,57 @@ func (h *home) Render() app.UI {
 					meal := h.meals[i]
 					entries := h.entriesForEachMeal[meal.ID]
 
-					// check if at least one cuisine satisfies a cuisine requirement (or there is no cuisine set)
-					gotCuisine := len(meal.Cuisine) == 0
-					for _, mealCuisine := range meal.Cuisine {
-						for optionCuisine, value := range h.options.Cuisine {
-							if value && mealCuisine == optionCuisine {
-								gotCuisine = true
+					// check if at least one category satisfies a category option (or there are no categories and unset is an option)
+					gotCategory := len(meal.Category) == 0 && h.options.Category["Unset"]
+					if !gotCategory {
+						for _, mealCategory := range meal.Category {
+							for optionCategory, value := range h.options.Category {
+								if value && mealCategory == optionCategory {
+									gotCategory = true
+									break
+								}
+							}
+							if gotCategory {
 								break
 							}
 						}
-						if gotCuisine {
-							break
+						if !gotCategory {
+							return app.Text("")
 						}
 					}
+
+					// check if at least one cuisine satisfies a cuisine option (or there are no cuisines and unset is an option)
+					gotCuisine := len(meal.Cuisine) == 0 && h.options.Cuisine["Unset"]
 					if !gotCuisine {
-						return app.Text("")
+						for _, mealCuisine := range meal.Cuisine {
+							for optionCuisine, value := range h.options.Cuisine {
+								if value && mealCuisine == optionCuisine {
+									gotCuisine = true
+									break
+								}
+							}
+							if gotCuisine {
+								break
+							}
+						}
+						if !gotCuisine {
+							return app.Text("")
+						}
 					}
 
-					// check if at least one entry satisfies the type and source requirements if there is at least one entry.
+					// check if at least one entry satisfies the source requirements if there is at least one entry.
 					if len(entries) > 0 {
-						gotType := false
+						// gotType := false
 						gotSource := false
 						for _, entry := range entries {
-							if h.options.Type[entry.Type] {
-								gotType = true
-							}
+							// if h.options.Category[entry.Type] {
+							// 	gotType = true
+							// }
 							if h.options.Source[entry.Source] {
 								gotSource = true
 							}
 						}
-						if !(gotType && gotSource) {
+						if !gotSource {
 							return app.Text("")
 						}
 					}
@@ -593,7 +614,13 @@ func (h *home) SaveOptions(ctx app.Context, e app.Event) {
 // RecommendRecipes loads recipe recommendations for discover mode
 func (h *home) RecommendRecipes() {
 	wordScoreMap := WordScoreMap(h.meals, h.entriesForEachMeal, h.options)
-	recipes, err := RecommendRecipesAPI.Call(RecommendRecipesData{wordScoreMap, h.options, 0})
+	usedSources := map[string]bool{}
+	for _, meal := range h.meals {
+		if meal.Source != "" {
+			usedSources[meal.Source] = true
+		}
+	}
+	recipes, err := RecommendRecipesAPI.Call(RecommendRecipesData{WordScoreMap: wordScoreMap, Options: h.options, UsedSources: usedSources, N: 0})
 	if err != nil {
 		CurrentPage.ShowErrorStatus(err)
 		return

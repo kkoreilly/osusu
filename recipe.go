@@ -48,7 +48,8 @@ func (r *recipe) Add(ctx app.Context, e app.Event) {
 		Description: r.recipe.Description,
 		Source:      r.recipe.URL,
 		Image:       r.recipe.Image,
-		// Cuisine:     r.recipe.Cuisine,
+		Category:    r.recipe.Category,
+		Cuisine:     r.recipe.Cuisine,
 	}
 	SetCurrentMeal(meal, ctx)
 	Navigate("/meal", ctx)

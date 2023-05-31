@@ -110,9 +110,9 @@ func SetIsMealNew(isMealNew bool, ctx app.Context) {
 }
 
 var (
-	mealTypes    = []string{"Breakfast", "Brunch", "Lunch", "Dinner", "Dessert", "Snack", "Appetizer", "Side", "Drink", "Ingredient"}
-	mealSources  = []string{"Cooking", "Dine-In", "Takeout"}
-	mealCuisines = []string{"American", "Chinese", "Indian", "Italian", "Japanese", "Korean", "Mexican"}
+	mealCategories = []string{"Breakfast", "Brunch", "Lunch", "Dinner", "Dessert", "Snack", "Appetizer", "Side", "Drink", "Ingredient"}
+	mealSources    = []string{"Cooking", "Dine-In", "Takeout"}
+	mealCuisines   = []string{"American", "Chinese", "Indian", "Italian", "Japanese", "Korean", "Mexican"}
 )
 
 type meal struct {
@@ -163,7 +163,8 @@ func (m *meal) Render() app.UI {
 
 			m.meal = m.meal.RemoveInvalidCuisines(m.group.Cuisines)
 
-			if m.isMealNew {
+			// need to check that length is 0 as well because we could have data from recipe import
+			if m.isMealNew && len(m.meal.Category) == 0 {
 				m.meal.Category = []string{"Dinner"}
 			}
 			m.category = make(map[string]bool)
@@ -171,7 +172,8 @@ func (m *meal) Render() app.UI {
 				m.category[category] = true
 			}
 
-			if m.isMealNew {
+			// need to check that length is 0 as well because we could have data from recipe import
+			if m.isMealNew && len(m.meal.Cuisine) == 0 {
 				m.meal.Cuisine = []string{"American"}
 			}
 			m.cuisine = make(map[string]bool)
@@ -187,7 +189,7 @@ func (m *meal) Render() app.UI {
 				TextInput().ID("meal-page-source").Label("Source:").Value(&m.meal.Source),
 				// Button().ID("meal-page-view-source").Class("secondary").Value()
 				TextInput().ID("meal-page-image").Label("Image:").Value(&m.meal.Image),
-				CheckboxChips().ID("meal-page-category").Label("Categories:").Value(&m.category).Options(mealTypes...),
+				CheckboxChips().ID("meal-page-category").Label("Categories:").Value(&m.category).Options(mealCategories...),
 				CheckboxChips().ID("meal-page-cuisine").Label("Cuisines:").Value(&m.cuisine).Options(append(cuisines, "+")...).OnChange(m.CuisinesOnChange),
 				cuisinesDialog("meal-page", m.CuisinesDialogOnSave),
 				ButtonRow().ID("meal-page").Buttons(

@@ -163,7 +163,7 @@ func (e *entry) Render() app.UI {
 		Elements: []app.UI{
 			app.Form().ID("entry-page-form").Class("form").OnSubmit(e.OnSubmit).Body(
 				DateInput().ID("entry-page-date").Label("When did you eat this?").Value(&e.entry.Date),
-				RadioChips().ID("entry-page-type").Label("What meal did you eat this for?").Default("Dinner").Value(&e.entry.Type).Options(mealTypes...),
+				RadioChips().ID("entry-page-type").Label("What meal did you eat this for?").Default("Dinner").Value(&e.entry.Type).Options(mealCategories...),
 				RadioChips().ID("entry-page-source").Label("How did you get this meal?").Default("Cooking").Value(&e.entry.Source).Options(mealSources...),
 				RangeInputUserMap(&e.entry.Taste, e.user).ID("entry-page-taste").Label("How tasty think this was?"),
 				RangeInputUserMap(&e.entry.Cost, e.user).ID("entry-page-cost").Label("How expensive was this?"),
