@@ -88,7 +88,19 @@ func startServer() {
 	cuisinesMap, count := allRecipes.CountCuisines()
 	log.Println(cuisinesMap, count)
 	allRecipes = allRecipes.InferCuisines(cuisinesMap)
-	log.Println(allRecipes.CountCuisines())
+	newCuisinesMap, newCount := allRecipes.CountCuisines()
+	RecipeNumberChanges(cuisinesMap, count, newCuisinesMap, newCount)
+	// diff := []string{}
+	// for cuisine := range newCuisinesMap {
+	// 	diff = append(diff, cuisine)
+	// }
+	// sort.Slice(diff, func(i, j int) bool {
+	// 	return newCuisinesMap[diff[i]]-cuisinesMap[diff[i]] < newCuisinesMap[diff[j]]-cuisinesMap[diff[j]]
+	// })
+	// for _, cuisine := range diff {
+	// 	log.Println(cuisine, newCuisinesMap[cuisine]-cuisinesMap[cuisine], strconv.Itoa(100*newCuisinesMap[cuisine]/cuisinesMap[cuisine])+"%")
+	// }
+	// log.Println("TOTAL", newCount-count, strconv.Itoa(100*newCount/count)+"%")
 	// for _, recipe := range allRecipes {
 	// 	log.Println(recipe.BaseScore)
 	// }

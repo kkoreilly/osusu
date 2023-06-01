@@ -8,6 +8,7 @@ import (
 	"math"
 	"os"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -365,6 +366,7 @@ func (r Recipes) ConsolidateCuisines() Recipes {
 // It uses the values of the recipes with cuisines already set to do this.
 func (r Recipes) InferCuisines(numRecipesPerCuisine map[string]int) Recipes {
 	wordCuisineMap := map[string](map[string]int){} // map[word](map[cuisine]numTimes){}
+	cuisineNumWords := map[string]int{}
 	// get word cuisine map
 	for _, recipe := range r {
 		// won't add to map if no cuisine
@@ -378,9 +380,11 @@ func (r Recipes) InferCuisines(numRecipesPerCuisine map[string]int) Recipes {
 			}
 			for _, cuisine := range recipe.Cuisine {
 				wordCuisineMap[word][cuisine]++
+				cuisineNumWords[cuisine]++
 			}
 		}
 	}
+	log.Println(wordCuisineMap)
 	// use it to infer cuisines
 	for i, recipe := range r {
 		// not needed if we already have cuisine
@@ -393,17 +397,21 @@ func (r Recipes) InferCuisines(numRecipesPerCuisine map[string]int) Recipes {
 			words = append(words, GetWords(ingredient)...)
 		}
 		for _, word := range words {
+			sum := 0
+			for _, value := range wordCuisineMap[word] {
+				sum += value
+			}
 			for cuisine, value := range wordCuisineMap[word] {
-				cuisineMap[cuisine] += value
+				cuisineMap[cuisine] += 1000 * value / sum
 			}
 		}
 		highestCuisine := ""
-		highestValue := 0
+		highestValue := 0.0
 		for cuisine, value := range cuisineMap {
-			actualValue := value / int(math.Sqrt(float64(numRecipesPerCuisine[cuisine])))
-			if actualValue > highestValue {
+			weightedValue := 1000000 * float64(value)
+			if weightedValue > highestValue {
 				highestCuisine = cuisine
-				highestValue = actualValue
+				highestValue = weightedValue
 			}
 		}
 
@@ -411,6 +419,37 @@ func (r Recipes) InferCuisines(numRecipesPerCuisine map[string]int) Recipes {
 		r[i] = recipe
 	}
 	return r
+}
+
+// RecipeNumberChanges logs information about the changes from the given old recipe counts to the given new recipe counts
+func RecipeNumberChanges(oldMap map[string]int, oldCount int, newMap map[string]int, newCount int) {
+	diff := []string{}
+	for name := range newMap {
+		diff = append(diff, name)
+	}
+	sort.Slice(diff, func(i, j int) bool {
+		return newMap[diff[i]]-oldMap[diff[i]] < newMap[diff[j]]-oldMap[diff[j]]
+	})
+	for _, name := range diff {
+		difference := newMap[name] - oldMap[name]
+		log.Println(name, "Difference:", difference)
+		if oldMap[name] == 0 {
+			continue
+		}
+		percent := 100 * newMap[name] / oldMap[name]
+		log.Println(name, "Percent Difference:", strconv.Itoa(percent)+"%")
+	}
+	fmt.Println("") // get line space
+	log.Println("Total Difference:", newCount-oldCount)
+	totalPercentDiff := 100 * newCount / oldCount
+	log.Println("Total Percent Difference:", strconv.Itoa(totalPercentDiff)+"%")
+	log.Println("Median Difference:", newMap[diff[len(diff)/2]]-oldMap[diff[len(diff)/2]])
+	sort.Slice(diff, func(i, j int) bool {
+		return 100*newMap[diff[i]]/oldMap[diff[i]] < 100*newMap[diff[j]]/oldMap[diff[j]]
+	})
+	medianPercentDiff := 100 * newMap[diff[len(diff)/2]] / oldMap[diff[len(diff)/2]]
+	log.Println("Median Percent Difference:", strconv.Itoa(medianPercentDiff)+"%")
+	log.Println("Error:", strconv.Itoa(int(math.Abs(float64(medianPercentDiff-totalPercentDiff))))+"%")
 }
 
 // // FixRecipeTimes returns the given recipes with durations formatted correctly
@@ -678,8 +717,24 @@ func ParseDuration(duration string) (time.Duration, error) {
 func GetWords(text string) []string {
 	res := []string{}
 	curStr := ""
+	separators := []rune{' ', ',', '.', '(', ')', '+', '–', '—'}
+	// use map for easier access
+	separatorsMap := map[rune]bool{}
+	for _, separator := range separators {
+		separatorsMap[separator] = true
+	}
+	ignoredWords := []string{"a", "an", "the", "and", "or", "with", "to", "from", "about", "above", "across", "against", "along", "at", "but"}
+	// use map for easier access
+	ignoredWordsMap := map[string]bool{}
+	for _, word := range ignoredWords {
+		ignoredWordsMap[word] = true
+	}
 	for _, r := range text {
-		if r == ' ' || r == ',' || r == '.' || r == '(' || r == ')' || r == '+' || r == '–' || r == '—' {
+		if ignoredWordsMap[curStr] {
+			curStr = ""
+			continue
+		}
+		if separatorsMap[r] {
 			if curStr != "" {
 				res = append(res, curStr)
 				curStr = ""
