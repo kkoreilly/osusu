@@ -1,5 +1,34 @@
 package main
 
+// baseCuisines are the base cuisines that are assigned to recipes and can be used in meals
+var baseCuisines = []string{"African", "American", "Asian", "British", "Chinese", "European", "French", "Greek", "Indian", "Italian", "Japanese", "Jewish", "Korean", "Latin American", "Mexican", "Middle Eastern", "Thai"}
+
+// cuisineToCuisineMap has a list of all cuisines used and their aliases
+var cuisineToCuisineMap = map[string][]string{
+	"African":        {"African", "East African", "North African", "South African", "West African", "Algerian", "Egyptian", "Ethiopian", "Moroccan", "Tunisian"},
+	"American":       {"American", "New England", "North American", "Tex Mex", "Tex-Mex", "U.S.", "Pennsylvania Dutch", "Native American", "Southern", "Southwestern", "Amish", "Hawaiian", "Cajun", "Creole", "Canadian", "French Canadian"},
+	"Asian":          {"Asian", "Asian Inspired", "East And Southeast Asian", "South And Central Asian", "Bangladeshi", "Filipino", "Indonesian", "Malaysian", "Sri Lankan", "Armenian", "Vietnamese"},
+	"British":        {"British", "English", "Uk And Ireland", "Scottish", "Welsh", "Irish", "Oceanic", "Australian", "New Zealand"},
+	"Chinese":        {"Chinese", "Chinese Inspired", "Sichuan"},
+	"European":       {"European", "Eastern European", "Russian", "Ukrainian", "Finnish", "Norwegian", "Scandinavian", "Swedish", "Austrian", "Belgian", "Czech", "Danish", "Dutch", "Hungarian", "Polish", "Portuguese", "Swiss", "Turkish", "German", "Spanish"},
+	"French":         {"French", "French Inspired"},
+	"Greek":          {"Greek", "Greek Inspired", "Mediterranean Inspired"},
+	"Indian":         {"Indian", "Indian Inspired"},
+	"Italian":        {"Italian", "Italian Inspired", "Sicilian"},
+	"Japanese":       {"Japanese", "Japanese Inspired"},
+	"Jewish":         {"Jewish", "Kosher", "Israeli"},
+	"Korean":         {"Korean", "Korean Inspired"},
+	"Latin American": {"Latin American", "Latin", "South American", "Argentine", "Venezuelan", "Brazilian", "Caribbean", "Chilean", "Colombian", "Cuban", "Puerto Rican", "Salvadoran", "Peruvian", "Jamaican"},
+	"Mexican":        {"Mexican", "Mexican Inspired"},
+	"Middle Eastern": {"Middle Eastern", "Middle Eastern Inspired", "Afghan", "Lebanese", "Pakistani", "Syrian", "Persian"},
+	"Thai":           {"Thai", "Thai Inspired"},
+}
+
+// ignoredCuisines are the allrecipes cuisines that we ignore
+var ignoredCuisines = []string{
+	"Fusion", "Inspired", "World", "Copycat", "Authentic",
+}
+
 // allCuisines are all of the cuisines possible
 var allCuisines = []string{"African", "American", "Anglo-Indian", "Arabian", "Argentine", "Armenian", "Australian", "Austrian", "Azeri",
 	"Balkan", "Bangladeshi", "Barbeque", "Basque", "Belgian", "Bengali", "Bhutanese", "Bolivian", "Brazilian", "British",
@@ -23,58 +52,3 @@ var allCuisines = []string{"African", "American", "Anglo-Indian", "Arabian", "Ar
 	"Tonga", "Trinidad and Tobago", "Tunisian", "Turkish", "Turkmen", "Tuvaluan", "Ugandan", "Ukrainian",
 	"Uruguayan", "Uzbek", "Vietnamese", "Welsh", "West African", "Western European", "Yemeni", "Zambian",
 	"Zimbabwean"}
-
-// cuisineWords are all of the words associated with different cuisines
-var cuisineWords = map[string][]string{
-	"African": {
-		"rice",
-		"yams",
-		"plantains",
-		"maize",
-		"millet",
-		"sorghum",
-		"cassava",
-		"taro",
-		"sweet potatoes",
-		"peanuts",
-		"groundnuts",
-		"beans",
-		"lentils",
-		"okra",
-		"spinach",
-		"collard greens",
-		"mustard greens",
-		"turnips",
-		"beets",
-		"cabbage",
-		"tomatoes",
-		"peppers",
-		"onions",
-		"garlic",
-		"ginger",
-		"cilantro",
-		"mint",
-		"curry leaves",
-		"thyme",
-		"rosemary",
-		"basil",
-		"parsley",
-		"lemons",
-		"limes",
-		"oranges",
-		"bananas",
-		"mangoes",
-		"papayas",
-		"guavas",
-		"pineapples",
-		"avocados",
-		"coconuts",
-		"honey",
-		"molasses",
-		"butter",
-		"oil",
-		"vinegar",
-		"salt",
-		"pepper",
-	},
-}

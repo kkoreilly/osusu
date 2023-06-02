@@ -87,9 +87,17 @@ func startServer() {
 	allRecipes = allRecipes.ConsolidateCuisines()
 	cuisinesMap, count := allRecipes.CountCuisines()
 	log.Println(cuisinesMap, count)
-	allRecipes = allRecipes.InferCuisines(cuisinesMap)
-	newCuisinesMap, newCount := allRecipes.CountCuisines()
-	RecipeNumberChanges(cuisinesMap, count, newCuisinesMap, newCount)
+	log.Println(len(cuisineToCuisineMap))
+	// for _, recipe := range allRecipes {
+	// 	for _, cuisine := range recipe.Cuisine {
+	// 		if cuisine == "Mediterranean" {
+	// 			log.Println(recipe.Cuisine, recipe.Name)
+	// 		}
+	// 	}
+	// }
+	// allRecipes = allRecipes.InferCuisines(cuisinesMap)
+	// newCuisinesMap, newCount := allRecipes.CountCuisines()
+	// RecipeNumberChanges(cuisinesMap, count, newCuisinesMap, newCount)
 	// diff := []string{}
 	// for cuisine := range newCuisinesMap {
 	// 	diff = append(diff, cuisine)

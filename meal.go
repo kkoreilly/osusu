@@ -112,7 +112,6 @@ func SetIsMealNew(isMealNew bool, ctx app.Context) {
 var (
 	mealCategories = []string{"Breakfast", "Brunch", "Lunch", "Dinner", "Dessert", "Snack", "Appetizer", "Side", "Drink", "Ingredient"}
 	mealSources    = []string{"Cooking", "Dine-In", "Takeout"}
-	mealCuisines   = []string{"American", "Chinese", "Indian", "Italian", "Japanese", "Korean", "Mexican"}
 )
 
 type meal struct {

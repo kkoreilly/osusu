@@ -285,30 +285,10 @@ func (r Recipes) ConsolidateCategories() Recipes {
 
 // ConsolidateCuisines consolidates the cuisines of the given recipes into a more concise set
 func (r Recipes) ConsolidateCuisines() Recipes {
-	cuisineMap := map[string][]string{
-		"African":        {"African", "East African", "North African", "South African", "West African", "Algerian"},
-		"American":       {"American", "New England", "North American", "Tex Mex", "Tex-Mex", "U.S.", "Pennsylvania Dutch", "Native American", "Southern", "Southwestern", "Amish"},
-		"Asian":          {"Asian", "Asian Inspired", "East And Southeast Asian", "South And Central Asian"},
-		"Authentic":      {"Authentic"},
-		"British":        {"British", "English", "Uk and Ireland", "Scottish", "Welsh"},
-		"Canadian":       {"Canadian", "French Canadian"},
-		"Chinese":        {"Chinese", "Chinese Inspired"},
-		"European":       {"European", "Eastern European"},
-		"French":         {"French", "French Inspired"},
-		"Fusion":         {"Fusion"},
-		"Greek":          {"Greek", "Greek Inspired"},
-		"Indian":         {"Indian", "Indian Inspired"},
-		"Inspired":       {"Inspired"},
-		"Irish":          {"Irish", "Uk And Ireland"},
-		"Italian":        {"Italian", "Italian Inspired"},
-		"Japanese":       {"Japanese", "Japanese Inspired"},
-		"Jewish":         {"Jewish", "Kosher"},
-		"Korean":         {"Korean", "Korean Inspired"},
-		"Latin American": {"Latin American", "Latin", "South American", "Argentine"},
-		"Mediterranean":  {"Mediterranean Inspired"},
-		"Mexican":        {"Mexican", "Mexican Inspired"},
-		"Middle Eastern": {"Middle Eastern", "Middle Eastern Inspired", "Afghan"},
-		"Thai":           {"Thai", "Thai Inspired"},
+	// convert into map for easier and quicker access
+	ignoredCuisinesMap := map[string]bool{}
+	for _, cuisine := range ignoredCuisines {
+		ignoredCuisinesMap[cuisine] = true
 	}
 	for i, recipe := range r {
 		// need unique cuisines so use map to prevent duplicates
@@ -318,7 +298,7 @@ func (r Recipes) ConsolidateCuisines() Recipes {
 		// }
 		for _, cuisine := range recipe.Cuisine {
 			got := false
-			for k, v := range cuisineMap {
+			for k, v := range cuisineToCuisineMap {
 				for _, mapCuisine := range v {
 					if mapCuisine == cuisine {
 						cuisines[k] = true
@@ -326,18 +306,20 @@ func (r Recipes) ConsolidateCuisines() Recipes {
 					}
 				}
 			}
-			if !got {
-				cuisines[cuisine] = true
+			if !got && !ignoredCuisinesMap[cuisine] {
+				log.Println("uncaught", cuisine)
 			}
 		}
-		for _, cuisine := range allCuisines {
-			cuisineLower := strings.ToLower(cuisine)
-			if strings.Contains(recipe.Name, cuisine) || strings.Contains(recipe.Name, cuisineLower) || strings.Contains(recipe.Description, cuisine) || strings.Contains(recipe.Description, cuisineLower) {
-				cuisines[cuisine] = true
-			}
-			for _, ingredient := range recipe.Ingredients {
-				if strings.Contains(ingredient, cuisine) || strings.Contains(ingredient, cuisineLower) {
-					cuisines[cuisine] = true
+		for mainCuisine, subCuisines := range cuisineToCuisineMap {
+			for _, cuisine := range subCuisines {
+				cuisineLower := strings.ToLower(cuisine)
+				if strings.Contains(recipe.Name, cuisine) || strings.Contains(recipe.Name, cuisineLower) || strings.Contains(recipe.Description, cuisine) || strings.Contains(recipe.Description, cuisineLower) {
+					cuisines[mainCuisine] = true
+				}
+				for _, ingredient := range recipe.Ingredients {
+					if strings.Contains(ingredient, cuisine) || strings.Contains(ingredient, cuisineLower) {
+						cuisines[mainCuisine] = true
+					}
 				}
 			}
 		}
@@ -384,7 +366,7 @@ func (r Recipes) InferCuisines(numRecipesPerCuisine map[string]int) Recipes {
 			}
 		}
 	}
-	log.Println(wordCuisineMap)
+	// log.Println(wordCuisineMap)
 	// use it to infer cuisines
 	for i, recipe := range r {
 		// not needed if we already have cuisine
