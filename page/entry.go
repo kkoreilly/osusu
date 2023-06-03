@@ -23,7 +23,7 @@ func (e *EntryPage) Render() app.UI {
 		saveButtonIcon = "add"
 		saveButtonText = "Create"
 	}
-	return &Page{
+	return &compo.Page{
 		ID:                     "entry",
 		Title:                  titleText,
 		Description:            "View, edit, or create a meal entry.",
@@ -32,8 +32,8 @@ func (e *EntryPage) Render() app.UI {
 			e.entry = osusu.CurrentEntry(ctx)
 			e.isEntryNew = osusu.IsEntryNew(ctx)
 			if e.isEntryNew {
-				CurrentPage.Title = "Create Entry"
-				CurrentPage.UpdatePageTitle(ctx)
+				compo.CurrentPage.Title = "Create Entry"
+				compo.CurrentPage.UpdatePageTitle(ctx)
 			}
 			e.user = osusu.CurrentUser(ctx)
 			// e.entry = e.entry.FixMissingData(e.user)
@@ -50,7 +50,7 @@ func (e *EntryPage) Render() app.UI {
 				compo.RangeInputUserMap(&e.entry.Healthiness, e.user).ID("entry-page-healthiness").Label("How healthy was this?"),
 				compo.ButtonRow().ID("entry-page").Buttons(
 					compo.Button().ID("entry-page-delete").Class("danger").Icon("delete").Text("Delete").OnClick(e.InitialDelete).Hidden(e.isEntryNew),
-					compo.Button().ID("entry-page-cancel").Class("secondary").Icon("cancel").Text("Cancel").OnClick(ReturnToReturnURL),
+					compo.Button().ID("entry-page-cancel").Class("secondary").Icon("cancel").Text("Cancel").OnClick(compo.ReturnToReturnURL),
 					compo.Button().ID("entry-page-save").Class("primary").Type("submit").Icon(saveButtonIcon).Text(saveButtonText),
 				),
 			),
@@ -69,23 +69,23 @@ func (e *EntryPage) OnSubmit(ctx app.Context, event app.Event) {
 	event.PreventDefault()
 
 	if e.isEntryNew {
-		entry, err := api.CreateEntryAPI.Call(e.entry)
+		entry, err := api.CreateEntry.Call(e.entry)
 		if err != nil {
-			CurrentPage.ShowErrorStatus(err)
+			compo.CurrentPage.ShowErrorStatus(err)
 			return
 		}
 		e.entry = entry
 		osusu.SetCurrentEntry(e.entry, ctx)
-		ReturnToReturnURL(ctx, event)
+		compo.ReturnToReturnURL(ctx, event)
 		return
 	}
-	_, err := api.UpdateEntryAPI.Call(e.entry)
+	_, err := api.UpdateEntry.Call(e.entry)
 	if err != nil {
-		CurrentPage.ShowErrorStatus(err)
+		compo.CurrentPage.ShowErrorStatus(err)
 		return
 	}
 	osusu.SetCurrentEntry(e.entry, ctx)
-	ReturnToReturnURL(ctx, event)
+	compo.ReturnToReturnURL(ctx, event)
 }
 
 func (e *EntryPage) InitialDelete(ctx app.Context, event app.Event) {
@@ -96,14 +96,14 @@ func (e *EntryPage) InitialDelete(ctx app.Context, event app.Event) {
 func (e *EntryPage) ConfirmDelete(ctx app.Context, event app.Event) {
 	event.PreventDefault()
 
-	_, err := api.DeleteEntryAPI.Call(e.entry.ID)
+	_, err := api.DeleteEntry.Call(e.entry.ID)
 	if err != nil {
-		CurrentPage.ShowErrorStatus(err)
+		compo.CurrentPage.ShowErrorStatus(err)
 		return
 	}
 	osusu.SetCurrentEntry(osusu.Entry{}, ctx)
 
-	ReturnToReturnURL(ctx, event)
+	compo.ReturnToReturnURL(ctx, event)
 }
 
 func (e *EntryPage) CancelDelete(ctx app.Context, event app.Event) {

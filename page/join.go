@@ -28,7 +28,7 @@ type Join struct {
 }
 
 func (j *Join) Render() app.UI {
-	return &Page{
+	return &compo.Page{
 		ID:                     "join",
 		Title:                  "Join Group",
 		Description:            "Join a group",
@@ -52,7 +52,7 @@ func (j *Join) Render() app.UI {
 			app.Form().ID("join-page-form").Class("form").OnSubmit(j.OnSubmit).Body(
 				compo.TextInput().ID("join-page-form-join-url").Label("Join Code:").Value(&j.groupCode).AutoFocus(true),
 				compo.ButtonRow().ID("join-page").Buttons(
-					compo.Button().ID("join-page-cancel").Class("secondary").Icon("cancel").Text("Cancel").OnClick(ReturnToReturnURL),
+					compo.Button().ID("join-page-cancel").Class("secondary").Icon("cancel").Text("Cancel").OnClick(compo.ReturnToReturnURL),
 					compo.Button().ID("join-page-join").Class("primary").Type("submit").Icon("group").Text("Join Group"),
 				),
 			),
@@ -66,9 +66,9 @@ func (j *Join) OnSubmit(ctx app.Context, e app.Event) {
 	split := strings.Split(j.groupCode, "/")
 	j.groupCode = split[len(split)-1]
 
-	group, err := api.JoinGroupAPI.Call(osusu.GroupJoin{GroupCode: j.groupCode, UserID: j.user.ID})
+	group, err := api.JoinGroup.Call(osusu.GroupJoin{GroupCode: j.groupCode, UserID: j.user.ID})
 	if err != nil {
-		CurrentPage.ShowErrorStatus(err)
+		compo.CurrentPage.ShowErrorStatus(err)
 		return
 	}
 	osusu.SetCurrentGroup(group, ctx)

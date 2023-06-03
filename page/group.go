@@ -40,7 +40,7 @@ func (g *GroupPage) Render() app.UI {
 	if g.joinLinkClicked {
 		joinLinkText = "Link Copied!"
 	}
-	return &Page{
+	return &compo.Page{
 		ID:                     "group",
 		Title:                  titleText,
 		Description:            "View, edit, and select a group",
@@ -55,14 +55,14 @@ func (g *GroupPage) Render() app.UI {
 				if g.isGroupNew {
 					titleText = "Create Group"
 				}
-				CurrentPage.Title = titleText
-				CurrentPage.UpdatePageTitle(ctx)
+				compo.CurrentPage.Title = titleText
+				compo.CurrentPage.UpdatePageTitle(ctx)
 			}
 			g.user = osusu.CurrentUser(ctx)
 			g.isOwner = g.isGroupNew || g.user.ID == g.group.Owner
-			users, err := api.GetUsersAPI.Call(g.group.Members)
+			users, err := api.GetUsers.Call(g.group.Members)
 			if err != nil {
-				CurrentPage.ShowErrorStatus(err)
+				compo.CurrentPage.ShowErrorStatus(err)
 				return
 			}
 			g.members = users
@@ -101,7 +101,7 @@ func (g *GroupPage) Render() app.UI {
 				),
 				compo.ButtonRow().ID("group-page").Buttons(
 					compo.Button().ID("group-page-delete").Class("danger").Icon("delete").Text("Delete").Hidden(!g.isOwner || g.isGroupNew),
-					compo.Button().ID("group-page-cancel").Class("secondary").Icon(cancelButtonIcon).Text(cancelButtonText).OnClick(ReturnToReturnURL),
+					compo.Button().ID("group-page-cancel").Class("secondary").Icon(cancelButtonIcon).Text(cancelButtonText).OnClick(compo.ReturnToReturnURL),
 					compo.Button().ID("group-page-save").Class("primary").Type("submit").Icon(saveButtonIcon).Text(saveButtonText).Hidden(!g.isOwner),
 				),
 			),
@@ -128,21 +128,21 @@ func (g *GroupPage) OnSubmit(ctx app.Context, e app.Event) {
 	if g.isGroupNew {
 		g.group.Owner = g.user.ID
 		g.group.Members = []int64{g.user.ID}
-		group, err := api.CreateGroupAPI.Call(g.group)
+		group, err := api.CreateGroup.Call(g.group)
 		if err != nil {
-			CurrentPage.ShowErrorStatus(err)
+			compo.CurrentPage.ShowErrorStatus(err)
 			return
 		}
 		g.group = group
 		osusu.SetCurrentGroup(g.group, ctx)
-		ReturnToReturnURL(ctx, e)
+		compo.ReturnToReturnURL(ctx, e)
 		return
 	}
-	_, err := api.UpdateGroupAPI.Call(g.group)
+	_, err := api.UpdateGroup.Call(g.group)
 	if err != nil {
-		CurrentPage.ShowErrorStatus(err)
+		compo.CurrentPage.ShowErrorStatus(err)
 		return
 	}
 	osusu.SetCurrentGroup(g.group, ctx)
-	ReturnToReturnURL(ctx, e)
+	compo.ReturnToReturnURL(ctx, e)
 }

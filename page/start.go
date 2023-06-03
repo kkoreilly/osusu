@@ -10,7 +10,7 @@ type Start struct {
 }
 
 func (s *Start) Render() app.UI {
-	return &Page{
+	return &compo.Page{
 		ID:                     "start",
 		Title:                  "Start",
 		Description:            "Osusu is an app for getting recommendations on what meals to eat in a group based on the ratings of each member of the group.",
@@ -19,8 +19,8 @@ func (s *Start) Render() app.UI {
 		SubtitleElement:        "Osusu is an app for getting recommendations on what meals to eat in a group based on the ratings of each member of the group.",
 		Elements: []app.UI{
 			compo.ButtonRow().ID("start-page").Buttons(
-				compo.Button().ID("start-page-sign-in").Class("secondary").Icon("login").Text("Sign In").OnClick(NavigateEvent("/signin")),
-				compo.Button().ID("start-page-sign-up").Class("primary").Icon("app_registration").Text("Sign Up").OnClick(NavigateEvent("/signup")),
+				compo.Button().ID("start-page-sign-in").Class("secondary").Icon("login").Text("Sign In").OnClick(compo.NavigateEvent("/signin")),
+				compo.Button().ID("start-page-sign-up").Class("primary").Icon("app_registration").Text("Sign Up").OnClick(compo.NavigateEvent("/signup")),
 			),
 			app.Div().ID("start-page-info").Body(
 				StartPageInfos([]startPageInfo{

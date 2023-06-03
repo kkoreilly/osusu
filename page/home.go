@@ -8,6 +8,7 @@ import (
 	"github.com/kkoreilly/osusu/api"
 	"github.com/kkoreilly/osusu/compo"
 	"github.com/kkoreilly/osusu/osusu"
+	"github.com/kkoreilly/osusu/util/list"
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
 )
 
@@ -50,29 +51,29 @@ func (h *Home) Render() app.UI {
 	case "History":
 		subtitleText = "View the history of what meals you've eaten and how they were"
 	}
-	return &Page{
+	return &compo.Page{
 		ID:                     "home",
 		Title:                  "Home",
 		Description:            "View, sort, and filter your meals.",
 		AuthenticationRequired: true,
 		OnNavFunc: func(ctx app.Context) {
-			SetReturnURL("/home", ctx)
+			compo.SetReturnURL("/home", ctx)
 			h.group = osusu.CurrentGroup(ctx)
 			if h.group.Name == "" {
-				Navigate("/groups", ctx)
+				compo.Navigate("/groups", ctx)
 			}
 			h.user = osusu.CurrentUser(ctx)
-			cuisines, err := api.GetGroupCuisinesAPI.Call(h.group.ID)
+			cuisines, err := api.GetGroupCuisines.Call(h.group.ID)
 			if err != nil {
-				CurrentPage.ShowErrorStatus(err)
+				compo.CurrentPage.ShowErrorStatus(err)
 				return
 			}
 			h.group.Cuisines = cuisines
 			osusu.SetCurrentGroup(h.group, ctx)
 
-			users, err := api.GetUsersAPI.Call(h.group.Members)
+			users, err := api.GetUsers.Call(h.group.Members)
 			if err != nil {
-				CurrentPage.ShowErrorStatus(err)
+				compo.CurrentPage.ShowErrorStatus(err)
 				return
 			}
 			h.users = users
@@ -107,9 +108,9 @@ func (h *Home) Render() app.UI {
 				h.usersOptions[p.Name] = h.options.Users[p.ID]
 			}
 
-			meals, err := api.GetMealsAPI.Call(h.group.ID)
+			meals, err := api.GetMeals.Call(h.group.ID)
 			if err != nil {
-				CurrentPage.ShowErrorStatus(err)
+				compo.CurrentPage.ShowErrorStatus(err)
 				return
 			}
 			h.meals = meals
@@ -131,9 +132,9 @@ func (h *Home) Render() app.UI {
 				}
 			}
 
-			entries, err := api.GetEntriesAPI.Call(h.group.ID)
+			entries, err := api.GetEntries.Call(h.group.ID)
 			if err != nil {
-				CurrentPage.ShowErrorStatus(err)
+				compo.CurrentPage.ShowErrorStatus(err)
 				return
 			}
 			h.entries = entries
@@ -153,7 +154,7 @@ func (h *Home) Render() app.UI {
 
 			h.RecommendRecipes()
 
-			CurrentPage.AddOnClick(h.PageOnClick)
+			compo.CurrentPage.AddOnClick(h.PageOnClick)
 		},
 		TitleElement:    h.options.Mode,
 		SubtitleElement: subtitleText,
@@ -234,9 +235,9 @@ func (h *Home) Render() app.UI {
 					// only put • between category and cuisine if both exist
 					secondaryText := ""
 					if len(meal.Category) != 0 && len(meal.Cuisine) != 0 {
-						secondaryText = ListString(meal.Category) + " • " + ListString(meal.Cuisine)
+						secondaryText = list.Slice(meal.Category) + " • " + list.Slice(meal.Cuisine)
 					} else {
-						secondaryText = ListString(meal.Category) + ListString(meal.Cuisine)
+						secondaryText = list.Slice(meal.Category) + list.Slice(meal.Cuisine)
 					}
 					return compo.MealImage().ID("home-page-meal-" + si).Class("home-page-meal").Img(meal.Image).MainText(meal.Name).SecondaryText(secondaryText).Score(score).OnClick(func(ctx app.Context, e app.Event) { h.MealOnClick(ctx, e, meal) }).OnClickScope(meal.ID)
 				}),
@@ -248,9 +249,9 @@ func (h *Home) Render() app.UI {
 					// only put • between category and cuisine if both exist
 					secondaryText := ""
 					if len(recipe.Category) != 0 && len(recipe.Cuisine) != 0 {
-						secondaryText = ListString(recipe.Category) + " • " + ListString(recipe.Cuisine)
+						secondaryText = list.Slice(recipe.Category) + " • " + list.Slice(recipe.Cuisine)
 					} else {
-						secondaryText = ListString(recipe.Category) + ListString(recipe.Cuisine)
+						secondaryText = list.Slice(recipe.Category) + list.Slice(recipe.Cuisine)
 					}
 					return compo.MealImage().ID("home-page-recipe-" + si).Class("home-page-recipe").Img(recipe.Image).MainText(recipe.Name).SecondaryText(secondaryText).Score(recipe.Score).OnClick(func(ctx app.Context, e app.Event) { h.RecipeOnClick(ctx, e, recipe) }).OnClickScope(recipe.URL)
 				}),
@@ -431,60 +432,6 @@ func (h *Home) Render() app.UI {
 	}
 }
 
-// ListString returns a formatted string of the given list of items
-func ListString(list []string) string {
-	res := ""
-	lenList := len(list)
-	for i, l := range list {
-		res += l
-		if lenList != 2 && i != lenList-1 {
-			res += ", "
-		}
-		if lenList == 2 && i == lenList-2 {
-			res += " and "
-		}
-		if lenList > 2 && i == lenList-2 {
-			res += "and "
-		}
-	}
-	return res
-}
-
-// ListString returns a formatted string of the given list of items, replacing any number of the elements above the specified number with "n more"
-func ListStringNum(list []string, num int) string {
-	if len(list) <= num {
-		return ListString(list)
-	}
-	return ListString(append(list[:num-1], strconv.Itoa(len(list)-num+1)+" more"))
-}
-
-// ListMap returns a formatted string of the given list of items in which the key is the item and the value is whether it should be included in the string
-func ListMap(list map[string]bool) string {
-	slice := []string{}
-	for k, v := range list {
-		if v {
-			slice = append(slice, k)
-		}
-	}
-	// sort to prevent constant switching
-	sort.Strings(slice)
-	return ListString(slice)
-}
-
-// ListMapNum returns a formatted string of the given list of items in which the key is the item and the value is whether it should be included in the string.
-// ListMapNum limits the number of items to the provided number and adds "and n more" to the end if this limit is exceeded.
-func ListMapNum(list map[string]bool, num int) string {
-	slice := []string{}
-	for k, v := range list {
-		if v {
-			slice = append(slice, k)
-		}
-	}
-	// sort to prevent constant switching
-	sort.Strings(slice)
-	return ListStringNum(slice, num)
-}
-
 func (h *Home) OptionsOnClick(ctx app.Context, e app.Event) {
 	// if the options dialog on click event is triggered, close the options because the dialog includes the whole page and a separate event will cancel this if they actually clicked on the dialog
 	h.SaveOptions(ctx, e)
@@ -498,7 +445,7 @@ func (h *Home) OptionsContainerOnClick(ctx app.Context, e app.Event) {
 func (h *Home) NewMeal(ctx app.Context, e app.Event) {
 	osusu.SetIsMealNew(true, ctx)
 	osusu.SetCurrentMeal(osusu.Meal{}, ctx)
-	Navigate("/meal", ctx)
+	compo.Navigate("/meal", ctx)
 }
 
 func (h *Home) PageOnClick(ctx app.Context, e app.Event) {
@@ -534,12 +481,12 @@ func (h *Home) MealOnClick(ctx app.Context, e app.Event, meal osusu.Meal) {
 func (h *Home) EntryOnClick(ctx app.Context, e app.Event, entry osusu.Entry) {
 	osusu.SetIsEntryNew(false, ctx)
 	osusu.SetCurrentEntry(entry, ctx)
-	Navigate("/entry", ctx)
+	compo.Navigate("/entry", ctx)
 }
 
 func (h *Home) RecipeOnClick(ctx app.Context, e app.Event, recipe osusu.Recipe) {
 	osusu.SetCurrentRecipe(recipe, ctx)
-	Navigate("/recipe", ctx)
+	compo.Navigate("/recipe", ctx)
 }
 
 func (h *Home) UpdateMealDialogPosition(ctx app.Context, e app.Event, dialog app.Value) {
@@ -568,16 +515,16 @@ func (h *Home) NewEntry(ctx app.Context, e app.Event) {
 	entry := osusu.NewEntry(h.group, h.user, h.currentMeal, h.entriesForEachMeal[h.currentMeal.ID])
 	osusu.SetIsEntryNew(true, ctx)
 	osusu.SetCurrentEntry(entry, ctx)
-	Navigate("/entry", ctx)
+	compo.Navigate("/entry", ctx)
 }
 
 func (h *Home) ViewEntries(ctx app.Context, e app.Event) {
-	Navigate("/entries", ctx)
+	compo.Navigate("/entries", ctx)
 }
 
 func (h *Home) EditMeal(ctx app.Context, e app.Event) {
 	osusu.SetIsMealNew(false, ctx)
-	Navigate("/meal", ctx)
+	compo.Navigate("/meal", ctx)
 }
 
 func (h *Home) ShowOptions(ctx app.Context, e app.Event) {
@@ -615,9 +562,9 @@ func (h *Home) RecommendRecipes() {
 			usedSources[meal.Source] = true
 		}
 	}
-	recipes, err := api.RecommendRecipesAPI.Call(osusu.RecommendRecipesData{WordScoreMap: wordScoreMap, Options: h.options, UsedSources: usedSources, N: 0})
+	recipes, err := api.RecommendRecipes.Call(osusu.RecommendRecipesData{WordScoreMap: wordScoreMap, Options: h.options, UsedSources: usedSources, N: 0})
 	if err != nil {
-		CurrentPage.ShowErrorStatus(err)
+		compo.CurrentPage.ShowErrorStatus(err)
 		return
 	}
 	h.recipes = recipes

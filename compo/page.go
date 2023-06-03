@@ -1,5 +1,4 @@
-// Package page provides the page type and types for all of the pages of the app
-package page
+package compo
 
 import (
 	"net/url"
@@ -7,7 +6,7 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/kkoreilly/osusu/compo"
+	"github.com/kkoreilly/osusu/api"
 	"github.com/kkoreilly/osusu/osusu"
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
 )
@@ -38,8 +37,34 @@ type Page struct {
 // CurrentPage is the current page the user is on
 var CurrentPage *Page
 
-// authenticated is when, if ever, the user has already been authenticated in this session of the app. This information is used to skip unnecessary additional authentication requests in the same session.
-var authenticated time.Time
+// Authenticated is when, if ever, the user has already been authenticated in this session of the app. This information is used to skip unnecessary additional authentication requests in the same session.
+var Authenticated time.Time
+
+// Authenticate checks whether the user is signed in and takes an action or takes no action based on that. It returns whether the calling function should return.
+// If required is set to true, Auth does nothing if the user is signed in and redirects the user to the sign in page otherwise.
+// If required is set to false, Auth redirects the user to the home page if the user is signed in, and does nothing otherwise.
+func Authenticate(required bool, ctx app.Context) bool {
+	ok := time.Since(Authenticated) < osusu.TemporarySessionLength
+	if !ok {
+		user := osusu.CurrentUser(ctx)
+		if user.Session != "" {
+			_, err := api.AuthenticateSession.Call(user)
+			if err == nil {
+				ok = true
+				Authenticated = time.Now()
+			}
+		}
+	}
+	switch {
+	case required && !ok:
+		ctx.Navigate("/signin")
+	case !required && ok:
+		ctx.Navigate("/home")
+	default:
+		return false
+	}
+	return true
+}
 
 // Render returns the UI of the page based on its attributes
 func (p *Page) Render() app.UI {
@@ -84,9 +109,9 @@ func (p *Page) Render() app.UI {
 		// 	app.Img().ID(p.ID+"-page-nav-bar-icon-img").Class("page-nav-bar-icon-img").Src("/web/images/icon-192.png"),
 		// 	app.If(!smallScreen, app.Span().ID(p.ID+"-page-nav-bar-icon-text").Class("page-nav-bar-icon-text").Text("Osusu")),
 		// ),
-		compo.Button().ID(p.ID+"page-nav-bar-search").Class("open-"+strconv.FormatBool(CurrentPage.mode == "Search")+" nav-bar").Icon("search").Text("Search").OnClick(p.NavBarOnClick("/search", "Search")),
-		compo.Button().ID(p.ID+"page-nav-bar-discover").Class("open-"+strconv.FormatBool(CurrentPage.mode == "Discover")+" nav-bar").Icon("explore").Text("Discover").OnClick(p.NavBarOnClick("/discover", "Discover")),
-		compo.Button().ID(p.ID+"page-nav-bar-history").Class("open-"+strconv.FormatBool(CurrentPage.mode == "History")+" nav-bar").Icon("history").Text("History").OnClick(p.NavBarOnClick("/history", "History")),
+		Button().ID(p.ID+"page-nav-bar-search").Class("open-"+strconv.FormatBool(CurrentPage.mode == "Search")+" nav-bar").Icon("search").Text("Search").OnClick(p.NavBarOnClick("/search", "Search")),
+		Button().ID(p.ID+"page-nav-bar-discover").Class("open-"+strconv.FormatBool(CurrentPage.mode == "Discover")+" nav-bar").Icon("explore").Text("Discover").OnClick(p.NavBarOnClick("/discover", "Discover")),
+		Button().ID(p.ID+"page-nav-bar-history").Class("open-"+strconv.FormatBool(CurrentPage.mode == "History")+" nav-bar").Icon("history").Text("History").OnClick(p.NavBarOnClick("/history", "History")),
 		// app.If(false, Button().ID(p.ID+"-page-nav-bar-update").Class("nav-bar").Icon("update").Text(updateText).OnClick(p.UpdateApp).Hidden(!CurrentPage.updateAvailable),
 		// 	Button().ID(p.ID+"-page-nav-bar-install").Class("nav-bar").Icon(installIcon).Text(installText).OnClick(p.InstallApp).Hidden(!CurrentPage.installAvailable),
 		// 	Button().ID(p.ID+"-page-nav-bar-account").Class("nav-bar-account").Icon(accountButtonIcon).Text(nameFirstLetter).OnClick(NavigateEvent("/account"))),
@@ -103,9 +128,9 @@ func (p *Page) Render() app.UI {
 		app.Main().ID(p.ID+"-page-main").Class("page-main").Body(
 			app.Dialog().ID(p.ID+"-page-status").Class("page-status").DataSet("status-type", p.statusType).Body(
 				app.Span().ID(p.ID+"-page-status-text").Class("page-status-text").Text(p.statusText),
-				compo.Button().ID(p.ID+"page-status-close-button").Class("page-status-close").Icon("close").OnClick(p.ClosePageStatus),
+				Button().ID(p.ID+"page-status-close-button").Class("page-status-close").Icon("close").OnClick(p.ClosePageStatus),
 			),
-			compo.Button().ID(p.ID+"-page-top-bar-account").Class("top-bar-account").Icon(accountButtonIcon).Text(nameFirstLetter).OnClick(NavigateEvent("/account")),
+			Button().ID(p.ID+"-page-top-bar-account").Class("top-bar-account").Icon(accountButtonIcon).Text(nameFirstLetter).OnClick(NavigateEvent("/account")),
 			app.If(p.TitleElement != "", app.H1().ID(p.ID+"-page-title").Class("page-title").Text(p.TitleElement)),
 			app.If(p.SubtitleElement != "", app.P().ID(p.ID+"-page-subtitle").Class("page-subtitle").Text(p.SubtitleElement)),
 			app.If(true, elements...),
@@ -146,7 +171,7 @@ func (p *Page) OnNav(ctx app.Context) {
 	if p.PreOnNavFunc != nil {
 		p.PreOnNavFunc(ctx)
 	}
-	if osusu.Authenticate(p.AuthenticationRequired, ctx) {
+	if Authenticate(p.AuthenticationRequired, ctx) {
 		return
 	}
 	CurrentPage = p

@@ -13,6 +13,10 @@ import (
 	"github.com/kkoreilly/osusu/osusu"
 )
 
+func main() {
+	ScrapeAllRecipes()
+}
+
 // AllRecipesData contains the data from the allrecipes.com recipe information json text
 type AllRecipesData struct {
 	Type             []string `json:"@type"`

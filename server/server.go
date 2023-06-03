@@ -12,14 +12,9 @@ import (
 	"os"
 	"time"
 
+	"github.com/kkoreilly/osusu/db"
 	"github.com/kkoreilly/osusu/osusu"
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
-)
-
-// API access constants
-const (
-	APIUsername = "z3J8i6gVMyA!H$Ukpvqt5xLos5FgicTeWYf*MtfFU48HMUeMTaMCN59biD^3VxBup@^n7wnWgzCg442!95R9QHnt^6uKZ7f5ip2ycUjbfQ3sWzCZWVP8xgw!dZTn!trD"
-	APIPassword = "gbx5T3*UJSALdxAES$n@w2m6b4o949XKMHsApk@Zt4&q3cf$37Jvf#g4#nd95hSnc4K%#h!JD9ifSkDhQyPMT@brtuU!cFxBJwny!ukC$s^ZVPdPzkJm8DvX4bK7to7d"
 )
 
 // AllRecipes are all of the recipes external recipes stored in the web/data/recipes.json file
@@ -56,24 +51,10 @@ func Start() {
 		AutoUpdateInterval: 10 * time.Second,
 	})
 
-	err := ConnectToDB()
+	err := db.Start()
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = InitDB()
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = CleanupDB()
-	if err != nil {
-		log.Println(err)
-	}
-	// // if we have scrape flag, scrape
-	// for _, arg := range os.Args {
-	// 	if arg == "scrape" {
-	// 		ScrapeAllRecipes()
-	// 	}
-	// }
 
 	recipes, err := osusu.LoadRecipes()
 	if err != nil {
@@ -196,13 +177,19 @@ func HandleFunc(method string, path string, handler http.HandlerFunc) {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
+		// we hash the username and password so that they are guarenteed to be the same length, which is needed for subtle comparison algorithm
 		usernameHash := sha256.Sum256([]byte(username))
 		passwordHash := sha256.Sum256([]byte(password))
-		expectedUsernameHash := sha256.Sum256([]byte(APIUsername))
-		expectedPasswordHash := sha256.Sum256([]byte(APIPassword))
 
-		usernameMatch := (subtle.ConstantTimeCompare(usernameHash[:], expectedUsernameHash[:]) == 1)
-		passwordMatch := (subtle.ConstantTimeCompare(passwordHash[:], expectedPasswordHash[:]) == 1)
+		// username and password should already be hashed once on client side, so we have to hash the expected username and password twice to get the same value
+		expectedUsernameHash := sha256.Sum256([]byte(osusu.APIUsername))
+		expectedPasswordHash := sha256.Sum256([]byte(osusu.APIPassword))
+
+		secondExpectedUsernameHash := sha256.Sum256(expectedUsernameHash[:])
+		secondExpectedPasswordHash := sha256.Sum256(expectedPasswordHash[:])
+
+		usernameMatch := (subtle.ConstantTimeCompare(usernameHash[:], secondExpectedUsernameHash[:]) == 1)
+		passwordMatch := (subtle.ConstantTimeCompare(passwordHash[:], secondExpectedPasswordHash[:]) == 1)
 
 		if !(usernameMatch && passwordMatch) {
 			w.Header().Set("WWW-Authenticate", `Basic realm="restricted", charset="UTF-8"`)

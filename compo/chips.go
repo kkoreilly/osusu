@@ -3,6 +3,7 @@ package compo
 import (
 	"strconv"
 
+	"github.com/kkoreilly/osusu/util/list"
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
 )
 
@@ -31,7 +32,7 @@ func (c *ChipsCompo[T]) Render() app.UI {
 		if actualVal, ok := any(*c.value).(string); ok {
 			valueText = actualVal
 		} else if actualVal, ok := any(*c.value).(map[string]bool); ok {
-			valueText = ListMapNum(actualVal, 3)
+			valueText = list.MapNum(actualVal, 3)
 		}
 		if c.selectOpen {
 			valueIcon = "expand_less"

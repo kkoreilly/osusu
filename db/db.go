@@ -1,4 +1,4 @@
-package server
+package db
 
 import (
 	"database/sql"
@@ -11,17 +11,35 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// db is the database instance used in the app
 var db *sql.DB
 
-// ConnectToDB connects to the database
-func ConnectToDB() error {
+// Start connects to, initializes, and cleans up the database. It should be called on server start.
+func Start() error {
+	err := Connect()
+	if err != nil {
+		return err
+	}
+	err = Init()
+	if err != nil {
+		return err
+	}
+	err = Cleanup()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// Connect connects to the database
+func Connect() error {
 	var err error
 	db, err = sql.Open("postgres", os.Getenv("DATABASE_URL"))
 	return err
 }
 
-// CreateUserDB creates a user in the database and returns the created user if successful and an error if not
-func CreateUserDB(user osusu.User) (osusu.User, error) {
+// CreateUser creates a user in the database and returns the created user if successful and an error if not
+func CreateUser(user osusu.User) (osusu.User, error) {
 	statement := `INSERT INTO users (username, password, name)
 	VALUES ($1, $2, $3) RETURNING id`
 	row := db.QueryRow(statement, user.Username, user.Password, user.Name)
@@ -32,8 +50,8 @@ func CreateUserDB(user osusu.User) (osusu.User, error) {
 	return user, err
 }
 
-// SignInDB checks whether a specific user can sign into the database and returns the user if they can and an error if they can't
-func SignInDB(user osusu.User) (osusu.User, error) {
+// SignIn checks whether a specific user can sign into the database and returns the user if they can and an error if they can't
+func SignIn(user osusu.User) (osusu.User, error) {
 	statement := `SELECT id, password, name FROM users WHERE username=$1`
 	row := db.QueryRow(statement, user.Username)
 	var password string
@@ -54,8 +72,8 @@ func SignInDB(user osusu.User) (osusu.User, error) {
 	return user, nil
 }
 
-// GetGroupCuisinesDB gets the cuisines value of the group with the given id from the database
-func GetGroupCuisinesDB(groupID int64) ([]string, error) {
+// GetGroupCuisines gets the cuisines value of the group with the given id from the database
+func GetGroupCuisines(groupID int64) ([]string, error) {
 	statement := `SELECT cuisines FROM groups WHERE id = $1`
 	row := db.QueryRow(statement, groupID)
 	var cuisines []string
@@ -66,8 +84,8 @@ func GetGroupCuisinesDB(groupID int64) ([]string, error) {
 	return cuisines, nil
 }
 
-// UpdateGroupCuisinesDB updates the cuisines value of the given group in the database to its cuisines value
-func UpdateGroupCuisinesDB(group osusu.Group) error {
+// UpdateGroupCuisines updates the cuisines value of the given group in the database to its cuisines value
+func UpdateGroupCuisines(group osusu.Group) error {
 	statement := `UPDATE groups
 	SET cuisines = $1
 	WHERE id = $2`
@@ -75,8 +93,8 @@ func UpdateGroupCuisinesDB(group osusu.Group) error {
 	return err
 }
 
-// UpdateUserInfoDB updates the username and name of the given user in the database
-func UpdateUserInfoDB(user osusu.User) error {
+// UpdateUserInfo updates the username and name of the given user in the database
+func UpdateUserInfo(user osusu.User) error {
 	statement := `UPDATE users
 	SET username = $1, name = $2
 	WHERE id = $3`
@@ -84,8 +102,8 @@ func UpdateUserInfoDB(user osusu.User) error {
 	return err
 }
 
-// UpdatePasswordDB updates the password of the given user in the database to its password value
-func UpdatePasswordDB(user osusu.User) error {
+// UpdatePassword updates the password of the given user in the database to its password value
+func UpdatePassword(user osusu.User) error {
 	statement := `UPDATE users
 	SET password = $1
 	WHERE id = $2`
@@ -93,8 +111,8 @@ func UpdatePasswordDB(user osusu.User) error {
 	return err
 }
 
-// GetUsersDB gets all of the users with user ids contained within the given array of user ids
-func GetUsersDB(userIDs []int64) (osusu.Users, error) {
+// GetUsers gets all of the users with user ids contained within the given array of user ids
+func GetUsers(userIDs []int64) (osusu.Users, error) {
 	statement := `SELECT id, username, name FROM users WHERE id = ANY($1)`
 	rows, err := db.Query(statement, pq.Array(userIDs))
 	if err != nil {
@@ -112,32 +130,32 @@ func GetUsersDB(userIDs []int64) (osusu.Users, error) {
 	return res, nil
 }
 
-// CreateSessionDB creates a new session in the database with the given session id and user id
-func CreateSessionDB(id string, userID int64) error {
+// CreateSession creates a new session in the database with the given session id and user id
+func CreateSession(id string, userID int64) error {
 	statement := `INSERT INTO sessions (id, user_id, expires)
 	VALUES ($1, $2, $3)`
 	_, err := db.Exec(statement, id, userID, time.Now().UTC().Add(osusu.RememberMeSessionLength))
 	return err
 }
 
-// GetSessionDB gets the user id and expiration date of the given session if it exists. Otherwise, it returns an error
-func GetSessionDB(id string) (userID int64, expires time.Time, err error) {
+// GetSession gets the user id and expiration date of the given session if it exists. Otherwise, it returns an error
+func GetSession(id string) (userID int64, expires time.Time, err error) {
 	statement := `SELECT user_id, expires FROM sessions WHERE id=$1`
 	row := db.QueryRow(statement, id)
 	err = row.Scan(&userID, &expires)
 	return
 }
 
-// DeleteSessionDB deletes the given session from the database
-func DeleteSessionDB(id string) error {
+// DeleteSession deletes the given session from the database
+func DeleteSession(id string) error {
 	statement := `DELETE FROM sessions
 	WHERE id = $1`
 	_, err := db.Exec(statement, id)
 	return err
 }
 
-// GetGroupsDB returns the groups that the user with the given user id is part of
-func GetGroupsDB(userID int64) (osusu.Groups, error) {
+// GetGroups returns the groups that the user with the given user id is part of
+func GetGroups(userID int64) (osusu.Groups, error) {
 	statement := `SELECT id, owner, code, name, members FROM groups WHERE $1 = ANY (members)`
 	rows, err := db.Query(statement, userID)
 	if err != nil {
@@ -155,8 +173,8 @@ func GetGroupsDB(userID int64) (osusu.Groups, error) {
 	return res, nil
 }
 
-// CreateGroupDB creates the given group in the database and returns the created group if successful and an error if not
-func CreateGroupDB(group osusu.Group) (osusu.Group, error) {
+// CreateGroup creates the given group in the database and returns the created group if successful and an error if not
+func CreateGroup(group osusu.Group) (osusu.Group, error) {
 	statement := `INSERT INTO groups (owner, code, name, members)
 	VALUES ($1, $2, $3, $4) RETURNING id`
 	row := db.QueryRow(statement, group.Owner, group.Code, group.Name, pq.Array(group.Members))
@@ -167,8 +185,8 @@ func CreateGroupDB(group osusu.Group) (osusu.Group, error) {
 	return group, nil
 }
 
-// JoinGroupDB has the user with the given user id join the group with the given group code and returns the joined group if successful and an error if not
-func JoinGroupDB(groupJoin osusu.GroupJoin) (osusu.Group, error) {
+// JoinGroup has the user with the given user id join the group with the given group code and returns the joined group if successful and an error if not
+func JoinGroup(groupJoin osusu.GroupJoin) (osusu.Group, error) {
 	statement := `UPDATE groups
 	SET members = ARRAY_APPEND(members, $1)
 	WHERE code = $2
@@ -183,8 +201,8 @@ func JoinGroupDB(groupJoin osusu.GroupJoin) (osusu.Group, error) {
 	return res, nil
 }
 
-// UpdateGroupDB updates the name and members of the group with the given id to the values of the given group
-func UpdateGroupDB(group osusu.Group) error {
+// UpdateGroup updates the name and members of the group with the given id to the values of the given group
+func UpdateGroup(group osusu.Group) error {
 	statement := `UPDATE groups
 	SET name = $1, members = $2
 	WHERE id = $3`
@@ -192,8 +210,8 @@ func UpdateGroupDB(group osusu.Group) error {
 	return err
 }
 
-// GetMealsDB gets the meals from the database that are associated with the given group id
-func GetMealsDB(groupID int64) (osusu.Meals, error) {
+// GetMeals gets the meals from the database that are associated with the given group id
+func GetMeals(groupID int64) (osusu.Meals, error) {
 	statement := `SELECT id, name, description, source, image, category, cuisine FROM meals WHERE group_id=$1`
 	rows, err := db.Query(statement, groupID)
 	if err != nil {
@@ -212,8 +230,8 @@ func GetMealsDB(groupID int64) (osusu.Meals, error) {
 	return res, nil
 }
 
-// CreateMealDB creates a meal in the database with the given information and returns the created meal if successful and an error if not
-func CreateMealDB(meal osusu.Meal) (osusu.Meal, error) {
+// CreateMeal creates a meal in the database with the given information and returns the created meal if successful and an error if not
+func CreateMeal(meal osusu.Meal) (osusu.Meal, error) {
 	statement := `INSERT INTO meals (group_id, name, description, source, image, category, cuisine)
 	VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`
 	row := db.QueryRow(statement, meal.GroupID, meal.Name, meal.Description, meal.Source, meal.Image, pq.Array(meal.Category), pq.Array(meal.Cuisine))
@@ -224,8 +242,8 @@ func CreateMealDB(meal osusu.Meal) (osusu.Meal, error) {
 	return meal, nil
 }
 
-// UpdateMealDB updates a meal in the database
-func UpdateMealDB(meal osusu.Meal) error {
+// UpdateMeal updates a meal in the database
+func UpdateMeal(meal osusu.Meal) error {
 	statement := `UPDATE meals
 	SET name = $1, description = $2, source = $3, image = $4, category = $5, cuisine = $6
 	WHERE id = $7`
@@ -233,24 +251,24 @@ func UpdateMealDB(meal osusu.Meal) error {
 	return err
 }
 
-// DeleteMealDB deletes the meal with the given id from the database
-func DeleteMealDB(id int64) error {
+// DeleteMeal deletes the meal with the given id from the database
+func DeleteMeal(id int64) error {
 	statement := `DELETE FROM meals
 	WHERE id = $1`
 	_, err := db.Exec(statement, id)
 	return err
 }
 
-// DeleteMealEntriesDB deletes the entries associated with the given meal id from the database
-func DeleteMealEntriesDB(mealID int64) error {
+// DeleteMealEntries deletes the entries associated with the given meal id from the database
+func DeleteMealEntries(mealID int64) error {
 	statement := `DELETE FROM entries
 	WHERE meal_id = $1`
 	_, err := db.Exec(statement, mealID)
 	return err
 }
 
-// GetEntriesDB gets the entries from the database that have the given group id
-func GetEntriesDB(groupID int64) (osusu.Entries, error) {
+// GetEntries gets the entries from the database that have the given group id
+func GetEntries(groupID int64) (osusu.Entries, error) {
 	statement := `SELECT id, meal_id, entry_date, type, source, cost, effort, healthiness, taste FROM entries
 	WHERE group_id = $1`
 	rows, err := db.Query(statement, groupID)
@@ -270,8 +288,8 @@ func GetEntriesDB(groupID int64) (osusu.Entries, error) {
 	return res, nil
 }
 
-// GetEntriesForMealDB gets the entries from the database that have the given meal id
-func GetEntriesForMealDB(mealID int64) (osusu.Entries, error) {
+// GetEntriesForMeal gets the entries from the database that have the given meal id
+func GetEntriesForMeal(mealID int64) (osusu.Entries, error) {
 	statement := `SELECT id, group_id, entry_date, type, source, cost, effort, healthiness, taste FROM entries
 	WHERE meal_id = $1`
 	rows, err := db.Query(statement, mealID)
@@ -291,8 +309,8 @@ func GetEntriesForMealDB(mealID int64) (osusu.Entries, error) {
 	return res, nil
 }
 
-// CreateEntryDB creates and returns a new entry in the database with the given entry's user and meal id values
-func CreateEntryDB(entry osusu.Entry) (osusu.Entry, error) {
+// CreateEntry creates and returns a new entry in the database with the given entry's user and meal id values
+func CreateEntry(entry osusu.Entry) (osusu.Entry, error) {
 	statement := `INSERT INTO entries (group_id, meal_id, entry_date, type, source, cost, effort, healthiness, taste)
 	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`
 	row := db.QueryRow(statement, entry.GroupID, entry.MealID, entry.Date, entry.Type, entry.Source, entry.Cost, entry.Effort, entry.Healthiness, entry.Taste)
@@ -303,8 +321,8 @@ func CreateEntryDB(entry osusu.Entry) (osusu.Entry, error) {
 	return entry, nil
 }
 
-// UpdateEntryDB updates an entry in the database to have the values of the given entry
-func UpdateEntryDB(entry osusu.Entry) error {
+// UpdateEntry updates an entry in the database to have the values of the given entry
+func UpdateEntry(entry osusu.Entry) error {
 	statement := `UPDATE entries
 	SET entry_date = $1, type = $2, source = $3, cost = $4, effort = $5, healthiness = $6, taste = $7
 	WHERE id = $8`
@@ -312,8 +330,8 @@ func UpdateEntryDB(entry osusu.Entry) error {
 	return err
 }
 
-// DeleteEntryDB deletes the entry with the given id from the database
-func DeleteEntryDB(id int64) error {
+// DeleteEntry deletes the entry with the given id from the database
+func DeleteEntry(id int64) error {
 	statement := `DELETE FROM entries
 	WHERE id = $1`
 	_, err := db.Exec(statement, id)

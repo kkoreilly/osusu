@@ -1,43 +1,43 @@
-package server
+package db
 
-// InitDB creates all of the database tables if they do not exist.
-func InitDB() error {
-	err := CreateHstoreExtensionDB()
+// Init creates all of the database tables if they do not exist.
+func Init() error {
+	err := CreateHstoreExtension()
 	if err != nil {
 		return err
 	}
-	err = CreateUsersTableDB()
+	err = CreateUsersTable()
 	if err != nil {
 		return err
 	}
-	err = CreateSessionsTableDB()
+	err = CreateSessionsTable()
 	if err != nil {
 		return err
 	}
-	err = CreateGroupsTableDB()
+	err = CreateGroupsTable()
 	if err != nil {
 		return err
 	}
-	err = CreateMealsTableDB()
+	err = CreateMealsTable()
 	if err != nil {
 		return err
 	}
-	err = CreateEntriesTableDB()
+	err = CreateEntriesTable()
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-// CreateHstoreExtensionDB creates the hstore extension in the database if it does not exist
-func CreateHstoreExtensionDB() error {
+// CreateHstoreExtension creates the hstore extension in the database if it does not exist
+func CreateHstoreExtension() error {
 	statement := `CREATE EXTENSION IF NOT EXISTS hstore`
 	_, err := db.Exec(statement)
 	return err
 }
 
-// CreateUsersTableDB creates the users table in the database if it does not exist
-func CreateUsersTableDB() error {
+// CreateUsersTable creates the users table in the database if it does not exist
+func CreateUsersTable() error {
 	statement := `
 	CREATE TABLE IF NOT EXISTS public.users
 	(
@@ -52,8 +52,8 @@ func CreateUsersTableDB() error {
 	return err
 }
 
-// CreateSessionsTableDB creates the sessions table in the database if it does not eixst
-func CreateSessionsTableDB() error {
+// CreateSessionsTable creates the sessions table in the database if it does not eixst
+func CreateSessionsTable() error {
 	statement := `
 	CREATE TABLE IF NOT EXISTS public.sessions
 	(
@@ -70,8 +70,8 @@ func CreateSessionsTableDB() error {
 	return err
 }
 
-// CreateGroupsTableDB creates the groups table in the database if it does not exist
-func CreateGroupsTableDB() error {
+// CreateGroupsTable creates the groups table in the database if it does not exist
+func CreateGroupsTable() error {
 	statement := `
 	CREATE TABLE IF NOT EXISTS public.groups
 	(
@@ -92,8 +92,8 @@ func CreateGroupsTableDB() error {
 	return err
 }
 
-// CreateMealsTableDB creates the meals table in the database if it does not exist
-func CreateMealsTableDB() error {
+// CreateMealsTable creates the meals table in the database if it does not exist
+func CreateMealsTable() error {
 	statement := `
 	CREATE TABLE IF NOT EXISTS public.meals
 	(
@@ -115,8 +115,8 @@ func CreateMealsTableDB() error {
 	return err
 }
 
-// CreateEntriesTableDB creates the entries table in the database if it does not exist
-func CreateEntriesTableDB() error {
+// CreateEntriesTable creates the entries table in the database if it does not exist
+func CreateEntriesTable() error {
 	statement := `
 	CREATE TABLE IF NOT EXISTS public.entries
 	(

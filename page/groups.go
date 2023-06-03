@@ -15,16 +15,16 @@ type GroupsPage struct {
 }
 
 func (g *GroupsPage) Render() app.UI {
-	return &Page{
+	return &compo.Page{
 		ID:                     "groups",
 		Title:                  "Groups",
 		Description:            "Select your group",
 		AuthenticationRequired: true,
 		OnNavFunc: func(ctx app.Context) {
-			SetReturnURL("/groups", ctx)
-			groups, err := api.GetGroupsAPI.Call(osusu.CurrentUser(ctx).ID)
+			compo.SetReturnURL("/groups", ctx)
+			groups, err := api.GetGroups.Call(osusu.CurrentUser(ctx).ID)
 			if err != nil {
-				CurrentPage.ShowErrorStatus(err)
+				compo.CurrentPage.ShowErrorStatus(err)
 			}
 			g.groups = groups
 		},
@@ -32,7 +32,7 @@ func (g *GroupsPage) Render() app.UI {
 		Elements: []app.UI{
 			compo.ButtonRow().ID("groups-page").Buttons(
 				compo.Button().ID("groups-page-new-group").Class("secondary").Icon("add").Text("New Group").OnClick(g.New),
-				compo.Button().ID("groups-page-join-group").Class("primary").Icon("group").Text("Join Group").OnClick(NavigateEvent("/join")),
+				compo.Button().ID("groups-page-join-group").Class("primary").Icon("group").Text("Join Group").OnClick(compo.NavigateEvent("/join")),
 			),
 			app.Div().ID("groups-page-groups-container").Body(
 				app.Range(g.groups).Slice(func(i int) app.UI {
@@ -47,11 +47,11 @@ func (g *GroupsPage) Render() app.UI {
 func (g *GroupsPage) New(ctx app.Context, e app.Event) {
 	osusu.SetIsGroupNew(true, ctx)
 	osusu.SetCurrentGroup(osusu.Group{}, ctx)
-	Navigate("/group", ctx)
+	compo.Navigate("/group", ctx)
 }
 
 func (g *GroupsPage) GroupOnClick(ctx app.Context, e app.Event, group osusu.Group) {
 	osusu.SetIsGroupNew(false, ctx)
 	osusu.SetCurrentGroup(group, ctx)
-	Navigate("/home", ctx)
+	compo.Navigate("/home", ctx)
 }

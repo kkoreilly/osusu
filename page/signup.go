@@ -20,7 +20,7 @@ func (s *SignUp) Render() app.UI {
 	if s.showPassword {
 		passwordInputType = "text"
 	}
-	return &Page{
+	return &compo.Page{
 		ID:                     "sign-up",
 		Title:                  "Sign Up",
 		Description:            "Sign up to Osusu",
@@ -36,7 +36,7 @@ func (s *SignUp) Render() app.UI {
 					compo.CheckboxChip().ID("sign-up-page-remember-me").Label("Remember Me").Default(true).Value(&s.user.RememberMe),
 				),
 				compo.ButtonRow().ID("sign-up-page").Buttons(
-					compo.Button().ID("sign-up-page-cancel").Class("secondary").Icon("cancel").Text("Cancel").OnClick(NavigateEvent("/")),
+					compo.Button().ID("sign-up-page-cancel").Class("secondary").Icon("cancel").Text("Cancel").OnClick(compo.NavigateEvent("/")),
 					compo.Button().ID("sign-up-page-submit").Class("primary").Type("submit").Icon("app_registration").Text("Sign Up"),
 				),
 			),
@@ -47,18 +47,18 @@ func (s *SignUp) Render() app.UI {
 func (s *SignUp) OnSubmit(ctx app.Context, e app.Event) {
 	e.PreventDefault()
 
-	CurrentPage.ShowStatus("Loading...", osusu.StatusTypeNeutral)
+	compo.CurrentPage.ShowStatus("Loading...", osusu.StatusTypeNeutral)
 
 	ctx.Defer(func(ctx app.Context) {
-		user, err := api.SignUpAPI.Call(s.user)
+		user, err := api.SignUp.Call(s.user)
 		if err != nil {
-			CurrentPage.ShowErrorStatus(err)
+			compo.CurrentPage.ShowErrorStatus(err)
 			s.Update()
 			return
 		}
 		// if no error, we are now authenticated
-		authenticated = time.Now()
+		compo.Authenticated = time.Now()
 		osusu.SetCurrentUser(user, ctx)
-		Navigate("/groups", ctx)
+		compo.Navigate("/groups", ctx)
 	})
 }

@@ -29,7 +29,7 @@ func (m *MealPage) Render() app.UI {
 		saveButtonIcon = "add"
 		saveButtonText = "Create"
 	}
-	return &Page{
+	return &compo.Page{
 		ID:                     "meal",
 		Title:                  titleText,
 		Description:            "Edit, view, or create a meal.",
@@ -41,13 +41,13 @@ func (m *MealPage) Render() app.UI {
 			m.isMealNew = osusu.IsMealNew(ctx)
 
 			if m.isMealNew {
-				CurrentPage.Title = "Create Meal"
-				CurrentPage.UpdatePageTitle(ctx)
+				compo.CurrentPage.Title = "Create Meal"
+				compo.CurrentPage.UpdatePageTitle(ctx)
 			}
 
-			cuisines, err := api.GetGroupCuisinesAPI.Call(m.group.ID)
+			cuisines, err := api.GetGroupCuisines.Call(m.group.ID)
 			if err != nil {
-				CurrentPage.ShowErrorStatus(err)
+				compo.CurrentPage.ShowErrorStatus(err)
 				return
 			}
 			m.group.Cuisines = cuisines
@@ -86,7 +86,7 @@ func (m *MealPage) Render() app.UI {
 				compo.CuisinesDialog("meal-page", m.CuisinesDialogOnSave),
 				compo.ButtonRow().ID("meal-page").Buttons(
 					compo.Button().ID("meal-page-delete").Class("danger").Icon("delete").Text("Delete").OnClick(m.DeleteMeal).Hidden(m.isMealNew),
-					compo.Button().ID("meal-page-cancel").Class("secondary").Icon("cancel").Text("Cancel").OnClick(NavigateEvent("/home")),
+					compo.Button().ID("meal-page-cancel").Class("secondary").Icon("cancel").Text("Cancel").OnClick(compo.NavigateEvent("/home")),
 					compo.Button().ID("meal-page-save").Class("primary").Type("submit").Icon(saveButtonIcon).Text(saveButtonText),
 				),
 				app.Dialog().ID("meal-page-confirm-delete-meal").Class("modal").Body(
@@ -111,8 +111,8 @@ func (m *MealPage) CuisinesOnChange(ctx app.Context, event app.Event, val string
 
 func (m *MealPage) CuisinesDialogOnSave(ctx app.Context, event app.Event) {
 	m.group = osusu.CurrentGroup(ctx)
-	if newCuisineCreated {
-		m.cuisine[newCuisine] = true
+	if compo.NewCuisineCreated {
+		m.cuisine[compo.NewCuisine] = true
 	}
 	m.meal.RemoveInvalidCuisines(m.group.Cuisines)
 }
@@ -136,33 +136,33 @@ func (m *MealPage) OnSubmit(ctx app.Context, event app.Event) {
 
 	if m.isMealNew {
 		m.meal.GroupID = m.group.ID
-		meal, err := api.CreateMealAPI.Call(m.meal)
+		meal, err := api.CreateMeal.Call(m.meal)
 		if err != nil {
-			CurrentPage.ShowErrorStatus(err)
+			compo.CurrentPage.ShowErrorStatus(err)
 			return
 		}
 		m.meal = meal
 		osusu.SetCurrentMeal(m.meal, ctx)
-		entries, err := api.GetEntriesForMealAPI.Call(m.meal.ID)
+		entries, err := api.GetEntriesForMeal.Call(m.meal.ID)
 		if err != nil {
-			CurrentPage.ShowErrorStatus(err)
+			compo.CurrentPage.ShowErrorStatus(err)
 			return
 		}
 		entry := osusu.NewEntry(m.group, m.user, m.meal, entries)
 		osusu.SetIsEntryNew(true, ctx)
 		osusu.SetCurrentEntry(entry, ctx)
-		Navigate("/entry", ctx)
+		compo.Navigate("/entry", ctx)
 		return
 	}
-	_, err := api.UpdateMealAPI.Call(m.meal)
+	_, err := api.UpdateMeal.Call(m.meal)
 	if err != nil {
-		CurrentPage.ShowErrorStatus(err)
+		compo.CurrentPage.ShowErrorStatus(err)
 		return
 	}
 
 	osusu.SetCurrentMeal(m.meal, ctx)
 
-	Navigate("/home", ctx)
+	compo.Navigate("/home", ctx)
 }
 
 func (m *MealPage) ViewEntries(ctx app.Context, event app.Event) {
@@ -175,14 +175,14 @@ func (m *MealPage) ViewEntries(ctx app.Context, event app.Event) {
 		}
 	}
 
-	_, err := api.UpdateMealAPI.Call(m.meal)
+	_, err := api.UpdateMeal.Call(m.meal)
 	if err != nil {
-		CurrentPage.ShowErrorStatus(err)
+		compo.CurrentPage.ShowErrorStatus(err)
 		return
 	}
 	osusu.SetCurrentMeal(m.meal, ctx)
 
-	Navigate("/entries", ctx)
+	compo.Navigate("/entries", ctx)
 }
 
 func (m *MealPage) DeleteMeal(ctx app.Context, e app.Event) {
@@ -193,14 +193,14 @@ func (m *MealPage) DeleteMeal(ctx app.Context, e app.Event) {
 func (m *MealPage) ConfirmDeleteMeal(ctx app.Context, e app.Event) {
 	e.PreventDefault()
 
-	_, err := api.DeleteMealAPI.Call(m.meal.ID)
+	_, err := api.DeleteMeal.Call(m.meal.ID)
 	if err != nil {
-		CurrentPage.ShowErrorStatus(err)
+		compo.CurrentPage.ShowErrorStatus(err)
 		return
 	}
 	osusu.SetCurrentMeal(osusu.Meal{}, ctx)
 	app.Window().GetElementByID("meal-page-confirm-delete-meal").Call("close")
-	ReturnToReturnURL(ctx, e)
+	compo.ReturnToReturnURL(ctx, e)
 }
 
 func (m *MealPage) CancelDeleteMeal(ctx app.Context, e app.Event) {

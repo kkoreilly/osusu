@@ -1,11 +1,16 @@
 .DEFAULT_GOAL := run
 
 build:
-	GOARCH=wasm GOOS=js go build -o web/app.wasm
-	go build -o ./osusu
+	GOARCH=wasm GOOS=js go build -o web/app.wasm ./cmd/client
+	go build -o ./bin/server ./cmd/server
 
 run: build
-	./osusu
+	./bin/server
 
-scrape: build
-	./osusu scrape
+buildscraper:
+	go build -o ./bin/scraper ./cmd/scraper 
+
+runscraper: buildscraper
+	./bin/scraper
+
+scrape: runscraper

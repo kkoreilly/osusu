@@ -20,8 +20,8 @@ type API[I, O any] struct {
 	Func   func(data I) (O, error)
 }
 
-// NewAPI creates and returns a new API with the given values
-func NewAPI[I, O any](method string, path string, serverFunc func(data I) (O, error)) *API[I, O] {
+// New creates and returns a new API with the given values
+func New[I, O any](method string, path string, serverFunc func(data I) (O, error)) *API[I, O] {
 	server.HandleFunc(method, path, func(w http.ResponseWriter, r *http.Request) {
 		var data I
 		if method == http.MethodGet {

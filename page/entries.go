@@ -21,21 +21,21 @@ type EntriesPage struct {
 func (e *EntriesPage) Render() app.UI {
 	// width, _ := app.Window().Size()
 	// smallScreen := width <= 480
-	return &Page{
+	return &compo.Page{
 		ID:                     "entries",
 		Title:                  "Entries",
 		Description:            "View meal entries",
 		AuthenticationRequired: true,
 		OnNavFunc: func(ctx app.Context) {
-			SetReturnURL("/entries", ctx)
+			compo.SetReturnURL("/entries", ctx)
 			e.user = osusu.CurrentUser(ctx)
 			e.meal = osusu.CurrentMeal(ctx)
 			e.options = osusu.GetOptions(ctx)
 			// recency doesn't matter for entries
 			e.options.RecencyWeight = 0
-			entries, err := api.GetEntriesForMealAPI.Call(e.meal.ID)
+			entries, err := api.GetEntriesForMeal.Call(e.meal.ID)
 			if err != nil {
-				CurrentPage.ShowErrorStatus(err)
+				compo.CurrentPage.ShowErrorStatus(err)
 				return
 			}
 			e.entries = entries
@@ -57,7 +57,7 @@ func (e *EntriesPage) Render() app.UI {
 		TitleElement: "Entries for " + e.meal.Name,
 		Elements: []app.UI{
 			compo.ButtonRow().ID("entries-page").Buttons(
-				compo.Button().ID("entries-page-back").Class("secondary").Icon("arrow_back").Text("Back").OnClick(NavigateEvent("/home")),
+				compo.Button().ID("entries-page-back").Class("secondary").Icon("arrow_back").Text("Back").OnClick(compo.NavigateEvent("/home")),
 				compo.Button().ID("entries-page-new").Class("primary").Icon("add").Text("New").OnClick(e.New),
 			),
 			app.Div().ID("entries-page-entries-container").Class("meal-images-container").Body(
@@ -117,12 +117,12 @@ func (e *EntriesPage) Render() app.UI {
 func (e *EntriesPage) EntryOnClick(ctx app.Context, event app.Event, entry osusu.Entry) {
 	osusu.SetIsEntryNew(false, ctx)
 	osusu.SetCurrentEntry(entry, ctx)
-	Navigate("/entry", ctx)
+	compo.Navigate("/entry", ctx)
 }
 
 func (e *EntriesPage) New(ctx app.Context, event app.Event) {
 	entry := osusu.NewEntry(osusu.CurrentGroup(ctx), e.user, e.meal, e.entries)
 	osusu.SetIsEntryNew(true, ctx)
 	osusu.SetCurrentEntry(entry, ctx)
-	Navigate("/entry", ctx)
+	compo.Navigate("/entry", ctx)
 }

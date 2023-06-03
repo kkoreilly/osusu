@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/kkoreilly/osusu/util/mat"
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
-	"golang.org/x/exp/constraints"
 )
 
 // A Recipe is an external recipe that can be used for new meal recommendations
@@ -197,25 +197,9 @@ func (r Recipe) ComputeBaseScoreIndex() Score {
 	} else {
 		score.Healthiness = 100 * r.Nutrition.Sugar / r.Nutrition.Protein // ratio of sugar to protein, higher = more sugar = worse
 	}
-	score.Taste = int(100*r.RatingValue) + Min(r.RatingCount, 500)                // rating value combined with rating count, higher = better rated = better
+	score.Taste = int(100*r.RatingValue) + mat.Min(r.RatingCount, 500)            // rating value combined with rating count, higher = better rated = better
 	score.Recency = int(r.DatePublished.Unix()/3600 + r.DateModified.Unix()/3600) // hours since 1970 for date published and modified, higher = more recent = better
 	return score
-}
-
-// Min returns the minimum value of the given two values
-func Min[T constraints.Ordered](x, y T) T {
-	if x < y {
-		return x
-	}
-	return y
-}
-
-// Max returns the maximum value of the given two values
-func Max[T constraints.Ordered](x, y T) T {
-	if x > y {
-		return x
-	}
-	return y
 }
 
 // CountCategories returns how many of each category there are in the given recipes and how many recipes have any category
@@ -434,6 +418,92 @@ func RecipeNumberChanges(oldMap map[string]int, oldCount int, newMap map[string]
 	log.Println("Error:", strconv.Itoa(int(math.Abs(float64(medianPercentDiff-totalPercentDiff))))+"%")
 }
 
+// SaveRecipes writes the given recipes to the web/data/newrecipes.json file
+func SaveRecipes(recipes Recipes) error {
+	jsonData, err := json.Marshal(recipes)
+	if err != nil {
+		return err
+	}
+	err = os.WriteFile("web/data/newrecipes.json", jsonData, 0666)
+	return err
+}
+
+// GenerateWordMap represents a map with words as keys and all of the recipes that contain them as values
+func GenerateWordMap(recipes Recipes) map[string]Recipes {
+	res := map[string]Recipes{}
+	for _, recipe := range recipes {
+		words := GetWords(recipe.Name)
+		for _, word := range words {
+			if res[word] == nil {
+				res[word] = Recipes{}
+			}
+			res[word] = append(res[word], recipe)
+		}
+	}
+	return res
+}
+
+// RecommendRecipesData is the data used in a recommend recipes call
+type RecommendRecipesData struct {
+	WordScoreMap map[string]Score
+	Options      Options
+	UsedSources  map[string]bool
+	N            int // the iteration that we are on (ie: n = 3 for the fourth time we are getting recipes for the same options), we return 100 new meals each time
+}
+
+// FormatDuration converts an ISO 8601 duration to a Go-formatted duration
+func FormatDuration(duration string) string {
+	// remove PT at start
+	if len(duration) > 2 {
+		duration = duration[2:]
+	}
+	// change H, M, etc to h, m, etc
+	duration = strings.ToLower(duration)
+	return duration
+}
+
+// ParseDuration parses an ISO 8601 duration (the format used in the recipes source)
+func ParseDuration(duration string) (time.Duration, error) {
+	duration = FormatDuration(duration)
+	return time.ParseDuration(duration)
+}
+
+// GetWords gets all of the words contained within the given text
+func GetWords(text string) []string {
+	res := []string{}
+	curStr := ""
+	separators := []rune{' ', ',', '.', '(', ')', '+', '–', '—'}
+	// use map for easier access
+	separatorsMap := map[rune]bool{}
+	for _, separator := range separators {
+		separatorsMap[separator] = true
+	}
+	ignoredWords := []string{"a", "an", "the", "and", "or", "with", "to", "from", "about", "above", "across", "against", "along", "at", "but"}
+	// use map for easier access
+	ignoredWordsMap := map[string]bool{}
+	for _, word := range ignoredWords {
+		ignoredWordsMap[word] = true
+	}
+	for _, r := range text {
+		if ignoredWordsMap[curStr] {
+			curStr = ""
+			continue
+		}
+		if separatorsMap[r] {
+			if curStr != "" {
+				res = append(res, curStr)
+				curStr = ""
+			}
+			continue
+		}
+		curStr = string(append([]rune(curStr), r))
+	}
+	if curStr != "" {
+		res = append(res, curStr)
+	}
+	return res
+}
+
 // // FixRecipeTimes returns the given recipes with durations formatted correctly
 // func FixRecipeTimes(recipes Recipes) Recipes {
 // 	for i, recipe := range recipes {
@@ -545,188 +615,3 @@ func RecipeNumberChanges(oldMap map[string]int, oldCount int, newMap map[string]
 // 	}
 // 	return res
 // }
-
-// SaveRecipes writes the given recipes to the web/data/newrecipes.json file
-func SaveRecipes(recipes Recipes) error {
-	jsonData, err := json.Marshal(recipes)
-	if err != nil {
-		return err
-	}
-	err = os.WriteFile("web/data/newrecipes.json", jsonData, 0666)
-	return err
-}
-
-// GenerateWordMap represents a map with words as keys and all of the recipes that contain them as values
-func GenerateWordMap(recipes Recipes) map[string]Recipes {
-	res := map[string]Recipes{}
-	for _, recipe := range recipes {
-		words := GetWords(recipe.Name)
-		for _, word := range words {
-			if res[word] == nil {
-				res[word] = Recipes{}
-			}
-			res[word] = append(res[word], recipe)
-		}
-	}
-	return res
-}
-
-// RecommendRecipesData is the data used in a recommend recipes call
-type RecommendRecipesData struct {
-	WordScoreMap map[string]Score
-	Options      Options
-	UsedSources  map[string]bool
-	N            int // the iteration that we are on (ie: n = 3 for the fourth time we are getting recipes for the same options), we return 100 new meals each time
-}
-
-// RecommendRecipes returns a list of recommended new recipes based on the given recommend recipes data
-func RecommendRecipes(data RecommendRecipesData) Recipes {
-	if len(allRecipes) == 0 {
-		return Recipes{}
-	}
-	scores := []Score{}
-	indices := []int{}
-	numSkipped := 0
-	recipes := []Recipe{}
-	for i, recipe := range allRecipes {
-		// if we have already used this recipe URL (and by extension this recipe), skip to prevent duplicates
-		if data.UsedSources[recipe.URL] {
-			numSkipped++
-			continue
-		}
-		// check that at least one category satisfies at least one type option
-		gotCategory := false
-		if !gotCategory {
-			for _, recipeCategory := range recipe.Category {
-				if data.Options.Category[recipeCategory] {
-					gotCategory = true
-					break
-				}
-			}
-			if !gotCategory {
-				numSkipped++
-				continue
-			}
-		}
-
-		// check that at least one cuisine satisfies at least one cuisine option
-		gotCuisine := false
-		for _, recipeCuisine := range recipe.Cuisine {
-			for optionsCuisine, val := range data.Options.Cuisine {
-				if val && recipeCuisine == optionsCuisine {
-					gotCuisine = true
-					break
-				}
-			}
-			if gotCuisine {
-				break
-			}
-		}
-		if !gotCuisine {
-			numSkipped++
-			continue
-		}
-		// need to subtract num skipped so that i stays in line with the number of items in the indices slice
-		i -= numSkipped
-		// only append to indices and recipes if it matches conditions above
-		indices = append(indices, i)
-		recipes = append(recipes, recipe)
-		words := GetWords(recipe.Name)
-		recipeScores := []ScoreWeight{}
-		// use map to track unique matches and simple int to count total
-		matches := map[string]bool{}
-		numMatches := 0
-		for j, word := range words {
-			score, ok := data.WordScoreMap[word]
-			if ok {
-				matches[word] = true
-				numMatches++
-				// earlier words more important
-				recipeScores = append(recipeScores, ScoreWeight{Score: score, Weight: len(words) - j})
-			}
-		}
-		// numUniqueMatches := len(matches)
-
-		score := AverageScore(recipeScores)
-		// importance of user info is based on how much of it their is, capped at 200 words, which is the same as base info weight
-		score = AverageScore([]ScoreWeight{{Score: score, Weight: Min(len(data.WordScoreMap), 200)}, {Score: recipe.BaseScore, Weight: 200}})
-		score.Total = score.ComputeTotal(data.Options)
-
-		scores = append(scores, score)
-	}
-	// if we got nothing, bail now to prevent slice bounds error later
-	if len(indices) == 0 {
-		return Recipes{}
-	}
-	sort.Slice(indices, func(i, j int) bool {
-		return scores[indices[i]].Total > scores[indices[j]].Total
-	})
-	res := Recipes{}
-	upper := (data.N + 1) * 100
-	lower := data.N * 100
-	if upper >= len(indices) {
-		upper = len(indices) - 1
-	}
-	if lower >= len(indices) {
-		lower = len(indices) - 1
-	}
-	for _, i := range indices[lower:upper] {
-		recipe := recipes[i]
-		recipe.Score = scores[i]
-		res = append(res, recipe)
-	}
-	return res
-}
-
-// FormatDuration converts an ISO 8601 duration to a Go-formatted duration
-func FormatDuration(duration string) string {
-	// remove PT at start
-	if len(duration) > 2 {
-		duration = duration[2:]
-	}
-	// change H, M, etc to h, m, etc
-	duration = strings.ToLower(duration)
-	return duration
-}
-
-// ParseDuration parses an ISO 8601 duration (the format used in the recipes source)
-func ParseDuration(duration string) (time.Duration, error) {
-	duration = FormatDuration(duration)
-	return time.ParseDuration(duration)
-}
-
-// GetWords gets all of the words contained within the given text
-func GetWords(text string) []string {
-	res := []string{}
-	curStr := ""
-	separators := []rune{' ', ',', '.', '(', ')', '+', '–', '—'}
-	// use map for easier access
-	separatorsMap := map[rune]bool{}
-	for _, separator := range separators {
-		separatorsMap[separator] = true
-	}
-	ignoredWords := []string{"a", "an", "the", "and", "or", "with", "to", "from", "about", "above", "across", "against", "along", "at", "but"}
-	// use map for easier access
-	ignoredWordsMap := map[string]bool{}
-	for _, word := range ignoredWords {
-		ignoredWordsMap[word] = true
-	}
-	for _, r := range text {
-		if ignoredWordsMap[curStr] {
-			curStr = ""
-			continue
-		}
-		if separatorsMap[r] {
-			if curStr != "" {
-				res = append(res, curStr)
-				curStr = ""
-			}
-			continue
-		}
-		curStr = string(append([]rune(curStr), r))
-	}
-	if curStr != "" {
-		res = append(res, curStr)
-	}
-	return res
-}

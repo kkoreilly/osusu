@@ -1,3 +1,4 @@
+// Package page provides types for all of the pages of the app
 package page
 
 import (
@@ -22,13 +23,13 @@ func (a *Account) Render() app.UI {
 		viewGroupIcon = "edit"
 		viewGroupText = "Edit Group"
 	}
-	return &Page{
+	return &compo.Page{
 		ID:                     "account",
 		Title:                  "Account",
 		Description:            "View and change account information",
 		AuthenticationRequired: true,
 		OnNavFunc: func(ctx app.Context) {
-			SetReturnURL("/account", ctx)
+			compo.SetReturnURL("/account", ctx)
 			a.group = osusu.CurrentGroup(ctx)
 			a.user = osusu.CurrentUser(ctx)
 		},
@@ -37,7 +38,7 @@ func (a *Account) Render() app.UI {
 		Elements: []app.UI{
 			compo.ButtonRow().ID("account-page-top").Buttons(
 				compo.Button().ID("account-page-sign-out").Class("danger").Icon("logout").Text("Sign Out").OnClick(a.InitialSignOut),
-				compo.Button().ID("account-page-change-group").Class("secondary").Icon("group").Text("Change Group").OnClick(NavigateEvent("/groups")),
+				compo.Button().ID("account-page-change-group").Class("secondary").Icon("group").Text("Change Group").OnClick(compo.NavigateEvent("/groups")),
 				compo.Button().ID("account-page-view-group").Class("primary").Icon(viewGroupIcon).Text(viewGroupText).OnClick(a.ViewGroup),
 			),
 			app.H2().ID("account-page-user-info-subtitle").Text("Change User Information:"),
@@ -71,18 +72,18 @@ func (a *Account) ConfirmSignOut(ctx app.Context, e app.Event) {
 	e.PreventDefault()
 	user := osusu.CurrentUser(ctx)
 	if user.Session != "" {
-		_, err := api.SignOutAPI.Call(osusu.CurrentUser(ctx))
+		_, err := api.SignOut.Call(osusu.CurrentUser(ctx))
 		if err != nil {
-			CurrentPage.ShowErrorStatus(err)
+			compo.CurrentPage.ShowErrorStatus(err)
 			return
 		}
 	}
 	// if no error, we are no longer authenticated
-	authenticated = time.UnixMilli(0)
+	compo.Authenticated = time.UnixMilli(0)
 	ctx.LocalStorage().Del("currentUser")
 	ctx.LocalStorage().Del("currentGroup")
 
-	Navigate("/signin", ctx)
+	compo.Navigate("/signin", ctx)
 }
 
 func (a *Account) CancelSignOut(ctx app.Context, e app.Event) {
@@ -92,29 +93,29 @@ func (a *Account) CancelSignOut(ctx app.Context, e app.Event) {
 
 func (a *Account) ChangeUserInfo(ctx app.Context, e app.Event) {
 	e.PreventDefault()
-	_, err := api.UpdateUserInfoAPI.Call(a.user)
+	_, err := api.UpdateUserInfo.Call(a.user)
 	if err != nil {
-		CurrentPage.ShowErrorStatus(err)
+		compo.CurrentPage.ShowErrorStatus(err)
 		return
 	}
-	CurrentPage.ShowStatus("User Info Updated!", osusu.StatusTypePositive)
+	compo.CurrentPage.ShowStatus("User Info Updated!", osusu.StatusTypePositive)
 	osusu.SetCurrentUser(a.user, ctx)
 }
 
 func (a *Account) ChangePassword(ctx app.Context, e app.Event) {
 	e.PreventDefault()
 
-	CurrentPage.ShowStatus("Loading...", osusu.StatusTypeNeutral)
+	compo.CurrentPage.ShowStatus("Loading...", osusu.StatusTypeNeutral)
 
 	ctx.Defer(func(ctx app.Context) {
-		_, err := api.UpdatePasswordAPI.Call(a.user)
+		_, err := api.UpdatePassword.Call(a.user)
 		if err != nil {
-			CurrentPage.ShowErrorStatus(err)
+			compo.CurrentPage.ShowErrorStatus(err)
 			a.Update()
 			a.user.Password = ""
 			return
 		}
-		CurrentPage.ShowStatus("Password Updated!", osusu.StatusTypePositive)
+		compo.CurrentPage.ShowStatus("Password Updated!", osusu.StatusTypePositive)
 		a.Update()
 		a.user.Password = ""
 		osusu.SetCurrentUser(a.user, ctx)
@@ -123,5 +124,5 @@ func (a *Account) ChangePassword(ctx app.Context, e app.Event) {
 
 func (a *Account) ViewGroup(ctx app.Context, e app.Event) {
 	osusu.SetIsGroupNew(false, ctx)
-	Navigate("/group", ctx)
+	compo.Navigate("/group", ctx)
 }

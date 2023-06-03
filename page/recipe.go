@@ -12,7 +12,7 @@ type RecipePage struct {
 }
 
 func (r *RecipePage) Render() app.UI {
-	return &Page{
+	return &compo.Page{
 		ID:                     "recipe",
 		Title:                  "Add Recipe",
 		Description:            "View and add a new recipe",
@@ -36,8 +36,8 @@ func (r *RecipePage) Render() app.UI {
 					app.Img().ID("recipe-page-image").Src(r.recipe.Image).Alt(r.recipe.Name+" image"),
 				),
 				compo.ButtonRow().ID("recipe-page").Buttons(
-					compo.Button().ID("recipe-page-back").Class("secondary").Icon("arrow_back").Text("Back").OnClick(ReturnToReturnURL),
-					compo.Button().ID("recipe-page-view-recipe").Class("tertiary").Icon("visibility").Text("View").OnClick(NavigateEvent(r.recipe.URL)),
+					compo.Button().ID("recipe-page-back").Class("secondary").Icon("arrow_back").Text("Back").OnClick(compo.ReturnToReturnURL),
+					compo.Button().ID("recipe-page-view-recipe").Class("tertiary").Icon("visibility").Text("View").OnClick(compo.NavigateEvent(r.recipe.URL)),
 					compo.Button().ID("recipe-page-add-recipe").Class("primary").Icon("add").Text("Add").OnClick(r.Add),
 				),
 			),
@@ -56,5 +56,5 @@ func (r *RecipePage) Add(ctx app.Context, e app.Event) {
 		Cuisine:     r.recipe.Cuisine,
 	}
 	osusu.SetCurrentMeal(meal, ctx)
-	Navigate("/meal", ctx)
+	compo.Navigate("/meal", ctx)
 }
