@@ -1,4 +1,4 @@
-module github.com/kplat1/osusu
+module github.com/kkoreilly/osusu
 
 go 1.19
 

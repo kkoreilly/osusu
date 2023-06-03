@@ -1,4 +1,4 @@
 *.wasm
 *.exe
-osusu
+bin/*
 .DS_Store
