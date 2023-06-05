@@ -269,7 +269,7 @@ func DeleteMealEntries(mealID int64) error {
 
 // GetEntries gets the entries from the database that have the given group id
 func GetEntries(groupID int64) (osusu.Entries, error) {
-	statement := `SELECT id, meal_id, entry_date, type, source, cost, effort, healthiness, taste FROM entries
+	statement := `SELECT id, meal_id, entry_date, category, source, cost, effort, healthiness, taste FROM entries
 	WHERE group_id = $1`
 	rows, err := db.Query(statement, groupID)
 	if err != nil {
@@ -278,7 +278,7 @@ func GetEntries(groupID int64) (osusu.Entries, error) {
 	var res osusu.Entries
 	for rows.Next() {
 		var entry osusu.Entry
-		err := rows.Scan(&entry.ID, &entry.MealID, &entry.Date, &entry.Type, &entry.Source, &entry.Cost, &entry.Effort, &entry.Healthiness, &entry.Taste)
+		err := rows.Scan(&entry.ID, &entry.MealID, &entry.Date, &entry.Category, &entry.Source, &entry.Cost, &entry.Effort, &entry.Healthiness, &entry.Taste)
 		if err != nil {
 			return nil, err
 		}
@@ -290,7 +290,7 @@ func GetEntries(groupID int64) (osusu.Entries, error) {
 
 // GetEntriesForMeal gets the entries from the database that have the given meal id
 func GetEntriesForMeal(mealID int64) (osusu.Entries, error) {
-	statement := `SELECT id, group_id, entry_date, type, source, cost, effort, healthiness, taste FROM entries
+	statement := `SELECT id, group_id, entry_date, category, source, cost, effort, healthiness, taste FROM entries
 	WHERE meal_id = $1`
 	rows, err := db.Query(statement, mealID)
 	if err != nil {
@@ -299,7 +299,7 @@ func GetEntriesForMeal(mealID int64) (osusu.Entries, error) {
 	var res osusu.Entries
 	for rows.Next() {
 		var entry osusu.Entry
-		err := rows.Scan(&entry.ID, &entry.GroupID, &entry.Date, &entry.Type, &entry.Source, &entry.Cost, &entry.Effort, &entry.Healthiness, &entry.Taste)
+		err := rows.Scan(&entry.ID, &entry.GroupID, &entry.Date, &entry.Category, &entry.Source, &entry.Cost, &entry.Effort, &entry.Healthiness, &entry.Taste)
 		if err != nil {
 			return nil, err
 		}
@@ -311,9 +311,9 @@ func GetEntriesForMeal(mealID int64) (osusu.Entries, error) {
 
 // CreateEntry creates and returns a new entry in the database with the given entry's user and meal id values
 func CreateEntry(entry osusu.Entry) (osusu.Entry, error) {
-	statement := `INSERT INTO entries (group_id, meal_id, entry_date, type, source, cost, effort, healthiness, taste)
+	statement := `INSERT INTO entries (group_id, meal_id, entry_date, category, source, cost, effort, healthiness, taste)
 	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`
-	row := db.QueryRow(statement, entry.GroupID, entry.MealID, entry.Date, entry.Type, entry.Source, entry.Cost, entry.Effort, entry.Healthiness, entry.Taste)
+	row := db.QueryRow(statement, entry.GroupID, entry.MealID, entry.Date, entry.Category, entry.Source, entry.Cost, entry.Effort, entry.Healthiness, entry.Taste)
 	err := row.Scan(&entry.ID)
 	if err != nil {
 		return osusu.Entry{}, err
@@ -324,9 +324,9 @@ func CreateEntry(entry osusu.Entry) (osusu.Entry, error) {
 // UpdateEntry updates an entry in the database to have the values of the given entry
 func UpdateEntry(entry osusu.Entry) error {
 	statement := `UPDATE entries
-	SET entry_date = $1, type = $2, source = $3, cost = $4, effort = $5, healthiness = $6, taste = $7
+	SET entry_date = $1, category = $2, source = $3, cost = $4, effort = $5, healthiness = $6, taste = $7
 	WHERE id = $8`
-	_, err := db.Exec(statement, entry.Date, entry.Type, entry.Source, entry.Cost, entry.Effort, entry.Healthiness, entry.Taste, entry.ID)
+	_, err := db.Exec(statement, entry.Date, entry.Category, entry.Source, entry.Cost, entry.Effort, entry.Healthiness, entry.Taste, entry.ID)
 	return err
 }
 

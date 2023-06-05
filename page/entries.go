@@ -65,7 +65,7 @@ func (e *EntriesPage) Render() app.UI {
 					si := strconv.Itoa(i)
 					entry := e.entries[i]
 					score := entry.Score(e.options)
-					return compo.MealImage().ID("entries-page-entry" + si).Class("entries-page-entry").MainText(entry.Date.Format("Monday, January 2, 2006")).SecondaryText(entry.Type + " • " + entry.Source).Score(score).OnClick(func(ctx app.Context, event app.Event) { e.EntryOnClick(ctx, event, entry) }).OnClickScope(entry.ID)
+					return compo.MealImage().ID("entries-page-entry" + si).Class("entries-page-entry").MainText(entry.Date.Format("Monday, January 2, 2006")).SecondaryText(entry.Category + " • " + entry.Source).Score(score).OnClick(func(ctx app.Context, event app.Event) { e.EntryOnClick(ctx, event, entry) }).OnClickScope(entry.ID)
 				}),
 			),
 			// app.Table().ID("entries-page-entries-table").Body(

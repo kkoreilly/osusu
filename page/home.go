@@ -164,9 +164,9 @@ func (h *Home) Render() app.UI {
 				compo.Button().ID("home-page-search").Class("primary").Icon("search").Text("Search").OnClick(h.ShowOptions),
 			),
 			compo.ButtonRow().ID("home-page-quick-options").Buttons(
-				compo.CheckboxSelect().ID("home-page-options-category").Label("Categories:").Default(map[string]bool{"Dinner": true}).Value(&h.options.Category).Options(append(osusu.MealCategories, "Unset")...).OnChange(h.SaveQuickOptions),
+				compo.CheckboxSelect().ID("home-page-options-category").Label("Categories:").Default(map[string]bool{"Dinner": true}).Value(&h.options.Category).Options(append(osusu.AllCategories, "Unset")...).OnChange(h.SaveQuickOptions),
 				compo.CheckboxSelect().ID("home-page-options-users").Label("People:").Value(&h.usersOptions).Options(usersStrings...).OnChange(h.SaveQuickOptions),
-				compo.CheckboxSelect().ID("home-page-options-source").Label("Sources:").Default(map[string]bool{"Cooking": true, "Dine-In": true, "Takeout": true}).Value(&h.options.Source).Options(osusu.MealSources...).OnChange(h.SaveQuickOptions).Hidden(h.options.Mode == "Discover"),
+				compo.CheckboxSelect().ID("home-page-options-source").Label("Sources:").Default(map[string]bool{"Cooking": true, "Dine-In": true, "Takeout": true}).Value(&h.options.Source).Options(osusu.AllSources...).OnChange(h.SaveQuickOptions).Hidden(h.options.Mode == "Discover"),
 				compo.CheckboxSelect().ID("home-page-options-cuisine").Label("Cuisines:").Value(&h.options.Cuisine).Options(append(cuisines, "Unset")...).OnChange(h.SaveQuickOptions),
 			),
 			app.Div().ID("home-page-meals-container").Class("meal-images-container").Hidden(h.options.Mode != "Search").Body(

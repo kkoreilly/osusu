@@ -14,3 +14,11 @@ runscraper: buildscraper
 	./bin/scraper
 
 scrape: runscraper
+
+buildclassify:
+	go build -o ./bin/classify ./cmd/classify
+
+runclassify: buildclassify
+	./bin/classify
+
+classify: runclassify

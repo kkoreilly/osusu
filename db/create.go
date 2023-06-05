@@ -124,7 +124,7 @@ func CreateEntriesTable() error {
 		group_id bigint NOT NULL,
 		meal_id bigint NOT NULL,
 		entry_date date NOT NULL,
-		type text NOT NULL DEFAULT ''::text,
+		category text NOT NULL DEFAULT ''::text,
 		source text NOT NULL DEFAULT ''::text,
 		cost hstore NOT NULL DEFAULT ''::hstore,
 		effort hstore NOT NULL DEFAULT ''::hstore,

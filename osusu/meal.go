@@ -108,10 +108,3 @@ func IsMealNew(ctx app.Context) bool {
 func SetIsMealNew(isMealNew bool, ctx app.Context) {
 	ctx.SetState("isMealNew", isMealNew, app.Persist)
 }
-
-var (
-	// MealCategories are all of the possible meal categories
-	MealCategories = []string{"Breakfast", "Brunch", "Lunch", "Dinner", "Dessert", "Snack", "Appetizer", "Side", "Drink", "Ingredient"}
-	// MealSources are all of the possible meal sources
-	MealSources = []string{"Cooking", "Dine-In", "Takeout"}
-)

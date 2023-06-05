@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/kkoreilly/osusu/util/file"
 	"github.com/kkoreilly/osusu/util/mat"
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
 )
@@ -125,6 +126,19 @@ func LoadRecipes() (Recipes, error) {
 	return recipes, nil
 }
 
+// SaveRecipes writes the given recipes to the web/data/recipes.json file after safely moving any file currently there to web/data/recipes.json.old
+func SaveRecipes(recipes Recipes) error {
+	if file.Exists("web/data/recipes.json") {
+		file.RenameSafe("web/data/recipes.json", "web/data/recipes.json.old")
+	}
+	jsonData, err := json.Marshal(recipes)
+	if err != nil {
+		return err
+	}
+	err = os.WriteFile("web/data/recipes.json", jsonData, 0666)
+	return err
+}
+
 // ComputeBaseScores returns the recipes with the base score for each recipe computed
 func (r Recipes) ComputeBaseScores() Recipes {
 	r = r.ComputeBaseScoreIndices()
@@ -234,23 +248,11 @@ func (r Recipes) CountCuisines() (map[string]int, int) {
 
 // ConsolidateCategories consolidates the categories of the given recipes into a more concise set
 func (r Recipes) ConsolidateCategories() Recipes {
-	categoryMap := map[string][]string{
-		"Dinner":     {"Dinner", "Entree", "Pasta"},
-		"Drink":      {"Drink", "Beverage", "Cocktail", "Coffee"},
-		"Dessert":    {"Dessert", "Cake", "Candy", "Pie"},
-		"Lunch":      {"Lunch", "Sandwich"},
-		"Ingredient": {"Ingredient", "Bread", "Condiment", "Jam / Jelly", "Sauce", "Spice Mix"},
-		"Appetizer":  {"Appetizer", "Salad", "Soup"},
-		"Side":       {"Side Dish"},
-		"Breakfast":  {"Breakfast"},
-		"Snack":      {"Snack"},
-		"Brunch":     {"Brunch"},
-	}
 	for i, recipe := range r {
 		// need unique categories so use map to prevent duplicates
 		categories := map[string]bool{}
 		for _, category := range recipe.Category {
-			for k, v := range categoryMap {
+			for k, v := range CategoryToCategoryMap {
 				for _, mapCategory := range v {
 					if mapCategory == category {
 						categories[k] = true
@@ -394,7 +396,7 @@ func RecipeNumberChanges(oldMap map[string]int, oldCount int, newMap map[string]
 		diff = append(diff, name)
 	}
 	sort.Slice(diff, func(i, j int) bool {
-		return newMap[diff[i]]-oldMap[diff[i]] < newMap[diff[j]]-oldMap[diff[j]]
+		return 100*newMap[diff[i]]/oldMap[diff[i]] < 100*newMap[diff[j]]/oldMap[diff[j]]
 	})
 	for _, name := range diff {
 		difference := newMap[name] - oldMap[name]
@@ -416,16 +418,6 @@ func RecipeNumberChanges(oldMap map[string]int, oldCount int, newMap map[string]
 	medianPercentDiff := 100 * newMap[diff[len(diff)/2]] / oldMap[diff[len(diff)/2]]
 	log.Println("Median Percent Difference:", strconv.Itoa(medianPercentDiff)+"%")
 	log.Println("Error:", strconv.Itoa(int(math.Abs(float64(medianPercentDiff-totalPercentDiff))))+"%")
-}
-
-// SaveRecipes writes the given recipes to the web/data/newrecipes.json file
-func SaveRecipes(recipes Recipes) error {
-	jsonData, err := json.Marshal(recipes)
-	if err != nil {
-		return err
-	}
-	err = os.WriteFile("web/data/newrecipes.json", jsonData, 0666)
-	return err
 }
 
 // GenerateWordMap represents a map with words as keys and all of the recipes that contain them as values
@@ -478,10 +470,10 @@ func GetWords(text string) []string {
 	for _, separator := range separators {
 		separatorsMap[separator] = true
 	}
-	ignoredWords := []string{"a", "an", "the", "and", "or", "with", "to", "from", "about", "above", "across", "against", "along", "at", "but"}
+	// ignoredWords := []string{"a", "an", "the", "and", "or", "with", "to", "from", "about", "above", "across", "against", "along", "at", "but"}
 	// use map for easier access
 	ignoredWordsMap := map[string]bool{}
-	for _, word := range ignoredWords {
+	for _, word := range FunctionWords {
 		ignoredWordsMap[word] = true
 	}
 	for _, r := range text {

@@ -13,7 +13,7 @@ type Entry struct {
 	GroupID     int64
 	MealID      int64
 	Date        time.Time
-	Type        string
+	Category    string
 	Source      string
 	Cost        UserMap
 	Effort      UserMap
@@ -23,11 +23,15 @@ type Entry struct {
 
 // NewEntry returns a new entry for the given group, user, and meal with the given existing entries for the meal
 func NewEntry(group Group, user User, meal Meal, entries Entries) Entry {
+	category := ""
+	if len(meal.Category) != 0 {
+		category = meal.Category[0]
+	}
 	newEntry := Entry{
 		GroupID:     group.ID,
 		MealID:      meal.ID,
 		Date:        time.Now(),
-		Type:        "Dinner",
+		Category:    category,
 		Source:      "Cooking",
 		Cost:        UserMap{user.ID: 50},
 		Effort:      UserMap{user.ID: 50},
@@ -46,7 +50,7 @@ func NewEntry(group Group, user User, meal Meal, entries Entries) Entry {
 					GroupID:     group.ID,
 					MealID:      meal.ID,
 					Date:        time.Now(),
-					Type:        previousEntry.Type,
+					Category:    previousEntry.Category,
 					Source:      previousEntry.Source,
 					Cost:        UserMap{user.ID: previousEntry.Cost[user.ID]},
 					Effort:      UserMap{user.ID: previousEntry.Effort[user.ID]},

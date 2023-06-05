@@ -63,13 +63,13 @@ func Start() {
 	AllRecipes = recipes
 	AllRecipes = AllRecipes.ComputeBaseScores()
 	log.Println(AllRecipes.CountCategories())
-	AllRecipes = AllRecipes.ConsolidateCategories()
-	log.Println(AllRecipes.CountCategories())
+	// AllRecipes = AllRecipes.ConsolidateCategories()
+	// log.Println(AllRecipes.CountCategories())
 	log.Println(AllRecipes.CountCuisines())
-	AllRecipes = AllRecipes.ConsolidateCuisines()
-	cuisinesMap, count := AllRecipes.CountCuisines()
-	log.Println(cuisinesMap, count)
-	log.Println(len(osusu.CuisineToCuisineMap))
+	// AllRecipes = AllRecipes.ConsolidateCuisines()
+	// cuisinesMap, count := AllRecipes.CountCuisines()
+	// log.Println(cuisinesMap, count)
+	// log.Println(len(osusu.CuisineToCuisineMap))
 	// for _, recipe := range allRecipes {
 	// 	for _, cuisine := range recipe.Cuisine {
 	// 		if cuisine == "Mediterranean" {

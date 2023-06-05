@@ -11,6 +11,7 @@ type EntryPage struct {
 	app.Compo
 	entry      osusu.Entry
 	isEntryNew bool
+	meal       osusu.Meal
 	user       osusu.User
 }
 
@@ -35,6 +36,7 @@ func (e *EntryPage) Render() app.UI {
 				compo.CurrentPage.Title = "Create Entry"
 				compo.CurrentPage.UpdatePageTitle(ctx)
 			}
+			e.meal = osusu.CurrentMeal(ctx)
 			e.user = osusu.CurrentUser(ctx)
 			// e.entry = e.entry.FixMissingData(e.user)
 		},
@@ -42,8 +44,8 @@ func (e *EntryPage) Render() app.UI {
 		Elements: []app.UI{
 			app.Form().ID("entry-page-form").Class("form").OnSubmit(e.OnSubmit).Body(
 				compo.DateInput().ID("entry-page-date").Label("When did you eat this?").Value(&e.entry.Date),
-				compo.RadioChips().ID("entry-page-type").Label("What meal did you eat this for?").Default("Dinner").Value(&e.entry.Type).Options(osusu.MealCategories...),
-				compo.RadioChips().ID("entry-page-source").Label("How did you get this meal?").Default("Cooking").Value(&e.entry.Source).Options(osusu.MealSources...),
+				compo.RadioChips().ID("entry-page-category").Label("What meal did you eat this for?").Default("Dinner").Value(&e.entry.Category).Options(e.meal.Category...),
+				compo.RadioChips().ID("entry-page-source").Label("How did you get this meal?").Default("Cooking").Value(&e.entry.Source).Options(osusu.AllSources...),
 				compo.RangeInputUserMap(&e.entry.Taste, e.user).ID("entry-page-taste").Label("How tasty think this was?"),
 				compo.RangeInputUserMap(&e.entry.Cost, e.user).ID("entry-page-cost").Label("How expensive was this?"),
 				compo.RangeInputUserMap(&e.entry.Effort, e.user).ID("entry-page-effort").Label("How much effort did this take?"),

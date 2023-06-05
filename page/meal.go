@@ -81,7 +81,7 @@ func (m *MealPage) Render() app.UI {
 				compo.TextInput().ID("meal-page-source").Label("Source:").Value(&m.meal.Source),
 				// Button().ID("meal-page-view-source").Class("secondary").Value()
 				compo.TextInput().ID("meal-page-image").Label("Image:").Value(&m.meal.Image),
-				compo.CheckboxChips().ID("meal-page-category").Label("Categories:").Value(&m.category).Options(osusu.MealCategories...),
+				compo.CheckboxChips().ID("meal-page-category").Label("Categories:").Value(&m.category).Options(osusu.AllCategories...),
 				compo.CheckboxChips().ID("meal-page-cuisine").Label("Cuisines:").Value(&m.cuisine).Options(append(cuisines, "+")...).OnChange(m.CuisinesOnChange),
 				compo.CuisinesDialog("meal-page", m.CuisinesDialogOnSave),
 				compo.ButtonRow().ID("meal-page").Buttons(
