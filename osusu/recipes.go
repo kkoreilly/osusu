@@ -119,7 +119,10 @@ func LoadRecipes() (Recipes, error) {
 		recipe.Name = html.UnescapeString(recipe.Name)
 		recipe.Description = html.UnescapeString(recipe.Description)
 		for i, ingredient := range recipe.Ingredients {
-			recipe.Ingredients[i] = html.UnescapeString(ingredient)
+			ingredient = html.UnescapeString(ingredient)
+			ingredient = strings.ReplaceAll(ingredient, "0.33333334326744", "1/3")
+			ingredient = strings.ReplaceAll(ingredient, "0.66666668653488", "1/6")
+			recipe.Ingredients[i] = ingredient
 		}
 		recipes[i] = recipe
 	}
@@ -462,37 +465,26 @@ func ParseDuration(duration string) (time.Duration, error) {
 
 // GetWords gets all of the words contained within the given text
 func GetWords(text string) []string {
+	// t := time.Now()
 	res := []string{}
 	curStr := ""
-	separators := []rune{' ', ',', '.', '(', ')', '+', '–', '—'}
-	// use map for easier access
-	separatorsMap := map[rune]bool{}
-	for _, separator := range separators {
-		separatorsMap[separator] = true
-	}
-	// ignoredWords := []string{"a", "an", "the", "and", "or", "with", "to", "from", "about", "above", "across", "against", "along", "at", "but"}
-	// use map for easier access
-	ignoredWordsMap := map[string]bool{}
-	for _, word := range FunctionWords {
-		ignoredWordsMap[word] = true
-	}
+	// log.Println("get words: setup", time.Since(t))
 	for _, r := range text {
-		if ignoredWordsMap[curStr] {
-			curStr = ""
-			continue
-		}
-		if separatorsMap[r] {
-			if curStr != "" {
+		if WordSeparatorsMap[r] {
+			if curStr != "" && !IgnoredWordsMap[curStr] {
 				res = append(res, curStr)
-				curStr = ""
 			}
+			curStr = ""
 			continue
 		}
 		curStr = string(append([]rune(curStr), r))
 	}
-	if curStr != "" {
+	// log.Println("get words: loop", time.Since(t))
+	if curStr != "" && !IgnoredWordsMap[curStr] {
 		res = append(res, curStr)
 	}
+	// log.Println("get words: total", time.Since(t))
+	// fmt.Print("\n")
 	return res
 }
 

@@ -3,6 +3,8 @@ package main
 
 import (
 	"log"
+	"sort"
+	"time"
 
 	"github.com/emer/emergent/decoder"
 	"github.com/kkoreilly/osusu/osusu"
@@ -21,21 +23,26 @@ const (
 	// 10_000: 45%
 	// 50_000: 90%
 	// 100_000: 105%
-	Threshold = 5_000
+	Threshold = 10
 	// Rounds is how many times the neural network is run
 	Rounds = 1000
 )
 
 func main() {
 	log.Println("Starting Classify")
+	t := time.Now()
+	osusu.InitRecipeConstants()
 	recipes, err := osusu.LoadRecipes()
 	if err != nil {
 		log.Fatal(err)
 	}
+	log.Println("load recipes", time.Since(t))
 	recipes = recipes.ConsolidateCategories()
 	recipes = recipes.ConsolidateCuisines()
+	log.Println("consolidate categories and cuisines", time.Since(t))
 	oldMap, oldCount := recipes.CountCuisines()
 	words := GetRecipeWords(recipes)
+	log.Println("get recipe words", time.Since(t))
 	recipes = InferCuisines(recipes, words)
 	newMap, newCount := recipes.CountCuisines()
 	osusu.RecipeNumberChanges(oldMap, oldCount, newMap, newCount)
@@ -44,6 +51,7 @@ func main() {
 
 // GetRecipeWords gets all of the words contained in all of the given recipes
 func GetRecipeWords(recipes osusu.Recipes) []string {
+	t := time.Now()
 	wordMap := map[string]int{}
 	for _, recipe := range recipes {
 
@@ -53,15 +61,21 @@ func GetRecipeWords(recipes osusu.Recipes) []string {
 		// Ingredients and name: 67%
 		// Ingredients, description, and name: 72%
 		// Therefore ingredients only is best
-
+		// t := time.Now()
 		words := []string{}
 		for _, ingredient := range recipe.Ingredients {
 			words = append(words, osusu.GetWords(ingredient)...)
 		}
+		// log.Println("get recipe words: inside: get words", time.Since(t))
 		for _, word := range words {
+			// if word == "33333334326744" {
+			// 	log.Println(word, recipe.Ingredients, recipe.URL)
+			// }
 			wordMap[word]++
 		}
+		// log.Println("get recipe words: inside: add to word map", time.Since(t))
 	}
+	log.Println("get recipe words: get word map", time.Since(t))
 	res := []string{}
 	for word, num := range wordMap {
 		if num < Threshold {
@@ -70,6 +84,14 @@ func GetRecipeWords(recipes osusu.Recipes) []string {
 		}
 		res = append(res, word)
 	}
+	log.Println("get recipe words: convert to slice", time.Since(t))
+	sort.Slice(res, func(i, j int) bool {
+		return wordMap[res[i]] < wordMap[res[j]]
+	})
+	// for _, word := range res {
+	// 	// log.Println(word, wordMap[word])
+	// }
+	log.Println("get recipe words: sort and print", time.Since(t))
 	return res
 }
 

@@ -73,8 +73,14 @@ var IgnoredCuisines = []string{
 // 	"Uruguayan", "Uzbek", "Vietnamese", "Welsh", "West African", "Western European", "Yemeni", "Zambian",
 // 	"Zimbabwean"}
 
-// FunctionWords are all function words that have no contentful meaning
-var FunctionWords = []string{
+// IgnoredWords are all of the non-meaningful words that are excluded from the GetWords function
+var IgnoredWords = []string{
+	"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "30", "35", "40", "45", "50", "55", "60", "65", "70", "75", "80", "85", "90", "95", "100", "125", "150", "175", "200", "225", "250", "1/2", "1/3", "1/6",
+
+	"cup", "cups", "teaspoon", "teaspoons", "tablespoon", "tablespoons", "ounce", "ounces", "chopped", "ground", "taste", "fresh", "sliced", "minced", "diced", "pound", "pounds", "cut", "dried", "shredded", "peeled", "divided", "pinch", "drained", "large", "medium", "small", "grated", "softened", "package", "finely", "whole", "slices", "crushed", "pieces", "melted", "freshly", "mix", "inch", "thinly", "beaten", "cubed", "-", "cooked", "spray", "hot", "halved", "sweet",
+
+	"such", "needed",
+
 	"a", "about", "above", "after", "again", "against", "ago", "ahead", "all", "almost", "along", "already", "also", "although", "always", "am", "among", "an", "and", "any", "are", "aren't", "around", "as", "at", "away",
 	"backward", "backwards", "be", "because", "before", "behind", "below", "beneath", "beside", "between", "both", "but", "by",
 	"can", "cannot", "can't", "cause", "cos", "could", "couldn't",
@@ -97,4 +103,23 @@ var FunctionWords = []string{
 	"ve", "very",
 	"was", "wasn't", "we", "well", "were", "weren't", "what", "when", "where", "whether", "which", "while", "who", "whom", "whose", "why", "will", "with", "without", "won't", "would", "wouldn't",
 	"yet", "you", "your", "yours", "yourself", "yourselves",
+}
+
+// IgnoredWordsMap is a map version of IgnoredWords with the key as the word and the value as true. It is initialized by InitRecipeConstants.
+var IgnoredWordsMap = map[string]bool{}
+
+// WordSeparators are the characters that can separate words
+var WordSeparators = []rune{' ', ',', '.', '(', ')', '+', '–', '—'}
+
+// WordSeparatorsMap is a map version of WordSeparators with the key as the separator and the value as true. It is initialized by InitRecipeConstants.
+var WordSeparatorsMap = map[rune]bool{}
+
+// InitRecipeConstants initializes IgnoredWordsMap and WordSeparatorsMap. It should be called once on program start.
+func InitRecipeConstants() {
+	for _, word := range IgnoredWords {
+		IgnoredWordsMap[word] = true
+	}
+	for _, separator := range WordSeparators {
+		WordSeparatorsMap[separator] = true
+	}
 }
