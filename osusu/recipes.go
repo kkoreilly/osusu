@@ -76,10 +76,10 @@ func SetCurrentRecipe(recipe Recipe, ctx app.Context) {
 	ctx.SetState("currentRecipe", recipe, app.Persist)
 }
 
-// LoadRecipes gets all of the recipes from the recipes.json file
-func LoadRecipes() (Recipes, error) {
+// LoadRecipes gets all of the recipes from the given file
+func LoadRecipes(path string) (Recipes, error) {
 	recipes := Recipes{}
-	b, err := os.ReadFile("web/data/recipes.json")
+	b, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
@@ -129,16 +129,16 @@ func LoadRecipes() (Recipes, error) {
 	return recipes, nil
 }
 
-// SaveRecipes writes the given recipes to the web/data/recipes.json file after safely moving any file currently there to web/data/recipes.json.old
-func SaveRecipes(recipes Recipes) error {
-	if file.Exists("web/data/recipes.json") {
-		file.RenameSafe("web/data/recipes.json", "web/data/recipes.json.old")
+// SaveRecipes writes the given recipes to the given file after safely moving any file currently there to web/data/recipes.json.old
+func SaveRecipes(recipes Recipes, path string) error {
+	if file.Exists(path) {
+		file.RenameSafe(path, "web/data/recipes.json.old")
 	}
 	jsonData, err := json.Marshal(recipes)
 	if err != nil {
 		return err
 	}
-	err = os.WriteFile("web/data/recipes.json", jsonData, 0666)
+	err = os.WriteFile(path, jsonData, 0666)
 	return err
 }
 

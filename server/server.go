@@ -56,7 +56,8 @@ func Start() {
 		log.Fatal(err)
 	}
 
-	recipes, err := osusu.LoadRecipes()
+	osusu.InitRecipeConstants()
+	recipes, err := osusu.LoadRecipes("web/data/recipes.json")
 	if err != nil {
 		log.Println(fmt.Errorf("error loading recipes: %w", err))
 	}
