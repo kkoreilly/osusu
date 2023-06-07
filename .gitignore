@@ -1,4 +1,8 @@
 *.wasm
 *.exe
-bin/*
 .DS_Store
+
+bin/*
+plots/*
+web/data/*
+!web/data/recipes.json

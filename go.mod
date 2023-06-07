@@ -3,7 +3,7 @@ module github.com/kkoreilly/osusu
 go 1.19
 
 require (
-	github.com/emer/emergent v1.4.1
+	github.com/emer/emergent v1.4.2
 	github.com/emer/etable v1.1.21
 	github.com/gocolly/colly/v2 v2.1.0
 	github.com/goki/gi v1.3.18
@@ -14,7 +14,7 @@ require (
 )
 
 require (
-	git.sr.ht/~sbinet/gg v0.3.1 // indirect
+	git.sr.ht/~sbinet/gg v0.5.0 // indirect
 	github.com/BurntSushi/freetype-go v0.0.0-20160129220410-b763ddbfe298 // indirect
 	github.com/BurntSushi/graphics-go v0.0.0-20160129215708-b43f31a4a966 // indirect
 	github.com/BurntSushi/xgb v0.0.0-20210121224620-deaf085860bc // indirect
@@ -33,26 +33,27 @@ require (
 	github.com/apache/arrow/go/arrow v0.0.0-20211112161151-bc219186db40 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/c2h5oh/datasize v0.0.0-20220606134207-859f65c6625b // indirect
+	github.com/campoy/embedmd v1.0.0 // indirect
 	github.com/dlclark/regexp2 v1.10.0 // indirect
 	github.com/fatih/camelcase v1.0.0 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
-	github.com/go-fonts/liberation v0.3.0 // indirect
+	github.com/go-fonts/liberation v0.3.1 // indirect
 	github.com/go-gl/glfw/v3.3/glfw v0.0.0-20221017161538-93cebf72946b // indirect
 	github.com/go-gl/mathgl v1.0.0 // indirect
 	github.com/go-latex/latex v0.0.0-20230307184459-12ec69307ad9 // indirect
-	github.com/go-pdf/fpdf v0.7.0 // indirect
+	github.com/go-pdf/fpdf v0.8.0 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/goki/freetype v1.0.1 // indirect
 	github.com/goki/go-difflib v1.2.1 // indirect
-	github.com/goki/gosl v1.0.13 // indirect
+	github.com/goki/gosl v1.0.16 // indirect
 	github.com/goki/ki v1.1.11 // indirect
 	github.com/goki/kigen v1.0.2 // indirect
 	github.com/goki/mat32 v1.0.15 // indirect
 	github.com/goki/pi v1.0.27 // indirect
 	github.com/goki/prof v1.0.0 // indirect
 	github.com/goki/vci v1.0.1 // indirect
-	github.com/goki/vgpu v1.0.24 // indirect
+	github.com/goki/vgpu v1.0.26 // indirect
 	github.com/goki/vulkan v1.0.6 // indirect
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
@@ -64,6 +65,7 @@ require (
 	github.com/jinzhu/copier v0.3.5 // indirect
 	github.com/kennygrant/sanitize v1.2.4 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/saintfish/chardet v0.0.0-20230101081208-5e3ef4b5456d // indirect
 	github.com/srwiley/rasterx v0.0.0-20220730225603-2ab79fcdd4ef // indirect
 	github.com/srwiley/scanx v0.0.0-20190309010443-e94503791388 // indirect
@@ -76,7 +78,7 @@ require (
 	golang.org/x/tools v0.9.3 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	gonum.org/v1/gonum v0.13.0 // indirect
-	gonum.org/v1/plot v0.12.0 // indirect
+	gonum.org/v1/plot v0.13.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.30.0 // indirect
 )

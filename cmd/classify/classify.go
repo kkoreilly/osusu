@@ -3,11 +3,12 @@ package main
 
 import (
 	"log"
-	"time"
+	"sort"
 
 	"github.com/emer/emergent/decoder"
 	"github.com/emer/etable/eplot"
 	"github.com/emer/etable/etable"
+	"github.com/emer/etable/etensor"
 	"github.com/goki/gi/gi"
 	"github.com/goki/gi/gimain"
 	"github.com/kkoreilly/osusu/osusu"
@@ -28,8 +29,8 @@ const (
 	// 50_000: 90%
 	// 100_000: 105%
 	Threshold = 10
-	// Rounds is how many times the neural network is run
-	Rounds = 1000
+	// Epochs is how many times the neural network is run
+	Epochs = 1000
 )
 
 var ErrorTable *etable.Table
@@ -39,6 +40,7 @@ var ErrorPlot *eplot.Plot2D
 var vp *gi.Viewport2D
 
 func main() {
+	log.Println("Starting Classify")
 	gimain.Main(func() {
 		mainrun()
 	})
@@ -50,28 +52,41 @@ func mainrun() {
 	updt := vp.UpdateStart()
 	mfr := win.SetMainFrame()
 
-	title := gi.AddNewLabel(mfr, "classify", "Classify")
-	title.SetProp("text-align", "center")
-	title.SetStretchMaxWidth()
-
 	ErrorTable = etable.NewTable("error-table")
-	// ErrorTableIdxView := etable.NewIdxView(ErrorTable)
+	ErrorTable.AddCol(etensor.NewFloat64([]int{1}, nil, nil), "epoch")
+	ErrorTable.AddCol(etensor.NewFloat64([]int{1}, nil, nil), "categoryError")
+	ErrorTable.AddCol(etensor.NewFloat64([]int{1}, nil, nil), "cuisineError")
+	ErrorTable.AddRows(Epochs)
 
 	ErrorPlot = eplot.AddNewPlot2D(mfr, "error-plot")
 	ErrorPlot.SetTable(ErrorTable)
 	ErrorPlot.Params.FmMetaMap(ErrorTable.MetaData)
 	ErrorPlot.Params.Title = "Classify"
-	ErrorPlot.Params.XAxisCol = "ca"
+	ErrorPlot.Params.XAxisCol = "epoch"
+	ErrorPlot.Params.XAxisLabel = "Epoch"
+	ErrorPlot.Params.YAxisLabel = "Error"
+	ErrorPlot.Params.Points = true
+
+	ErrorPlot.ColParams("epoch").On = true
+	ErrorPlot.ColParams("categoryError").On = true
+	// ErrorPlot.ColParams("categoryError").Range.Max = 1
+	// ErrorPlot.ColParams("categoryError").Range.FixMax = true
+	ErrorPlot.ColParams("cuisineError").On = true
+	// ErrorPlot.ColParams("cuisineError").Range.Max = 1
+	// ErrorPlot.ColParams("cuisineError").Range.FixMax = true
 	ErrorPlot.SetStretchMax()
 
-	log.Println(ErrorTable.Rows)
+	// ErrorPlot.Update()
+
+	go Classify()
 
 	vp.UpdateEndNoSig(updt)
-	win.GoStartEventLoop()
+	win.StartEventLoop()
+}
 
-	log.Println("Starting Classify")
-	// CreateUI()
-	t := time.Now()
+// Classify loads, classifies, and saves the recipes
+func Classify() {
+	log.Println("Loading Recipes")
 	osusu.InitRecipeConstants()
 	var recipes osusu.Recipes
 	var err error
@@ -85,30 +100,26 @@ func mainrun() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("load recipes", time.Since(t))
+
+	log.Println("Consolidating Categories and Cuisines")
+
 	recipes = recipes.ConsolidateCategories()
 	recipes = recipes.ConsolidateCuisines()
-	log.Println("consolidate categories and cuisines", time.Since(t))
+
+	log.Println("Getting Recipe Words")
+
 	oldMap, oldCount := recipes.CountCuisines()
 	words, recipeWordsMap := GetRecipeWords(recipes)
-	log.Println(len(words), len(recipeWordsMap), len(recipes))
-	log.Println("get recipe words", time.Since(t))
-	ErrorTable.AddRows(len(recipes))
-	InferCuisines(recipes, words, recipeWordsMap)
+	log.Println("Classifying Recipes")
+	Infer(recipes, words, recipeWordsMap)
 
 	newMap, newCount := recipes.CountCuisines()
 	osusu.RecipeNumberChanges(oldMap, oldCount, newMap, newCount)
 	osusu.SaveRecipes(recipes, "web/data/recipes.json")
 }
 
-// CreateUI creates the graphical user interface to display plots
-func CreateUI() {
-
-}
-
 // GetRecipeWords gets all of the words contained in all of the given recipes and returns a slice of all of them and a map of the words for each recipe index
 func GetRecipeWords(recipes osusu.Recipes) ([]string, map[int][]string) {
-	t := time.Now()
 	wordMap := map[string]int{}
 	recipeWordsMap := map[int][]string{}
 	for i, recipe := range recipes {
@@ -119,12 +130,10 @@ func GetRecipeWords(recipes osusu.Recipes) ([]string, map[int][]string) {
 		// Ingredients and name: 67%
 		// Ingredients, description, and name: 72%
 		// Therefore ingredients only is best
-		// t := time.Now()
-		words := []string{}
+		words := append(osusu.GetWords(recipe.Name), osusu.GetWords(recipe.Description)...)
 		for _, ingredient := range recipe.Ingredients {
 			words = append(words, osusu.GetWords(ingredient)...)
 		}
-		// log.Println("get recipe words: inside: get words", time.Since(t))
 		if recipeWordsMap[i] == nil {
 			recipeWordsMap[i] = []string{}
 		}
@@ -135,9 +144,7 @@ func GetRecipeWords(recipes osusu.Recipes) ([]string, map[int][]string) {
 			wordMap[word]++
 			recipeWordsMap[i] = append(recipeWordsMap[i], word)
 		}
-		// log.Println("get recipe words: inside: add to word map", time.Since(t))
 	}
-	log.Println("get recipe words: get word map", time.Since(t))
 	words := []string{}
 	for word, num := range wordMap {
 		if num < Threshold {
@@ -161,27 +168,22 @@ func GetRecipeWords(recipes osusu.Recipes) ([]string, map[int][]string) {
 		// totalNew += len(newWords)
 	}
 	// log.Println("old", totalOld, "new", totalNew, "diff", totalOld-totalNew)
-	log.Println("get recipe words: convert to slice", time.Since(t))
-	// sort.Slice(words, func(i, j int) bool {
-	// 	return wordMap[words[i]] < wordMap[words[j]]
-	// })
-	// for _, word := range words {
-	// 	log.Println(word, wordMap[word])
-	// }
-	log.Println("get recipe words: sort and print", time.Since(t))
+	sort.Slice(words, func(i, j int) bool {
+		return wordMap[words[i]] < wordMap[words[j]]
+	})
+	for _, word := range words {
+		log.Println(word, wordMap[word])
+	}
 	return words, recipeWordsMap
 }
 
-// InferCuisines infers the cuisines of all of the given recipes with them missing using the given recipe words using the SoftMax decoder.
-func InferCuisines(recipes osusu.Recipes, words []string, recipeWordsMap map[int][]string) osusu.Recipes {
-	// updt := vp.UpdateStart()
-	t := time.Now()
-	ca := decoder.SoftMax{}
+// Infer infers the categories and cuisines of all of the given recipes with them missing using the given recipe words using the SoftMax decoder.
+func Infer(recipes osusu.Recipes, words []string, recipeWordsMap map[int][]string) osusu.Recipes {
+	ca := decoder.SoftMax{} // category decoder
 	ca.Init(len(osusu.AllCategories), len(words))
 
-	cu := decoder.SoftMax{}
+	cu := decoder.SoftMax{} // cuisine decoder
 	cu.Init(len(osusu.BaseCuisines), len(words))
-	log.Println("infer cuisines: decoder init", time.Since(t))
 
 	wordMap := map[string]int{}
 	for i, word := range words {
@@ -198,17 +200,13 @@ func InferCuisines(recipes osusu.Recipes, words []string, recipeWordsMap map[int
 		cuisineMap[cuisine] = i
 	}
 
-	log.Println("infer cuisines: map setup", time.Since(t))
-
-	log.Println(ErrorTable.AddCol(&ca.Weights, "ca"))
-	log.Println(ErrorTable.AddCol(&cu.Weights, "cu"))
-
-	for i := 0; i < Rounds; i++ {
-		log.Println("On Round", i)
-		log.Println(len(ca.Inputs), len(cu.Inputs))
-		updt := vp.UpdateStart()
+	for i := 0; i < Epochs; i++ {
+		log.Println("On Epoch", i)
+		caNum := 0
+		caNumRight := 0
+		cuNum := 0
+		cuNumRight := 0
 		for j, recipe := range recipes {
-			updt := vp.UpdateStart()
 			for i := range ca.Inputs {
 				ca.Inputs[i] = 0
 			}
@@ -228,29 +226,41 @@ func InferCuisines(recipes osusu.Recipes, words []string, recipeWordsMap map[int
 
 			if len(recipe.Category) != 0 {
 				ca.Train(categoryMap[recipe.Category[0]])
+				caNum++
 			}
 			if len(recipe.Cuisine) != 0 {
 				cu.Train(cuisineMap[recipe.Cuisine[0]])
+				cuNum++
 			}
 
-			if len(recipe.Category) == 0 && i == Rounds-1 {
-				ca.Sort()
-				category := osusu.AllCategories[ca.Sorted[0]]
+			ca.Sort()
+			category := osusu.AllCategories[ca.Sorted[0]]
+			if len(recipe.Category) != 0 && category == recipe.Category[0] {
+				caNumRight++
+			}
+
+			if len(recipe.Category) == 0 && i == Epochs-1 {
 				recipe.Category = []string{category}
 				recipes[j] = recipe
 			}
 
-			if len(recipe.Cuisine) == 0 && i == Rounds-1 {
-				cu.Sort()
-				cuisine := osusu.BaseCuisines[cu.Sorted[0]]
+			cu.Sort()
+			cuisine := osusu.BaseCuisines[cu.Sorted[0]]
+			if len(recipe.Cuisine) != 0 && cuisine == recipe.Cuisine[0] {
+				cuNumRight++
+			}
+			if len(recipe.Cuisine) == 0 && i == Epochs-1 {
 				recipe.Cuisine = []string{cuisine}
 				recipes[j] = recipe
 			}
-			ErrorPlot.UpdatePlot()
-			vp.UpdateEnd(updt)
 		}
-		ErrorPlot.UpdatePlot()
-		vp.UpdateEnd(updt)
+		caError := 1 - (float64(caNumRight) / float64(caNum))
+		cuError := 1 - (float64(cuNumRight) / float64(cuNum))
+		// log.Println(caError, cuError)
+		ErrorTable.SetCellFloat("epoch", i, float64(i))
+		ErrorTable.SetCellFloat("categoryError", i, caError)
+		ErrorTable.SetCellFloat("cuisineError", i, cuError)
+		ErrorPlot.GoUpdatePlot()
 	}
 	return recipes
 }
