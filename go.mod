@@ -53,7 +53,7 @@ require (
 	github.com/goki/pi v1.0.27 // indirect
 	github.com/goki/prof v1.0.0 // indirect
 	github.com/goki/vci v1.0.1 // indirect
-	github.com/goki/vgpu v1.0.26 // indirect
+	github.com/goki/vgpu v1.0.24 // indirect
 	github.com/goki/vulkan v1.0.6 // indirect
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
