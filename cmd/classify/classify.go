@@ -3,7 +3,9 @@ package main
 
 import (
 	"log"
+	"math/rand"
 	"sort"
+	"time"
 
 	"github.com/emer/emergent/decoder"
 	"github.com/emer/etable/eplot"
@@ -16,7 +18,7 @@ import (
 )
 
 const (
-	// Threshold is how many times a word has to occur for it to be included in the recipe words slice]
+	// Threshold is how many times a word has to occur for it to be included in the recipe words slice
 	// Was found using the following results from a simple error test with n = 3:
 	// Threshold = 0: 58%
 	// 10: 60%
@@ -56,6 +58,8 @@ func mainrun() {
 	ErrorTable.AddCol(etensor.NewFloat64([]int{1}, nil, nil), "epoch")
 	ErrorTable.AddCol(etensor.NewFloat64([]int{1}, nil, nil), "categoryError")
 	ErrorTable.AddCol(etensor.NewFloat64([]int{1}, nil, nil), "cuisineError")
+	ErrorTable.AddCol(etensor.NewFloat64([]int{1}, nil, nil), "categoryTrainError")
+	ErrorTable.AddCol(etensor.NewFloat64([]int{1}, nil, nil), "cuisineTrainError")
 	ErrorTable.AddRows(Epochs)
 
 	ErrorPlot = eplot.AddNewPlot2D(mfr, "error-plot")
@@ -69,11 +73,9 @@ func mainrun() {
 
 	ErrorPlot.ColParams("epoch").On = true
 	ErrorPlot.ColParams("categoryError").On = true
-	// ErrorPlot.ColParams("categoryError").Range.Max = 1
-	// ErrorPlot.ColParams("categoryError").Range.FixMax = true
 	ErrorPlot.ColParams("cuisineError").On = true
-	// ErrorPlot.ColParams("cuisineError").Range.Max = 1
-	// ErrorPlot.ColParams("cuisineError").Range.FixMax = true
+	ErrorPlot.ColParams("categoryTrainError").On = true
+	ErrorPlot.ColParams("cuisineTrainError").On = true
 	ErrorPlot.SetStretchMax()
 
 	// ErrorPlot.Update()
@@ -131,6 +133,7 @@ func GetRecipeWords(recipes osusu.Recipes) ([]string, map[int][]string) {
 		// Ingredients, description, and name: 72%
 		// Therefore ingredients only is best
 		words := append(osusu.GetWords(recipe.Name), osusu.GetWords(recipe.Description)...)
+		// words := []string{}
 		for _, ingredient := range recipe.Ingredients {
 			words = append(words, osusu.GetWords(ingredient)...)
 		}
@@ -181,9 +184,11 @@ func GetRecipeWords(recipes osusu.Recipes) ([]string, map[int][]string) {
 func Infer(recipes osusu.Recipes, words []string, recipeWordsMap map[int][]string) osusu.Recipes {
 	ca := decoder.SoftMax{} // category decoder
 	ca.Init(len(osusu.AllCategories), len(words))
+	ca.Lrate = 0.05
 
 	cu := decoder.SoftMax{} // cuisine decoder
 	cu.Init(len(osusu.BaseCuisines), len(words))
+	cu.Lrate = 0.05
 
 	wordMap := map[string]int{}
 	for i, word := range words {
@@ -200,66 +205,145 @@ func Infer(recipes osusu.Recipes, words []string, recipeWordsMap map[int][]strin
 		cuisineMap[cuisine] = i
 	}
 
-	for i := 0; i < Epochs; i++ {
-		log.Println("On Epoch", i)
-		caNum := 0
-		caNumRight := 0
-		cuNum := 0
-		cuNumRight := 0
-		for j, recipe := range recipes {
-			for i := range ca.Inputs {
-				ca.Inputs[i] = 0
+	// indices with category set
+	caSet := []int{}
+	// indices with category unset
+	caUnset := []int{}
+
+	// indices with cuisine set
+	cuSet := []int{}
+	// indices with cuisine unset
+	cuUnset := []int{}
+
+	for i, recipe := range recipes {
+		if len(recipe.Category) == 0 {
+			caUnset = append(caUnset, i)
+		} else {
+			caSet = append(caSet, i)
+		}
+		if len(recipe.Cuisine) == 0 {
+			cuUnset = append(cuUnset, i)
+		} else {
+			cuSet = append(cuSet, i)
+		}
+	}
+
+	rand.Seed(time.Now().UnixNano())
+
+	caPerm := rand.Perm(len(caSet))
+	caTrain := map[int]bool{}
+	for i, val := range caPerm {
+		if i < 9*len(caPerm)/10 {
+			caTrain[val] = true
+		}
+	}
+
+	cuPerm := rand.Perm(len(cuSet))
+	cuTrain := map[int]bool{}
+	for i, val := range cuPerm {
+		if i < 9*len(cuPerm)/10 {
+			cuTrain[val] = true
+		}
+	}
+
+	log.Println(len(caSet), len(caUnset), len(cuSet), len(cuUnset))
+	log.Println(len(caPerm), len(caTrain), len(cuPerm), len(cuTrain))
+
+	for e := 0; e < Epochs; e++ {
+		log.Println("Starting Epoch", e)
+		var caNum, caNumRight, caTrainNum, caTrainNumRight, cuNum, cuNumRight, cuTrainNum, cuTrainNumRight int
+		for i, recipe := range recipes {
+			for j := range ca.Inputs {
+				ca.Inputs[j] = 0
 			}
-			for i := range cu.Inputs {
-				cu.Inputs[i] = 0
+			for j := range cu.Inputs {
+				cu.Inputs[j] = 0
 			}
-			words := recipeWordsMap[j]
+			words := recipeWordsMap[i]
 			for _, word := range words {
-				i, ok := wordMap[word]
+				j, ok := wordMap[word]
 				if ok {
-					ca.Inputs[i] = 1
-					cu.Inputs[i] = 1
+					ca.Inputs[j] = 1
+					cu.Inputs[j] = 1
 				}
 			}
 			ca.Forward()
 			cu.Forward()
 
-			if len(recipe.Category) != 0 {
-				ca.Train(categoryMap[recipe.Category[0]])
-				caNum++
+			if caTrain[i] {
+				for _, category := range recipe.Category {
+					ca.Train(categoryMap[category])
+				}
 			}
-			if len(recipe.Cuisine) != 0 {
-				cu.Train(cuisineMap[recipe.Cuisine[0]])
-				cuNum++
+			if cuTrain[i] {
+				for _, cuisine := range recipe.Cuisine {
+					cu.Train(cuisineMap[cuisine])
+				}
 			}
 
 			ca.Sort()
 			category := osusu.AllCategories[ca.Sorted[0]]
-			if len(recipe.Category) != 0 && category == recipe.Category[0] {
-				caNumRight++
+			// only if we have something to test -- we always test and set normal nums if test and train nums if train
+			if len(recipe.Category) != 0 {
+				if caTrain[i] {
+					caTrainNum++
+				} else {
+					caNum++
+				}
+				for _, recipeCategory := range recipe.Category {
+					if category == recipeCategory || osusu.AllCategories[ca.Sorted[1]] == recipeCategory || osusu.AllCategories[ca.Sorted[2]] == recipeCategory || osusu.AllCategories[ca.Sorted[3]] == recipeCategory {
+						if caTrain[i] {
+							caTrainNumRight++
+						} else {
+							caNumRight++
+						}
+						break
+					}
+				}
 			}
 
-			if len(recipe.Category) == 0 && i == Epochs-1 {
+			// only capture if on last round and not already set
+			if len(recipe.Category) == 0 && e == Epochs-1 {
 				recipe.Category = []string{category}
-				recipes[j] = recipe
+				recipes[i] = recipe
 			}
 
 			cu.Sort()
 			cuisine := osusu.BaseCuisines[cu.Sorted[0]]
-			if len(recipe.Cuisine) != 0 && cuisine == recipe.Cuisine[0] {
-				cuNumRight++
+			// only if we have something to test -- we always test and set normal nums if test and train nums if train
+			if len(recipe.Cuisine) != 0 {
+				if cuTrain[i] {
+					cuTrainNum++
+				} else {
+					cuNum++
+				}
+				for _, recipeCuisine := range recipe.Cuisine {
+					if cuisine == recipeCuisine || osusu.BaseCuisines[cu.Sorted[1]] == recipeCuisine || osusu.BaseCuisines[cu.Sorted[2]] == recipeCuisine || osusu.BaseCuisines[cu.Sorted[3]] == recipeCuisine {
+						if cuTrain[i] {
+							cuTrainNumRight++
+						} else {
+							cuNumRight++
+						}
+						break
+					}
+				}
 			}
-			if len(recipe.Cuisine) == 0 && i == Epochs-1 {
+			// only capture if on last round and not already set
+			if len(recipe.Cuisine) == 0 && e == Epochs-1 {
 				recipe.Cuisine = []string{cuisine}
-				recipes[j] = recipe
+				recipes[i] = recipe
 			}
 		}
 		caError := 1 - (float64(caNumRight) / float64(caNum))
 		cuError := 1 - (float64(cuNumRight) / float64(cuNum))
+		caTrainError := 1 - (float64(caTrainNumRight) / float64(caTrainNum))
+		cuTrainError := 1 - (float64(cuTrainNumRight) / float64(cuTrainNum))
 		// log.Println(caError, cuError)
-		ErrorTable.SetCellFloat("epoch", i, float64(i))
-		ErrorTable.SetCellFloat("categoryError", i, caError)
-		ErrorTable.SetCellFloat("cuisineError", i, cuError)
+		ErrorTable.SetCellFloat("epoch", e, float64(e))
+		ErrorTable.SetCellFloat("categoryError", e, caError)
+		ErrorTable.SetCellFloat("cuisineError", e, cuError)
+		ErrorTable.SetCellFloat("categoryTrainError", e, caTrainError)
+		ErrorTable.SetCellFloat("cuisineTrainError", e, cuTrainError)
 		ErrorPlot.GoUpdatePlot()
 	}
 	return recipes
