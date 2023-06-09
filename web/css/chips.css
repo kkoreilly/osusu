@@ -92,6 +92,10 @@
     margin-bottom: 10px;
 }
 
+.select>button {
+    flex-direction: row-reverse;
+}
+
 /* .select[data-open="true"] {
     max-height: 0px;
     overflow: visible;

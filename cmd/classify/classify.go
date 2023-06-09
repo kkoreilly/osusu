@@ -291,7 +291,7 @@ func Infer(recipes osusu.Recipes, words []string, recipeWordsMap map[int][]strin
 					caNum++
 				}
 				for _, recipeCategory := range recipe.Category {
-					if category == recipeCategory || osusu.AllCategories[ca.Sorted[1]] == recipeCategory || osusu.AllCategories[ca.Sorted[2]] == recipeCategory || osusu.AllCategories[ca.Sorted[3]] == recipeCategory {
+					if category == recipeCategory { // || osusu.AllCategories[ca.Sorted[1]] == recipeCategory || osusu.AllCategories[ca.Sorted[2]] == recipeCategory || osusu.AllCategories[ca.Sorted[3]] == recipeCategory {
 						if caTrain[i] {
 							caTrainNumRight++
 						} else {
@@ -318,7 +318,7 @@ func Infer(recipes osusu.Recipes, words []string, recipeWordsMap map[int][]strin
 					cuNum++
 				}
 				for _, recipeCuisine := range recipe.Cuisine {
-					if cuisine == recipeCuisine || osusu.BaseCuisines[cu.Sorted[1]] == recipeCuisine || osusu.BaseCuisines[cu.Sorted[2]] == recipeCuisine || osusu.BaseCuisines[cu.Sorted[3]] == recipeCuisine {
+					if cuisine == recipeCuisine { // || osusu.BaseCuisines[cu.Sorted[1]] == recipeCuisine || osusu.BaseCuisines[cu.Sorted[2]] == recipeCuisine || osusu.BaseCuisines[cu.Sorted[3]] == recipeCuisine {
 						if cuTrain[i] {
 							cuTrainNumRight++
 						} else {

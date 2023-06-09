@@ -77,9 +77,9 @@ var IgnoredCuisines = []string{
 var IgnoredWords = []string{
 	"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "30", "35", "40", "45", "50", "55", "60", "65", "70", "75", "80", "85", "90", "95", "100", "125", "150", "175", "200", "225", "250", "1/2", "1/3", "1/6",
 
-	"cup", "cups", "teaspoon", "teaspoons", "tablespoon", "tablespoons", "ounce", "ounces", "chopped", "ground", "taste", "fresh", "sliced", "minced", "diced", "pound", "pounds", "cut", "dried", "shredded", "peeled", "divided", "pinch", "drained", "large", "medium", "small", "grated", "softened", "package", "finely", "whole", "slices", "crushed", "pieces", "melted", "freshly", "mix", "inch", "thinly", "beaten", "cubed", "-", "cooked", "spray", "hot", "halved", "sweet",
+	"cup", "cups", "teaspoon", "teaspoons", "tablespoon", "tablespoons", "ounce", "ounces", "chopped", "ground", "taste", "fresh", "sliced", "minced", "diced", "pound", "pounds", "cut", "dried", "shredded", "peeled", "divided", "pinch", "drained", "large", "medium", "small", "grated", "softened", "package", "finely", "whole", "slices", "crushed", "pieces", "melted", "freshly", "mix", "inch", "thinly", "beaten", "cubed", "-", "cooked", "spray", "hot", "halved", "sweet", "salt", "sugar", "pepper", "white", "oil", "sauce", "black", "flour", "cream", "powder", "water", "milk", "all-purpose", "recipe", "red", "vanilla", "juice", "green", "easy", "baking", "extract", "brown", "lemon", "make",
 
-	"such", "needed",
+	"such", "needed", "This", "A", "The", "These",
 
 	"a", "about", "above", "after", "again", "against", "ago", "ahead", "all", "almost", "along", "already", "also", "although", "always", "am", "among", "an", "and", "any", "are", "aren't", "around", "as", "at", "away",
 	"backward", "backwards", "be", "because", "before", "behind", "below", "beneath", "beside", "between", "both", "but", "by",

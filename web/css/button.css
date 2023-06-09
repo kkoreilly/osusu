@@ -110,6 +110,10 @@
     padding-top: 0.5rem;
 }
 
+.page-top-bar>button {
+    width: calc(100% / var(--n-buttons));
+}
+
 .top-bar-account-button {
     width: 3rem;
     height: 3rem;
