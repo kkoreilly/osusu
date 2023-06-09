@@ -22,18 +22,18 @@ type MealImageCompo struct {
 func (m *MealImageCompo) Render() app.UI {
 	return app.Div().ID(m.IDValue+"-meal-image-container").Class("meal-image-container", m.ClassValue).DataSet("no-image", m.ImgValue == "").OnClick(m.OnClickValue, m.OnClickScopeValue...).Body(
 		app.Img().ID(m.IDValue+"-meal-image").Class("meal-image").Src(m.ImgValue),
-		app.Span().ID(m.IDValue+"-meal-image-main-text").Class("meal-image-main-text").Text(m.MainTextValue),
-		app.Span().ID(m.IDValue+"-meal-image-secondary-text").Class("meal-image-secondary-text").Text(m.SecondaryTextValue),
 		app.Div().ID(m.IDValue+"-meal-image-info-container").Class("meal-image-info-container").Body(
-			MealScore(m.IDValue+"-meal-image-total", "meal-image-score", m.ScoreValue.Total, "Total"),
-			MealScore(m.IDValue+"-meal-image-taste", "meal-image-score", m.ScoreValue.Taste, "Taste"),
-			MealScore(m.IDValue+"-meal-image-recency", "meal-image-score", m.ScoreValue.Recency, "New"),
-			MealScore(m.IDValue+"-meal-image-cost", "meal-image-score", m.ScoreValue.Cost, "Cost"),
-			MealScore(m.IDValue+"-meal-image-effort", "meal-image-score", m.ScoreValue.Effort, "Effort"),
-			MealScore(m.IDValue+"-meal-image-healthiness", "meal-image-score", m.ScoreValue.Healthiness, "Health"),
+			app.Span().ID(m.IDValue+"-meal-image-main-text").Class("meal-image-main-text").Text(m.MainTextValue),
+			app.Span().ID(m.IDValue+"-meal-image-secondary-text").Class("meal-image-secondary-text").Text(m.SecondaryTextValue),
+			app.Div().ID(m.IDValue+"-meal-image-score-container").Class("meal-image-score-container").Body(
+				MealScore(m.IDValue+"-meal-image-total", "meal-image-score", m.ScoreValue.Total, "Total"),
+				MealScore(m.IDValue+"-meal-image-taste", "meal-image-score", m.ScoreValue.Taste, "Taste"),
+				MealScore(m.IDValue+"-meal-image-recency", "meal-image-score", m.ScoreValue.Recency, "New"),
+				MealScore(m.IDValue+"-meal-image-cost", "meal-image-score", m.ScoreValue.Cost, "Cost"),
+				MealScore(m.IDValue+"-meal-image-effort", "meal-image-score", m.ScoreValue.Effort, "Effort"),
+				MealScore(m.IDValue+"-meal-image-healthiness", "meal-image-score", m.ScoreValue.Healthiness, "Health"),
+			),
 		),
-
-		// app.Span().ID(m.id+"-meal-image-score-text").Class("meal-image-score-text").Text("Score: "+strconv.Itoa(m.score.Total)),
 	)
 }
 

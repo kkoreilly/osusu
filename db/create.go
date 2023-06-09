@@ -80,7 +80,7 @@ func CreateGroupsTable() error {
 		code text NOT NULL,
 		name text NOT NULL DEFAULT ''::text,
 		members bigint[] NOT NULL,
-		cuisines text[] NOT NULL DEFAULT '{American,Chinese,Indian,Italian,Japanese,Korean,Mexican}'::text[],
+		cuisines text[] NOT NULL DEFAULT '{}'::text[],
 		CONSTRAINT group_pkey PRIMARY KEY (id),
 		CONSTRAINT group_code_key UNIQUE (code),
 		CONSTRAINT group_owner_fkey FOREIGN KEY (owner)

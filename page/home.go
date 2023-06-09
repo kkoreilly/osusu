@@ -40,6 +40,8 @@ func (h *Home) Render() app.UI {
 	}
 	// need to sort so options don't keep swapping
 	sort.Strings(cuisines)
+	cuisines = append(cuisines, osusu.BaseCuisines...)
+	cuisines = append(cuisines, "Unset")
 	// width, _ := app.Window().Size()
 	// smallScreen := width <= 480
 	subtitleText := ""
@@ -167,7 +169,7 @@ func (h *Home) Render() app.UI {
 				compo.CheckboxSelect().ID("home-page-options-category").Label("Categories:").Default(map[string]bool{"Dinner": true}).Value(&h.options.Category).Options(append(osusu.AllCategories, "Unset")...).OnChange(h.SaveQuickOptions),
 				compo.CheckboxSelect().ID("home-page-options-users").Label("People:").Value(&h.usersOptions).Options(usersStrings...).OnChange(h.SaveQuickOptions),
 				compo.CheckboxSelect().ID("home-page-options-source").Label("Sources:").Default(map[string]bool{"Cooking": true, "Dine-In": true, "Takeout": true}).Value(&h.options.Source).Options(osusu.AllSources...).OnChange(h.SaveQuickOptions).Hidden(h.options.Mode == "Discover"),
-				compo.CheckboxSelect().ID("home-page-options-cuisine").Label("Cuisines:").Value(&h.options.Cuisine).Options(append(cuisines, "Unset")...).OnChange(h.SaveQuickOptions),
+				compo.CheckboxSelect().ID("home-page-options-cuisine").Label("Cuisines:").Value(&h.options.Cuisine).Options(cuisines...).OnChange(h.SaveQuickOptions),
 			),
 			app.Div().ID("home-page-meals-container").Class("meal-images-container").Hidden(h.options.Mode != "Search").Body(
 				app.Range(h.meals).Slice(func(i int) app.UI {
@@ -303,8 +305,14 @@ func (h *Home) Render() app.UI {
 					if !gotSource {
 						return app.Text("")
 					}
-					secondaryText := entry.Date.Format("Monday, January 2, 2006")
-					return compo.MealImage().ID("home-page-entry-" + si).Class("home-page-entry").Img(entryMeal.Image).MainText(entryMeal.Name).SecondaryText(entry.Category + entry.Source).Score(score).OnClick(func(ctx app.Context, e app.Event) { h.EntryOnClick(ctx, e, entry) }).OnClickScope(entry.ID)
+					secondaryText := entryMeal.Name
+					if entry.Category != "" {
+						secondaryText += " • " + entry.Category
+					}
+					if entry.Source != "" {
+						secondaryText += " • " + entry.Source
+					}
+					return compo.MealImage().ID("home-page-entry-" + si).Class("home-page-entry").Img(entryMeal.Image).MainText(entry.Date.Format("Monday, January 2, 2006")).SecondaryText(secondaryText).Score(score).OnClick(func(ctx app.Context, e app.Event) { h.EntryOnClick(ctx, e, entry) }).OnClickScope(entry.ID)
 				}),
 			),
 			// MealImage().ID("test").Img("https://static01.nyt.com/images/2021/02/17/dining/17tootired-grilled-cheese/17tootired-grilled-cheese-articleLarge.jpg?quality=75&auto=webp&disable=upscale").MainText("Grilled Cheese").Score(Score{Total: 76}),

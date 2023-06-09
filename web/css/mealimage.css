@@ -73,35 +73,39 @@
     visibility: hidden;
 }
 
+.meal-image-info-container {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    row-gap: 10px;
+    align-items: center;
+    justify-content: flex-end;
+}
+
 .meal-image-main-text {
     width: 90%;
     font-size: 1.5rem;
     text-align: center;
     font-weight: bold;
-    position: absolute;
-    bottom: 8.5rem;
-    left: 0;
     margin: 0 5%;
 }
 
 .meal-image-secondary-text {
     width: 90%;
     text-align: center;
-    position: absolute;
-    bottom: 6.5rem;
-    left: 0;
     margin: 0 5%;
 }
 
-.meal-image-info-container {
+.meal-image-score-container {
     display: flex;
     flex-direction: row;
     align-items: center;
     justify-content: center;
-    position: absolute;
-    bottom: 1rem;
     column-gap: 5px;
-    /* left: 0; */
-    /* color: black; */
     width: 100%;
+    padding-bottom: 15px;
 }

@@ -112,6 +112,7 @@
 
 .page-top-bar>button {
     width: calc(100% / var(--n-buttons));
+    max-width: 100vw;
 }
 
 .top-bar-account-button {
