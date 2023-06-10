@@ -10,7 +10,7 @@ import (
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
 )
 
-type GroupPage struct {
+type Group struct {
 	app.Compo
 	group           osusu.Group
 	isGroupNew      bool
@@ -20,7 +20,7 @@ type GroupPage struct {
 	joinLinkClicked bool
 }
 
-func (g *GroupPage) Render() app.UI {
+func (g *Group) Render() app.UI {
 	titleText := "Edit Group"
 	saveButtonIcon := "save"
 	saveButtonText := "Save"
@@ -109,7 +109,7 @@ func (g *GroupPage) Render() app.UI {
 	}
 }
 
-func (g *GroupPage) JoinLinkOnClick(ctx app.Context, e app.Event) {
+func (g *Group) JoinLinkOnClick(ctx app.Context, e app.Event) {
 	if g.joinLinkClicked || app.Window().Get("navigator").Get("clipboard").Truthy() {
 		e.PreventDefault()
 		g.joinLinkClicked = true
@@ -122,7 +122,7 @@ func (g *GroupPage) JoinLinkOnClick(ctx app.Context, e app.Event) {
 	}
 }
 
-func (g *GroupPage) OnSubmit(ctx app.Context, e app.Event) {
+func (g *Group) OnSubmit(ctx app.Context, e app.Event) {
 	e.PreventDefault()
 
 	if g.isGroupNew {

@@ -1,13 +1,15 @@
 package page
 
 import (
+	"log"
+
 	"github.com/kkoreilly/osusu/api"
 	"github.com/kkoreilly/osusu/compo"
 	"github.com/kkoreilly/osusu/osusu"
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
 )
 
-type MealPage struct {
+type Meal struct {
 	app.Compo
 	group     osusu.Group
 	user      osusu.User
@@ -17,10 +19,13 @@ type MealPage struct {
 	cuisine   map[string]bool
 }
 
-func (m *MealPage) Render() app.UI {
-	// need to copy to separate array from because append modifies the underlying array
+func (m *Meal) Render() app.UI {
+	// need to copy to separate array from because append sometimes modifies the underlying array
 	var cuisines = make([]string, len(m.group.Cuisines))
 	copy(cuisines, m.group.Cuisines)
+	cuisines = append(cuisines, osusu.BaseCuisines...)
+	cuisines = append(cuisines, "+")
+	log.Println(cuisines)
 	titleText := "Edit Meal"
 	saveButtonIcon := "save"
 	saveButtonText := "Save"
@@ -53,7 +58,8 @@ func (m *MealPage) Render() app.UI {
 			m.group.Cuisines = cuisines
 			osusu.SetCurrentGroup(m.group, ctx)
 
-			m.meal = m.meal.RemoveInvalidCuisines(m.group.Cuisines)
+			// should never need this because we can only remove unused cuisines, so a meal will never have invalid cuisines
+			// m.meal = m.meal.RemoveInvalidCuisines(m.group.Cuisines)
 
 			// need to check that length is 0 as well because we could have data from recipe import
 			if m.isMealNew && len(m.meal.Category) == 0 {
@@ -72,6 +78,7 @@ func (m *MealPage) Render() app.UI {
 			for _, cuisine := range m.meal.Cuisine {
 				m.cuisine[cuisine] = true
 			}
+			log.Println(m.cuisine)
 		},
 		TitleElement: titleText,
 		Elements: []app.UI{
@@ -82,7 +89,7 @@ func (m *MealPage) Render() app.UI {
 				// Button().ID("meal-page-view-source").Class("secondary").Value()
 				compo.TextInput().ID("meal-page-image").Label("Image:").Value(&m.meal.Image),
 				compo.CheckboxChips().ID("meal-page-category").Label("Categories:").Value(&m.category).Options(osusu.AllCategories...),
-				compo.CheckboxChips().ID("meal-page-cuisine").Label("Cuisines:").Value(&m.cuisine).Options(append(cuisines, "+")...).OnChange(m.CuisinesOnChange),
+				compo.CheckboxChips().ID("meal-page-cuisine").Label("Cuisines:").Value(&m.cuisine).Options(cuisines...).OnChange(m.CuisinesOnChange),
 				compo.CuisinesDialog("meal-page", m.CuisinesDialogOnSave),
 				compo.ButtonRow().ID("meal-page").Buttons(
 					compo.Button().ID("meal-page-delete").Class("danger").Icon("delete").Text("Delete").OnClick(m.DeleteMeal).Hidden(m.isMealNew),
@@ -101,7 +108,7 @@ func (m *MealPage) Render() app.UI {
 	}
 }
 
-func (m *MealPage) CuisinesOnChange(ctx app.Context, event app.Event, val string) {
+func (m *Meal) CuisinesOnChange(ctx app.Context, event app.Event, val string) {
 	if val == "+" {
 		m.cuisine[val] = false
 		event.Get("target").Set("checked", false)
@@ -109,7 +116,7 @@ func (m *MealPage) CuisinesOnChange(ctx app.Context, event app.Event, val string
 	}
 }
 
-func (m *MealPage) CuisinesDialogOnSave(ctx app.Context, event app.Event) {
+func (m *Meal) CuisinesDialogOnSave(ctx app.Context, event app.Event) {
 	m.group = osusu.CurrentGroup(ctx)
 	if compo.NewCuisineCreated {
 		m.cuisine[compo.NewCuisine] = true
@@ -117,7 +124,7 @@ func (m *MealPage) CuisinesDialogOnSave(ctx app.Context, event app.Event) {
 	m.meal.RemoveInvalidCuisines(m.group.Cuisines)
 }
 
-func (m *MealPage) OnSubmit(ctx app.Context, event app.Event) {
+func (m *Meal) OnSubmit(ctx app.Context, event app.Event) {
 	event.PreventDefault()
 
 	m.meal.Category = []string{}
@@ -165,7 +172,7 @@ func (m *MealPage) OnSubmit(ctx app.Context, event app.Event) {
 	compo.Navigate("/home", ctx)
 }
 
-func (m *MealPage) ViewEntries(ctx app.Context, event app.Event) {
+func (m *Meal) ViewEntries(ctx app.Context, event app.Event) {
 	event.PreventDefault()
 
 	m.meal.Cuisine = []string{}
@@ -185,12 +192,12 @@ func (m *MealPage) ViewEntries(ctx app.Context, event app.Event) {
 	compo.Navigate("/entries", ctx)
 }
 
-func (m *MealPage) DeleteMeal(ctx app.Context, e app.Event) {
+func (m *Meal) DeleteMeal(ctx app.Context, e app.Event) {
 	e.PreventDefault()
 	app.Window().GetElementByID("meal-page-confirm-delete-meal").Call("showModal")
 }
 
-func (m *MealPage) ConfirmDeleteMeal(ctx app.Context, e app.Event) {
+func (m *Meal) ConfirmDeleteMeal(ctx app.Context, e app.Event) {
 	e.PreventDefault()
 
 	_, err := api.DeleteMeal.Call(m.meal.ID)
@@ -203,7 +210,7 @@ func (m *MealPage) ConfirmDeleteMeal(ctx app.Context, e app.Event) {
 	compo.ReturnToReturnURL(ctx, e)
 }
 
-func (m *MealPage) CancelDeleteMeal(ctx app.Context, e app.Event) {
+func (m *Meal) CancelDeleteMeal(ctx app.Context, e app.Event) {
 	e.PreventDefault()
 	app.Window().GetElementByID("meal-page-confirm-delete-meal").Call("close")
 }

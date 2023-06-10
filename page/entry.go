@@ -7,7 +7,7 @@ import (
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
 )
 
-type EntryPage struct {
+type Entry struct {
 	app.Compo
 	entry      osusu.Entry
 	isEntryNew bool
@@ -15,7 +15,7 @@ type EntryPage struct {
 	user       osusu.User
 }
 
-func (e *EntryPage) Render() app.UI {
+func (e *Entry) Render() app.UI {
 	titleText := "Edit Entry"
 	saveButtonIcon := "save"
 	saveButtonText := "Save"
@@ -67,7 +67,7 @@ func (e *EntryPage) Render() app.UI {
 	}
 }
 
-func (e *EntryPage) OnSubmit(ctx app.Context, event app.Event) {
+func (e *Entry) OnSubmit(ctx app.Context, event app.Event) {
 	event.PreventDefault()
 
 	if e.isEntryNew {
@@ -90,12 +90,12 @@ func (e *EntryPage) OnSubmit(ctx app.Context, event app.Event) {
 	compo.ReturnToReturnURL(ctx, event)
 }
 
-func (e *EntryPage) InitialDelete(ctx app.Context, event app.Event) {
+func (e *Entry) InitialDelete(ctx app.Context, event app.Event) {
 	event.PreventDefault()
 	app.Window().GetElementByID("entry-page-confirm-delete").Call("showModal")
 }
 
-func (e *EntryPage) ConfirmDelete(ctx app.Context, event app.Event) {
+func (e *Entry) ConfirmDelete(ctx app.Context, event app.Event) {
 	event.PreventDefault()
 
 	_, err := api.DeleteEntry.Call(e.entry.ID)
@@ -108,7 +108,7 @@ func (e *EntryPage) ConfirmDelete(ctx app.Context, event app.Event) {
 	compo.ReturnToReturnURL(ctx, event)
 }
 
-func (e *EntryPage) CancelDelete(ctx app.Context, event app.Event) {
+func (e *Entry) CancelDelete(ctx app.Context, event app.Event) {
 	event.PreventDefault()
 	app.Window().GetElementByID("entry-page-confirm-delete").Call("close")
 }

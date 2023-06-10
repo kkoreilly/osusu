@@ -9,12 +9,12 @@ import (
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
 )
 
-type GroupsPage struct {
+type Groups struct {
 	app.Compo
 	groups osusu.Groups
 }
 
-func (g *GroupsPage) Render() app.UI {
+func (g *Groups) Render() app.UI {
 	return &compo.Page{
 		ID:                     "groups",
 		Title:                  "Groups",
@@ -44,13 +44,13 @@ func (g *GroupsPage) Render() app.UI {
 	}
 }
 
-func (g *GroupsPage) New(ctx app.Context, e app.Event) {
+func (g *Groups) New(ctx app.Context, e app.Event) {
 	osusu.SetIsGroupNew(true, ctx)
 	osusu.SetCurrentGroup(osusu.Group{}, ctx)
 	compo.Navigate("/group", ctx)
 }
 
-func (g *GroupsPage) GroupOnClick(ctx app.Context, e app.Event, group osusu.Group) {
+func (g *Groups) GroupOnClick(ctx app.Context, e app.Event, group osusu.Group) {
 	osusu.SetIsGroupNew(false, ctx)
 	osusu.SetCurrentGroup(group, ctx)
 	compo.Navigate("/home", ctx)

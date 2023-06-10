@@ -1,10 +1,10 @@
 package osusu
 
 // WordScoreMap returns a map with a score for each word contained in the names of the given meals using the given entries for each meal and options
-func WordScoreMap(meals Meals, entriesForEachMeal map[int64]Entries, options Options) map[string]Score {
+func WordScoreMap(meals Meals, mealEntries map[int64]Entries, options Options) map[string]Score {
 	sliceMap := map[string][]ScoreWeight{}
 	for _, meal := range meals {
-		score := meal.Score(entriesForEachMeal[meal.ID], options)
+		score := meal.Score(mealEntries[meal.ID], options)
 		words := GetWords(meal.Name)
 		for i, word := range words {
 			if sliceMap[word] == nil {

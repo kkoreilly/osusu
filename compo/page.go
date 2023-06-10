@@ -29,7 +29,7 @@ type Page struct {
 	updateAvailable        bool
 	installAvailable       bool
 	user                   osusu.User
-	mode                   string
+	url                    string
 	dialogElements         app.Value // all of the elements that should be closed on page click
 }
 
@@ -78,10 +78,10 @@ func (p *Page) Render() app.UI {
 	}
 	width, _ := app.Window().Size()
 	smallScreen := width <= 480
-	installIcon := "install_desktop"
-	if smallScreen {
-		installIcon = "install_mobile"
-	}
+	// installIcon := "install_desktop"
+	// if smallScreen {
+	// 	installIcon = "install_mobile"
+	// }
 	// homeButtonText := "Home"
 	// searchText := "Search"
 	// historyText := "History"
@@ -108,9 +108,10 @@ func (p *Page) Render() app.UI {
 		// 	app.Img().ID(p.ID+"-page-nav-bar-icon-img").Class("page-nav-bar-icon-img").Src("/web/images/icon-192.png"),
 		// 	app.If(!smallScreen, app.Span().ID(p.ID+"-page-nav-bar-icon-text").Class("page-nav-bar-icon-text").Text("Osusu")),
 		// ),
-		Button().ID(p.ID+"page-nav-bar-search").Class("open-"+strconv.FormatBool(CurrentPage.mode == "Search")+" nav-bar").Icon("search").Text("Search").OnClick(p.NavBarOnClick("/search", "Search")),
-		Button().ID(p.ID+"page-nav-bar-discover").Class("open-"+strconv.FormatBool(CurrentPage.mode == "Discover")+" nav-bar").Icon("explore").Text("Discover").OnClick(p.NavBarOnClick("/discover", "Discover")),
-		Button().ID(p.ID+"page-nav-bar-history").Class("open-"+strconv.FormatBool(CurrentPage.mode == "History")+" nav-bar").Icon("history").Text("History").OnClick(p.NavBarOnClick("/history", "History")),
+		Button().ID(p.ID+"page-nav-bar-search").Class("open-"+strconv.FormatBool(CurrentPage.url == "/search")+" nav-bar").Icon("search").Text("Search").OnClick(p.NavBarOnClick("/search")),
+		Button().ID(p.ID+"page-nav-bar-discover").Class("open-"+strconv.FormatBool(CurrentPage.url == "/discover")+" nav-bar").Icon("explore").Text("Discover").OnClick(p.NavBarOnClick("/discover")),
+		Button().ID(p.ID+"page-nav-bar-history").Class("open-"+strconv.FormatBool(CurrentPage.url == "/history")+" nav-bar").Icon("history").Text("History").OnClick(p.NavBarOnClick("/history")),
+		Button().ID(p.ID+"-page-nav-bar-account").Class("open-"+strconv.FormatBool(CurrentPage.url == "/account")+" nav-bar").Icon("person").Text("Account").OnClick(p.NavBarOnClick("/account")),
 		// app.If(false, Button().ID(p.ID+"-page-nav-bar-update").Class("nav-bar").Icon("update").Text(updateText).OnClick(p.UpdateApp).Hidden(!CurrentPage.updateAvailable),
 		// 	Button().ID(p.ID+"-page-nav-bar-install").Class("nav-bar").Icon(installIcon).Text(installText).OnClick(p.InstallApp).Hidden(!CurrentPage.installAvailable),
 		// 	Button().ID(p.ID+"-page-nav-bar-account").Class("nav-bar-account").Icon(accountButtonIcon).Text(nameFirstLetter).OnClick(NavigateEvent("/account"))),
@@ -125,13 +126,12 @@ func (p *Page) Render() app.UI {
 		nTopBarButtons++
 	}
 	return app.Div().ID(p.ID+"-page-container").Class("page-container").DataSet("small-screen", smallScreen).OnClick(p.OnClickEvent).Body(
-		app.Header().ID(p.ID+"-page-header").Class("page-header").Body(
-			app.Div().ID(p.ID+"-page-top-bar").Class("page-top-bar", "page-nav-bar").Style("--n-buttons", strconv.Itoa(nTopBarButtons)).Body(
-				Button().ID(p.ID+"-page-top-bar-update").Class("nav-bar").Icon("update").Text("Update").OnClick(p.UpdateApp).Hidden(!CurrentPage.updateAvailable),
-				Button().ID(p.ID+"-page-top-bar-install").Class("nav-bar").Icon(installIcon).Text("Install").OnClick(p.InstallApp).Hidden(!CurrentPage.installAvailable),
-				Button().ID(p.ID+"-page-top-bar-account").Class("nav-bar").Icon("person").Text("Account").OnClick(NavigateEvent("/account")),
-			),
-		),
+		// app.Header().ID(p.ID+"-page-header").Class("page-header").Body(
+		// 	app.Div().ID(p.ID+"-page-top-bar").Class("page-top-bar", "page-nav-bar").Style("--n-buttons", strconv.Itoa(nTopBarButtons)).Body(
+		// 		Button().ID(p.ID+"-page-top-bar-update").Class("nav-bar").Icon("update").Text("Update").OnClick(p.UpdateApp).Hidden(!CurrentPage.updateAvailable),
+		// 		Button().ID(p.ID+"-page-top-bar-install").Class("nav-bar").Icon(installIcon).Text("Install").OnClick(p.InstallApp).Hidden(!CurrentPage.installAvailable),
+		// 	),
+		// ),
 		app.Main().ID(p.ID+"-page-main").Class("page-main").Body(
 			app.Dialog().ID(p.ID+"-page-status").Class("page-status").DataSet("status-type", p.statusType).Body(
 				app.Span().ID(p.ID+"-page-status-text").Class("page-status-text").Text(p.statusText),
@@ -177,9 +177,20 @@ func (p *Page) OnNav(ctx app.Context) {
 	if p.PreOnNavFunc != nil {
 		p.PreOnNavFunc(ctx)
 	}
+	if CurrentPage.updateAvailable {
+		CurrentPage.UpdateApp(ctx, app.Event{})
+		return
+	}
 	if Authenticate(p.AuthenticationRequired, ctx) {
 		return
 	}
+	// if we have no url already loaded, just use current. otherwise, carry over current page (so we will keep nav bar urls as we navigate to other pages like /meal, /entry, /recipe, etc)
+	if CurrentPage.url == "" {
+		p.url = ctx.Page().URL().Path
+	} else {
+		p.url = CurrentPage.url
+	}
+
 	CurrentPage = p
 
 	p.UpdatePageTitle(ctx)
@@ -187,17 +198,6 @@ func (p *Page) OnNav(ctx app.Context) {
 	p.updateAvailable = ctx.AppUpdateAvailable()
 	p.installAvailable = ctx.IsAppInstallable()
 	p.user = osusu.CurrentUser(ctx)
-	switch ctx.Page().URL().Path {
-	case "/search":
-		p.mode = "Search"
-	case "/discover":
-		p.mode = "Discover"
-	case "/history":
-		p.mode = "History"
-	default:
-		p.mode = osusu.GetOptions(ctx).Mode
-	}
-	p.Update()
 
 	if p.OnNavFunc != nil {
 		p.OnNavFunc(ctx)
@@ -229,10 +229,10 @@ func (p *Page) OnClickEvent(ctx app.Context, e app.Event) {
 	}
 }
 
-// NavBarOnClick returns an event handler for a nav bar button that changes the mode to the given mode and then navigates to the given path
-func (p *Page) NavBarOnClick(path string, mode string) app.EventHandler {
+// NavBarOnClick returns an event handler for a nav bar button that sets p.url to the given path and then navigates to it
+func (p *Page) NavBarOnClick(path string) app.EventHandler {
 	return func(ctx app.Context, e app.Event) {
-		p.mode = mode
+		p.url = path
 		Navigate(path, ctx)
 	}
 }

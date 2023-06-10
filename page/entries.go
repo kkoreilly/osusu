@@ -10,7 +10,7 @@ import (
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
 )
 
-type EntriesPage struct {
+type Entries struct {
 	app.Compo
 	user    osusu.User
 	meal    osusu.Meal
@@ -18,7 +18,7 @@ type EntriesPage struct {
 	entries osusu.Entries
 }
 
-func (e *EntriesPage) Render() app.UI {
+func (e *Entries) Render() app.UI {
 	// width, _ := app.Window().Size()
 	// smallScreen := width <= 480
 	return &compo.Page{
@@ -114,13 +114,13 @@ func (e *EntriesPage) Render() app.UI {
 	}
 }
 
-func (e *EntriesPage) EntryOnClick(ctx app.Context, event app.Event, entry osusu.Entry) {
+func (e *Entries) EntryOnClick(ctx app.Context, event app.Event, entry osusu.Entry) {
 	osusu.SetIsEntryNew(false, ctx)
 	osusu.SetCurrentEntry(entry, ctx)
 	compo.Navigate("/entry", ctx)
 }
 
-func (e *EntriesPage) New(ctx app.Context, event app.Event) {
+func (e *Entries) New(ctx app.Context, event app.Event) {
 	entry := osusu.NewEntry(osusu.CurrentGroup(ctx), e.user, e.meal, e.entries)
 	osusu.SetIsEntryNew(true, ctx)
 	osusu.SetCurrentEntry(entry, ctx)

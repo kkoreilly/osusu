@@ -11,6 +11,7 @@ type MealImageCompo struct {
 	// everything can change so they need to be exported
 	IDValue            string
 	ClassValue         string
+	SelectedValue      bool
 	ImgValue           string
 	MainTextValue      string
 	SecondaryTextValue string
@@ -20,7 +21,7 @@ type MealImageCompo struct {
 }
 
 func (m *MealImageCompo) Render() app.UI {
-	return app.Div().ID(m.IDValue+"-meal-image-container").Class("meal-image-container", m.ClassValue).DataSet("no-image", m.ImgValue == "").OnClick(m.OnClickValue, m.OnClickScopeValue...).Body(
+	return app.Div().ID(m.IDValue+"-meal-image-container").Class("meal-image-container", m.ClassValue).DataSet("no-image", m.ImgValue == "").DataSet("selected", m.SelectedValue).OnClick(m.OnClickValue, m.OnClickScopeValue...).Body(
 		app.Img().ID(m.IDValue+"-meal-image").Class("meal-image").Src(m.ImgValue),
 		app.Div().ID(m.IDValue+"-meal-image-info-container").Class("meal-image-info-container").Body(
 			app.Span().ID(m.IDValue+"-meal-image-main-text").Class("meal-image-main-text").Text(m.MainTextValue),
@@ -51,6 +52,12 @@ func (m *MealImageCompo) ID(id string) *MealImageCompo {
 // Class sets the class of the meal image component
 func (m *MealImageCompo) Class(class string) *MealImageCompo {
 	m.ClassValue = class
+	return m
+}
+
+// Selected sets whether the meal image component is currently selected
+func (m *MealImageCompo) Selected(selected bool) *MealImageCompo {
+	m.SelectedValue = selected
 	return m
 }
 

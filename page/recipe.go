@@ -6,12 +6,12 @@ import (
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
 )
 
-type RecipePage struct {
+type Recipe struct {
 	app.Compo
 	recipe osusu.Recipe
 }
 
-func (r *RecipePage) Render() app.UI {
+func (r *Recipe) Render() app.UI {
 	return &compo.Page{
 		ID:                     "recipe",
 		Title:                  "Add Recipe",
@@ -45,7 +45,7 @@ func (r *RecipePage) Render() app.UI {
 	}
 }
 
-func (r *RecipePage) Add(ctx app.Context, e app.Event) {
+func (r *Recipe) Add(ctx app.Context, e app.Event) {
 	osusu.SetIsMealNew(true, ctx)
 	meal := osusu.Meal{
 		Name:        r.recipe.Name,

@@ -84,9 +84,9 @@ func (i *InputCompo[T]) ID(id string) *InputCompo[T] {
 	return i
 }
 
-// Class sets the class of the input component to the given value
+// Class adds the given value to the class of the input component
 func (i *InputCompo[T]) Class(class string) *InputCompo[T] {
-	i.class = class
+	i.class += class + " "
 	return i
 }
 

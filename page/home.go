@@ -33,14 +33,17 @@ func (h *Home) Render() app.UI {
 		usersStrings = append(usersStrings, u.Name)
 	}
 	cuisines := []string{}
-	for cuisine, val := range h.cuisinesInUse {
-		if val {
-			cuisines = append(cuisines, cuisine)
+	if h.options.Mode == "Discover" {
+		cuisines = osusu.BaseCuisines
+	} else {
+		for cuisine, val := range h.cuisinesInUse {
+			if val {
+				cuisines = append(cuisines, cuisine)
+			}
 		}
 	}
 	// need to sort so options don't keep swapping
 	sort.Strings(cuisines)
-	cuisines = append(cuisines, osusu.BaseCuisines...)
 	cuisines = append(cuisines, "Unset")
 	// width, _ := app.Window().Size()
 	// smallScreen := width <= 480
