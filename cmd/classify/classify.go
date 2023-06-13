@@ -7,12 +7,12 @@ import (
 	"sort"
 	"time"
 
-	"github.com/emer/emergent/decoder"
 	"github.com/emer/etable/eplot"
 	"github.com/emer/etable/etable"
 	"github.com/emer/etable/etensor"
 	"github.com/goki/gi/gi"
 	"github.com/goki/gi/gimain"
+	"github.com/kkoreilly/gobp"
 	"github.com/kkoreilly/osusu/osusu"
 	"github.com/kkoreilly/osusu/util/file"
 )
@@ -182,13 +182,17 @@ func GetRecipeWords(recipes osusu.Recipes) ([]string, map[int][]string) {
 
 // Infer infers the categories and cuisines of all of the given recipes with them missing using the given recipe words using the SoftMax decoder.
 func Infer(recipes osusu.Recipes, words []string, recipeWordsMap map[int][]string) osusu.Recipes {
-	ca := decoder.SoftMax{} // category decoder
-	ca.Init(len(osusu.AllCategories), len(words))
-	ca.Lrate = 0.05
+	// ca := decoder.SoftMax{}                                                  // category decoder
+	// ca.Init(len(osusu.AllCategories), len(words))
+	// ca.Lrate = 0.05
+	ca := gobp.NewNetwork(0.1, 1, len(words), len(osusu.AllCategories), len(osusu.AllCategories))
+	ca.OutputActivationFunc = gobp.Rectifier
 
-	cu := decoder.SoftMax{} // cuisine decoder
-	cu.Init(len(osusu.BaseCuisines), len(words))
-	cu.Lrate = 0.05
+	// cu := decoder.SoftMax{} // cuisine decoder
+	// cu.Init(len(osusu.BaseCuisines), len(words))
+	// cu.Lrate = 0.05
+	cu := gobp.NewNetwork(0.1, 1, len(words), len(osusu.BaseCuisines), len(osusu.BaseCuisines))
+	ca.OutputActivationFunc = gobp.Rectifier
 
 	wordMap := map[string]int{}
 	for i, word := range words {
@@ -253,36 +257,59 @@ func Infer(recipes osusu.Recipes, words []string, recipeWordsMap map[int][]strin
 		log.Println("Starting Epoch", e)
 		var caNum, caNumRight, caTrainNum, caTrainNumRight, cuNum, cuNumRight, cuTrainNum, cuTrainNumRight int
 		for i, recipe := range recipes {
-			for j := range ca.Inputs {
-				ca.Inputs[j] = 0
+			if i%100 == 0 {
+				log.Println("Starting Recipe", i)
 			}
-			for j := range cu.Inputs {
-				cu.Inputs[j] = 0
+			// for j := range ca.Inputs {
+			// 	ca.Inputs[j] = 0
+			// }
+			// for j := range cu.Inputs {
+			// 	cu.Inputs[j] = 0
+			// }
+			for j := 0; j < len(words); j++ {
+				ca.Units[j].Net = 0
+				cu.Units[j].Net = 0
 			}
 			words := recipeWordsMap[i]
 			for _, word := range words {
 				j, ok := wordMap[word]
 				if ok {
-					ca.Inputs[j] = 1
-					cu.Inputs[j] = 1
+					ca.Units[j].Net = 1
+					cu.Units[j].Net = 1
 				}
 			}
 			ca.Forward()
 			cu.Forward()
 
 			if caTrain[i] {
+				for j := 0; j < len(osusu.AllCategories); j++ {
+					ca.Targets[j] = 0
+				}
 				for _, category := range recipe.Category {
-					ca.Train(categoryMap[category])
+					ca.Targets[categoryMap[category]] = 1
+					log.Println(ca.Back())
 				}
 			}
 			if cuTrain[i] {
+				for j := 0; j < len(osusu.BaseCuisines); j++ {
+					cu.Targets[j] = 0
+				}
 				for _, cuisine := range recipe.Cuisine {
-					cu.Train(cuisineMap[cuisine])
+					cu.Targets[cuisineMap[cuisine]] = 1
+					log.Println(cu.Back())
 				}
 			}
 
-			ca.Sort()
-			category := osusu.AllCategories[ca.Sorted[0]]
+			outputs := ca.Outputs()
+			highestIdx := -1
+			var highestVal float32 = -1000000
+			for j, output := range outputs {
+				if output > highestVal {
+					highestIdx = j
+					highestVal = output
+				}
+			}
+			category := osusu.AllCategories[highestIdx]
 			// only if we have something to test -- we always test and set normal nums if test and train nums if train
 			if len(recipe.Category) != 0 {
 				if caTrain[i] {
@@ -308,8 +335,16 @@ func Infer(recipes osusu.Recipes, words []string, recipeWordsMap map[int][]strin
 				recipes[i] = recipe
 			}
 
-			cu.Sort()
-			cuisine := osusu.BaseCuisines[cu.Sorted[0]]
+			outputs = cu.Outputs()
+			highestIdx = -1
+			highestVal = 0
+			for j, output := range outputs {
+				if output > highestVal {
+					highestIdx = j
+					highestVal = output
+				}
+			}
+			cuisine := osusu.BaseCuisines[highestIdx]
 			// only if we have something to test -- we always test and set normal nums if test and train nums if train
 			if len(recipe.Cuisine) != 0 {
 				if cuTrain[i] {
