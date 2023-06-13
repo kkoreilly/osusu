@@ -134,12 +134,8 @@ func (s *Search) Render() app.UI {
 
 					// check if at least one entry satisfies the source requirements if there is at least one entry.
 					if len(entries) > 0 {
-						// gotType := false
 						gotSource := false
 						for _, entry := range entries {
-							// if h.options.Category[entry.Type] {
-							// 	gotType = true
-							// }
 							if s.options.Source[entry.Source] {
 								gotSource = true
 							}

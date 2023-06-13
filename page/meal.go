@@ -1,8 +1,6 @@
 package page
 
 import (
-	"log"
-
 	"github.com/kkoreilly/osusu/api"
 	"github.com/kkoreilly/osusu/compo"
 	"github.com/kkoreilly/osusu/osusu"
@@ -25,7 +23,6 @@ func (m *Meal) Render() app.UI {
 	copy(cuisines, m.group.Cuisines)
 	cuisines = append(cuisines, osusu.BaseCuisines...)
 	cuisines = append(cuisines, "+")
-	log.Println(cuisines)
 	titleText := "Edit Meal"
 	saveButtonIcon := "save"
 	saveButtonText := "Save"
@@ -58,9 +55,6 @@ func (m *Meal) Render() app.UI {
 			m.group.Cuisines = cuisines
 			osusu.SetCurrentGroup(m.group, ctx)
 
-			// should never need this because we can only remove unused cuisines, so a meal will never have invalid cuisines
-			// m.meal = m.meal.RemoveInvalidCuisines(m.group.Cuisines)
-
 			// need to check that length is 0 as well because we could have data from recipe import
 			if m.isMealNew && len(m.meal.Category) == 0 {
 				m.meal.Category = []string{"Dinner"}
@@ -78,7 +72,6 @@ func (m *Meal) Render() app.UI {
 			for _, cuisine := range m.meal.Cuisine {
 				m.cuisine[cuisine] = true
 			}
-			log.Println(m.cuisine)
 		},
 		TitleElement: titleText,
 		Elements: []app.UI{
@@ -86,7 +79,6 @@ func (m *Meal) Render() app.UI {
 				compo.TextInput().ID("meal-page-name").Label("Name:").Value(&m.meal.Name).AutoFocus(true),
 				compo.Textarea().ID("meal-page-description").Label("Description:").Value(&m.meal.Description),
 				compo.TextInput().ID("meal-page-source").Label("Source:").Value(&m.meal.Source),
-				// Button().ID("meal-page-view-source").Class("secondary").Value()
 				compo.TextInput().ID("meal-page-image").Label("Image:").Value(&m.meal.Image),
 				compo.CheckboxChips().ID("meal-page-category").Label("Categories:").Value(&m.category).Options(osusu.AllCategories...),
 				compo.CheckboxChips().ID("meal-page-cuisine").Label("Cuisines:").Value(&m.cuisine).Options(cuisines...).OnChange(m.CuisinesOnChange),

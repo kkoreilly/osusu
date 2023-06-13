@@ -38,7 +38,6 @@ func (e *Entry) Render() app.UI {
 			}
 			e.meal = osusu.CurrentMeal(ctx)
 			e.user = osusu.CurrentUser(ctx)
-			// e.entry = e.entry.FixMissingData(e.user)
 		},
 		TitleElement: titleText,
 		Elements: []app.UI{

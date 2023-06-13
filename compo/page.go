@@ -78,46 +78,6 @@ func (p *Page) Render() app.UI {
 	}
 	width, _ := app.Window().Size()
 	smallScreen := width <= 480
-	// installIcon := "install_desktop"
-	// if smallScreen {
-	// 	installIcon = "install_mobile"
-	// }
-	// homeButtonText := "Home"
-	// searchText := "Search"
-	// historyText := "History"
-	// discoverText := "Discover"
-	// installText := "Install"
-	// updateText := "Update"
-	// if smallScreen {
-	// 	// homeButtonText = ""
-	// 	searchText, historyText, discoverText, installText, updateText = "", "", "", "", ""
-	// }
-	// nameFirstLetter := ""
-	// accountButtonIcon := "person"
-	// if len(CurrentPage.user.Name) > 0 {
-	// 	nameFirstLetter = string(unicode.ToUpper(rune(CurrentPage.user.Name[0])))
-	// 	accountButtonIcon = ""
-	// }
-	// we display nav bar on top on big screen and on bottom on small screen, so we need to have it as separate thing that is easy to insert
-	navBar := app.Div().ID(p.ID+"-page-nav-bar").Class("page-nav-bar").Body(
-		// Button().ID(p.ID+"-page-nav-bar-home").Class("nav-bar").Icon("home").Text(homeButtonText).OnClick(NavigateEvent("/")),
-		// app.Dialog().ID(p.ID+"-page-menu").Class("page-menu").Body(
-		// 	Button().ID(p.ID+"-home").Class("page-menu").Icon("home").Text("Home").OnClick(NavigateEvent("/")),
-		// ),
-		// app.Button().ID(p.ID+"-page-nav-bar-icon-link").Class("page-nav-bar-icon-button").Type("button").OnClick(NavigateEvent("/")).Title("Navigate to the Osusu Start/Home Page").Body(
-		// 	app.Img().ID(p.ID+"-page-nav-bar-icon-img").Class("page-nav-bar-icon-img").Src("/web/images/icon-192.png"),
-		// 	app.If(!smallScreen, app.Span().ID(p.ID+"-page-nav-bar-icon-text").Class("page-nav-bar-icon-text").Text("Osusu")),
-		// ),
-		Button().ID(p.ID+"page-nav-bar-search").Class("open-"+strconv.FormatBool(CurrentPage.url == "/search")+" nav-bar").Icon("search").Text("Search").OnClick(p.NavBarOnClick("/search")),
-		Button().ID(p.ID+"page-nav-bar-discover").Class("open-"+strconv.FormatBool(CurrentPage.url == "/discover")+" nav-bar").Icon("explore").Text("Discover").OnClick(p.NavBarOnClick("/discover")),
-		Button().ID(p.ID+"page-nav-bar-history").Class("open-"+strconv.FormatBool(CurrentPage.url == "/history")+" nav-bar").Icon("history").Text("History").OnClick(p.NavBarOnClick("/history")),
-		Button().ID(p.ID+"-page-nav-bar-account").Class("open-"+strconv.FormatBool(CurrentPage.url == "/account")+" nav-bar").Icon("person").Text("Account").OnClick(p.NavBarOnClick("/account")),
-		// app.If(false, Button().ID(p.ID+"-page-nav-bar-update").Class("nav-bar").Icon("update").Text(updateText).OnClick(p.UpdateApp).Hidden(!CurrentPage.updateAvailable),
-		// 	Button().ID(p.ID+"-page-nav-bar-install").Class("nav-bar").Icon(installIcon).Text(installText).OnClick(p.InstallApp).Hidden(!CurrentPage.installAvailable),
-		// 	Button().ID(p.ID+"-page-nav-bar-account").Class("nav-bar-account").Icon(accountButtonIcon).Text(nameFirstLetter).OnClick(NavigateEvent("/account"))),
-
-		// app.Div().ID(p.ID+"-page-nav-bar-buttons").Class("page-nav-bar-buttons").Body(),
-	)
 	nTopBarButtons := 1
 	if CurrentPage.updateAvailable {
 		nTopBarButtons++
@@ -126,12 +86,6 @@ func (p *Page) Render() app.UI {
 		nTopBarButtons++
 	}
 	return app.Div().ID(p.ID+"-page-container").Class("page-container").DataSet("small-screen", smallScreen).OnClick(p.OnClickEvent).Body(
-		// app.Header().ID(p.ID+"-page-header").Class("page-header").Body(
-		// 	app.Div().ID(p.ID+"-page-top-bar").Class("page-top-bar", "page-nav-bar").Style("--n-buttons", strconv.Itoa(nTopBarButtons)).Body(
-		// 		Button().ID(p.ID+"-page-top-bar-update").Class("nav-bar").Icon("update").Text("Update").OnClick(p.UpdateApp).Hidden(!CurrentPage.updateAvailable),
-		// 		Button().ID(p.ID+"-page-top-bar-install").Class("nav-bar").Icon(installIcon).Text("Install").OnClick(p.InstallApp).Hidden(!CurrentPage.installAvailable),
-		// 	),
-		// ),
 		app.Main().ID(p.ID+"-page-main").Class("page-main").Body(
 			app.Dialog().ID(p.ID+"-page-status").Class("page-status").DataSet("status-type", p.statusType).Body(
 				app.Span().ID(p.ID+"-page-status-text").Class("page-status-text").Text(p.statusText),
@@ -141,7 +95,12 @@ func (p *Page) Render() app.UI {
 			app.If(p.SubtitleElement != "", app.P().ID(p.ID+"-page-subtitle").Class("page-subtitle").Text(p.SubtitleElement)),
 			app.If(true, elements...),
 		),
-		navBar,
+		app.Div().ID(p.ID+"-page-nav-bar").Class("page-nav-bar").Body(
+			Button().ID(p.ID+"page-nav-bar-search").Class("open-"+strconv.FormatBool(CurrentPage.url == "/search")+" nav-bar").Icon("search").Text("Search").OnClick(p.NavBarOnClick("/search")),
+			Button().ID(p.ID+"page-nav-bar-discover").Class("open-"+strconv.FormatBool(CurrentPage.url == "/discover")+" nav-bar").Icon("explore").Text("Discover").OnClick(p.NavBarOnClick("/discover")),
+			Button().ID(p.ID+"page-nav-bar-history").Class("open-"+strconv.FormatBool(CurrentPage.url == "/history")+" nav-bar").Icon("history").Text("History").OnClick(p.NavBarOnClick("/history")),
+			Button().ID(p.ID+"-page-nav-bar-account").Class("open-"+strconv.FormatBool(CurrentPage.url == "/account")+" nav-bar").Icon("person").Text("Account").OnClick(p.NavBarOnClick("/account")),
+		),
 	)
 }
 
@@ -212,18 +171,8 @@ func (p *Page) OnNav(ctx app.Context) {
 
 // OnClickEvent is called when someone clicks on the page
 func (p *Page) OnClickEvent(ctx app.Context, e app.Event) {
-	// forEachFunc := app.FuncOf(func(this app.Value, args []app.Value) any {
-	// 	elem := args[0]
-	// 	log.Println(elem)
-	// 	elem.Call("close")
-	// 	return nil
-	// })
-	// p.dialogElements.Call("forEach", forEachFunc)
-	// log.Println(len(p.OnClick), p.OnClick)
-	// log.Println("on click", p.onClick != nil, p.onClick)
 	if p.onClick != nil {
 		for _, event := range p.onClick {
-			// log.Println(event)
 			event(ctx, e)
 		}
 	}

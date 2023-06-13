@@ -77,28 +77,6 @@ func (e Entry) Score(options Options) Score {
 	return score
 }
 
-// // MissingData returns whether the given user is missing data in the given entry
-// func (e Entry) MissingData(user User) bool {
-// 	return !(e.Cost.HasValueSet(user) && e.Effort.HasValueSet(user) && e.Healthiness.HasValueSet(user) && e.Taste.HasValueSet(user))
-// }
-
-// // FixMissingData fixes any missing data for the given user for the given entry by setting their values to the average of everyone else's ratings and returning the updated entry
-// func (e Entry) FixMissingData(user User) Entry {
-// 	if !e.Cost.HasValueSet(user) {
-// 		e.Cost[user.ID] = e.Cost.Average()
-// 	}
-// 	if !e.Effort.HasValueSet(user) {
-// 		e.Effort[user.ID] = e.Effort.Average()
-// 	}
-// 	if !e.Healthiness.HasValueSet(user) {
-// 		e.Healthiness[user.ID] = e.Healthiness.Average()
-// 	}
-// 	if !e.Taste.HasValueSet(user) {
-// 		e.Taste[user.ID] = e.Taste.Average()
-// 	}
-// 	return e
-// }
-
 // RemoveInvalid returns the entry with all invalid entries associated with nonexistent users removed
 func (e Entry) RemoveInvalid(users []User) Entry {
 	e.Cost.RemoveInvalid(users)

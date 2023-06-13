@@ -24,7 +24,6 @@ func (r *Recipe) Render() app.UI {
 		Elements: []app.UI{
 			app.Div().ID("recipe-page-info-container").Class("form").Body(
 				app.Span().ID("recipe-page-name").Text("Name: "+r.recipe.Name),
-				// app.Span().ID("recipe-page-source").Text("Source: "+r.recipe.Source),
 				app.If(r.recipe.Description != "",
 					app.Span().ID("recipe-page-description").Text("Description: "+r.recipe.Description),
 				),

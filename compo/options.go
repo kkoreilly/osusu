@@ -1,8 +1,6 @@
 package compo
 
 import (
-	"log"
-
 	"github.com/kkoreilly/osusu/api"
 	"github.com/kkoreilly/osusu/osusu"
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
@@ -126,7 +124,6 @@ func (q *QuickOptionsCompo) SaveOptions(ctx app.Context, e app.Event, val string
 
 // OnInit is called when the quick options component is loaded
 func (q *QuickOptionsCompo) OnInit() {
-	log.Println("on init")
 	users, err := api.GetUsers.Call(q.group.Members)
 	if err != nil {
 		CurrentPage.ShowErrorStatus(err)
@@ -175,8 +172,6 @@ func (q *QuickOptionsCompo) OnInit() {
 			}
 		}
 	}
-	log.Println(q.users, q.usersStrings, q.cuisines)
-
 }
 
 // ID sets the id of the quick options component

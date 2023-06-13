@@ -39,26 +39,6 @@ func (m Meal) Score(entries Entries, options Options) Score {
 	}
 	score.Recency = recencyScore
 	return score
-	// entriesSum := 0
-	// var latestDate time.Time
-	// for _, entry := range entries {
-	// 	entriesSum += entry.Score(options)
-	// 	if entry.Date.After(latestDate) {
-	// 		latestDate = entry.Date
-	// 	}
-	// }
-	// recencyScore := int(2 * time.Now().Truncate(time.Hour*24).UTC().Sub(latestDate) / (time.Hour * 24))
-	// if recencyScore > 100 {
-	// 	recencyScore = 100
-	// }
-	// // add up all of the weights except recency and multiply all of the scores except for recency by them to make the other weights affect how much recency matters
-	// weightsToal := options.CostWeight + options.EffortWeight + options.HealthinessWeight + options.TasteWeight
-	// sum := weightsToal*entriesSum + options.RecencyWeight*recencyScore
-	// den := weightsToal*len(entries) + options.RecencyWeight
-	// if den == 0 {
-	// 	return 0
-	// }
-	// return sum / den
 }
 
 func (m Meal) LatestDate(entries Entries) time.Time {

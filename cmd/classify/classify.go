@@ -78,8 +78,6 @@ func mainrun() {
 	ErrorPlot.ColParams("cuisineTrainError").On = true
 	ErrorPlot.SetStretchMax()
 
-	// ErrorPlot.Update()
-
 	go Classify()
 
 	vp.UpdateEndNoSig(updt)
@@ -125,15 +123,7 @@ func GetRecipeWords(recipes osusu.Recipes) ([]string, map[int][]string) {
 	wordMap := map[string]int{}
 	recipeWordsMap := map[int][]string{}
 	for i, recipe := range recipes {
-
-		// Simple error test with n = 3:
-		// Ingredients only: 56-60%
-		// Ingredients and description: 68%
-		// Ingredients and name: 67%
-		// Ingredients, description, and name: 72%
-		// Therefore ingredients only is best
 		words := append(osusu.GetWords(recipe.Name), osusu.GetWords(recipe.Description)...)
-		// words := []string{}
 		for _, ingredient := range recipe.Ingredients {
 			words = append(words, osusu.GetWords(ingredient)...)
 		}
@@ -141,9 +131,6 @@ func GetRecipeWords(recipes osusu.Recipes) ([]string, map[int][]string) {
 			recipeWordsMap[i] = []string{}
 		}
 		for _, word := range words {
-			// if word == "33333334326744" {
-			// 	log.Println(word, recipe.Ingredients, recipe.URL)
-			// }
 			wordMap[word]++
 			recipeWordsMap[i] = append(recipeWordsMap[i], word)
 		}
@@ -151,16 +138,12 @@ func GetRecipeWords(recipes osusu.Recipes) ([]string, map[int][]string) {
 	words := []string{}
 	for word, num := range wordMap {
 		if num < Threshold {
-			// log.Println(word, num)
 			continue
 		}
 		words = append(words, word)
 	}
-	// totalOld := 0
-	// totalNew := 0
 	// remove words that don't meet the threshold from recipeWordsMap also
 	for i, words := range recipeWordsMap {
-		// totalOld += len(words)
 		newWords := []string{}
 		for _, word := range words {
 			if wordMap[word] >= Threshold {
@@ -168,9 +151,7 @@ func GetRecipeWords(recipes osusu.Recipes) ([]string, map[int][]string) {
 			}
 		}
 		recipeWordsMap[i] = newWords
-		// totalNew += len(newWords)
 	}
-	// log.Println("old", totalOld, "new", totalNew, "diff", totalOld-totalNew)
 	sort.Slice(words, func(i, j int) bool {
 		return wordMap[words[i]] < wordMap[words[j]]
 	})
@@ -182,16 +163,10 @@ func GetRecipeWords(recipes osusu.Recipes) ([]string, map[int][]string) {
 
 // Infer infers the categories and cuisines of all of the given recipes with them missing using the given recipe words using the SoftMax decoder.
 func Infer(recipes osusu.Recipes, words []string, recipeWordsMap map[int][]string) osusu.Recipes {
-	// ca := decoder.SoftMax{}                                                  // category decoder
-	// ca.Init(len(osusu.AllCategories), len(words))
-	// ca.Lrate = 0.05
-	ca := gobp.NewNetwork(len(words), len(osusu.AllCategories), 1, len(osusu.AllCategories))
+	ca := gobp.NewNetwork(len(words), len(osusu.AllCategories), 1, len(osusu.AllCategories)) // category decoder
 	ca.OutputActivationFunc = gobp.Rectifier
 
-	// cu := decoder.SoftMax{} // cuisine decoder
-	// cu.Init(len(osusu.BaseCuisines), len(words))
-	// cu.Lrate = 0.05
-	cu := gobp.NewNetwork(len(words), len(osusu.BaseCuisines), 1, len(osusu.BaseCuisines))
+	cu := gobp.NewNetwork(len(words), len(osusu.BaseCuisines), 1, len(osusu.BaseCuisines)) // cuisine decoder
 	ca.OutputActivationFunc = gobp.Rectifier
 
 	wordMap := map[string]int{}
@@ -262,12 +237,6 @@ func Infer(recipes osusu.Recipes, words []string, recipeWordsMap map[int][]strin
 			if i%100 == 0 {
 				log.Println("Starting Recipe", i)
 			}
-			// for j := range ca.Inputs {
-			// 	ca.Inputs[j] = 0
-			// }
-			// for j := range cu.Inputs {
-			// 	cu.Inputs[j] = 0
-			// }
 			for j := 0; j < len(words); j++ {
 				inputs[j] = 0
 			}
@@ -318,7 +287,7 @@ func Infer(recipes osusu.Recipes, words []string, recipeWordsMap map[int][]strin
 					caNum++
 				}
 				for _, recipeCategory := range recipe.Category {
-					if category == recipeCategory { // || osusu.AllCategories[ca.Sorted[1]] == recipeCategory || osusu.AllCategories[ca.Sorted[2]] == recipeCategory || osusu.AllCategories[ca.Sorted[3]] == recipeCategory {
+					if category == recipeCategory {
 						if caTrain[i] {
 							caTrainNumRight++
 						} else {
@@ -353,7 +322,7 @@ func Infer(recipes osusu.Recipes, words []string, recipeWordsMap map[int][]strin
 					cuNum++
 				}
 				for _, recipeCuisine := range recipe.Cuisine {
-					if cuisine == recipeCuisine { // || osusu.BaseCuisines[cu.Sorted[1]] == recipeCuisine || osusu.BaseCuisines[cu.Sorted[2]] == recipeCuisine || osusu.BaseCuisines[cu.Sorted[3]] == recipeCuisine {
+					if cuisine == recipeCuisine {
 						if cuTrain[i] {
 							cuTrainNumRight++
 						} else {
@@ -373,7 +342,6 @@ func Infer(recipes osusu.Recipes, words []string, recipeWordsMap map[int][]strin
 		cuError := 1 - (float64(cuNumRight) / float64(cuNum))
 		caTrainError := 1 - (float64(caTrainNumRight) / float64(caTrainNum))
 		cuTrainError := 1 - (float64(cuTrainNumRight) / float64(cuTrainNum))
-		// log.Println(caError, cuError)
 		ErrorTable.SetCellFloat("epoch", e, float64(e))
 		ErrorTable.SetCellFloat("categoryError", e, caError)
 		ErrorTable.SetCellFloat("cuisineError", e, cuError)

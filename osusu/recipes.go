@@ -282,9 +282,6 @@ func (r Recipes) ConsolidateCuisines() Recipes {
 	for i, recipe := range r {
 		// need unique cuisines so use map to prevent duplicates
 		cuisines := map[string]bool{}
-		// if len(recipe.Cuisine) == 0 {
-		// 	log.Println(recipe.Name, recipe.Description)
-		// }
 		for _, cuisine := range recipe.Cuisine {
 			got := false
 			for k, v := range CuisineToCuisineMap {
@@ -312,18 +309,6 @@ func (r Recipes) ConsolidateCuisines() Recipes {
 				}
 			}
 		}
-		// for cuisine, words := range cuisineWords {
-		// 	for _, word := range words {
-		// 		if strings.Contains(recipe.Name, word) || strings.Contains(recipe.Description, word) {
-		// 			cuisines[cuisine] = true
-		// 		}
-		// 		for _, ingredient := range recipe.Ingredients {
-		// 			if strings.Contains(ingredient, word) {
-		// 				cuisines[cuisine] = true
-		// 			}
-		// 		}
-		// 	}
-		// }
 		newCuisine := []string{}
 		for cuisine := range cuisines {
 			newCuisine = append(newCuisine, cuisine)
@@ -465,10 +450,8 @@ func ParseDuration(duration string) (time.Duration, error) {
 
 // GetWords gets all of the words contained within the given text
 func GetWords(text string) []string {
-	// t := time.Now()
 	res := []string{}
 	curStr := ""
-	// log.Println("get words: setup", time.Since(t))
 	for _, r := range text {
 		if WordSeparatorsMap[r] {
 			if curStr != "" && !IgnoredWordsMap[curStr] {
@@ -479,123 +462,8 @@ func GetWords(text string) []string {
 		}
 		curStr = string(append([]rune(curStr), r))
 	}
-	// log.Println("get words: loop", time.Since(t))
 	if curStr != "" && !IgnoredWordsMap[curStr] {
 		res = append(res, curStr)
 	}
-	// log.Println("get words: total", time.Since(t))
-	// fmt.Print("\n")
 	return res
 }
-
-// // FixRecipeTimes returns the given recipes with durations formatted correctly
-// func FixRecipeTimes(recipes Recipes) Recipes {
-// 	for i, recipe := range recipes {
-// 		var prepDuration, cookDuration, totalDuration time.Duration
-// 		if recipe.PrepTime != "" {
-// 			prepDuration, _ = ParseDuration(recipe.PrepTime)
-// 			recipe.PrepTime = prepDuration.String()
-// 		}
-// 		if recipe.CookTime != "" {
-// 			cookDuration, _ = ParseDuration(recipe.CookTime)
-// 			recipe.CookTime = cookDuration.String()
-// 		}
-// 		if recipe.TotalTime != "" {
-// 			totalDuration, _ = ParseDuration(recipe.TotalTime)
-// 			recipe.TotalTime = totalDuration.String()
-// 		} else {
-// 			recipe.TotalTime = (prepDuration + cookDuration).String()
-// 		}
-// 		recipes[i] = recipe
-// 	}
-// 	return recipes
-// }
-
-// // sourceAccuracy is a map with rough accuracy estimates for every source
-// var sourceAccuracy = map[string]int{
-// 	"bbcfood":              50,
-// 	"elanaspantry":         100,
-// 	"lovefood":             100,
-// 	"delishhh":             100,
-// 	"thevintagemixer":      100,
-// 	"backtoherroots":       100,
-// 	"cookieandkate":        0,
-// 	"jamieoliver":          80,
-// 	"paninihappy":          100,
-// 	"bunkycooks":           0,
-// 	"steamykitchen":        100,
-// 	"chow":                 0,
-// 	"seriouseats":          90,
-// 	"thelittlekitchen":     100,
-// 	"williamssonoma":       0,
-// 	"whatsgabycooking":     60,
-// 	"cookincanuck":         100,
-// 	"eatthelove":           100,
-// 	"naturallyella":        0,
-// 	"aspicyperspective":    0,
-// 	"food":                 0,
-// 	"pickypalate":          100,
-// 	"thepioneerwoman":      100,
-// 	"foodnetwork":          100,
-// 	"epicurious":           0,
-// 	"tastykitchen":         100,
-// 	"biggirlssmallkitchen": 70,
-// 	"bonappetit":           80,
-// 	"allrecipes":           30,
-// 	"browneyedbaker":       90,
-// 	"101cookbooks":         100,
-// 	"bbcgoodfood":          90,
-// 	"smittenkitchen":       100,
-// }
-
-// // EstimateValid estimates what number of the given recipes are valid using the source accuracy map
-// func EstimateValid(recipes Recipes) int {
-// 	sum := 0
-// 	for _, recipe := range recipes {
-// 		accuracy := sourceAccuracy[recipe.Source]
-// 		sum += accuracy
-// 	}
-// 	return sum / 100
-// }
-
-// // RemoveInvalidRecipes returns the given recipes with all recipes that return 404s removed
-// func RemoveInvalidRecipes(recipes Recipes) Recipes {
-// 	// amount valid and invalid per source
-// 	invalid := map[string]int{}
-// 	valid := map[string]int{}
-// 	total := map[string]int{}
-// 	res := Recipes{}
-// 	// t := time.Now()
-// 	for i, recipe := range recipes {
-// 		if total[recipe.Source] >= 10 {
-// 			continue
-// 		}
-// 		log.Println(total[recipe.Source], recipe.Source)
-// 		resp, err := http.Get(recipe.URL)
-// 		if err != nil {
-// 			log.Println("error fetching recipe in remove invalid recipes:", err)
-// 			invalid[recipe.Source]++
-// 			total[recipe.Source]++
-// 			continue
-// 		}
-// 		if resp.StatusCode != 200 {
-// 			// log.Println("bad status code:", resp.StatusCode, "with source", recipe.Source)
-// 			invalid[recipe.Source]++
-// 			total[recipe.Source]++
-// 			continue
-// 		}
-// 		// log.Println("valid recipe found with source", recipe.Source)
-// 		valid[recipe.Source]++
-// 		total[recipe.Source]++
-// 		res = append(res, recipe)
-// 		if i != 0 {
-// 			// log.Println("percent valid:", strconv.Itoa(100*len(res)/i)+"%", "total:", i, "valid:", len(res), "invalid:", i-len(res))
-// 			// log.Println("total time:", time.Since(t), "time per:", time.Since(t)/time.Duration(i), "estimated total:", time.Duration(len(recipes))*time.Since(t)/time.Duration((i)))
-// 		}
-// 	}
-// 	for source, val := range total {
-// 		nInvalid, nValid := invalid[source], valid[source]
-// 		log.Println("Keep:", 100*nValid/val > 70, "Percent Valid:", strconv.Itoa(100*nValid/val)+"%", "Source:", source, "Number Invalid:", nInvalid, "Number Valid:", nValid, "Total Number:", val)
-// 	}
-// 	return res
-// }
