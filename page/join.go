@@ -72,5 +72,5 @@ func (j *Join) OnSubmit(ctx app.Context, e app.Event) {
 		return
 	}
 	osusu.SetCurrentGroup(group, ctx)
-	ctx.Navigate("/home")
+	ctx.Navigate("/search")
 }

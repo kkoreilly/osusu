@@ -13,22 +13,16 @@ import (
 
 type Discover struct {
 	app.Compo
-	group        osusu.Group
-	user         osusu.User
-	users        osusu.Users
-	meals        osusu.Meals
-	entries      osusu.Entries
-	mealEntries  map[int64]osusu.Entries
-	recipes      osusu.Recipes
-	options      osusu.Options
-	usersOptions map[string]bool
+	group       osusu.Group
+	user        osusu.User
+	meals       osusu.Meals
+	entries     osusu.Entries
+	mealEntries map[int64]osusu.Entries
+	recipes     osusu.Recipes
+	options     osusu.Options
 }
 
 func (d *Discover) Render() app.UI {
-	usersStrings := []string{}
-	for _, u := range d.users {
-		usersStrings = append(usersStrings, u.Name)
-	}
 	return &compo.Page{
 		ID:                     "discover",
 		Title:                  "Discover",
@@ -49,32 +43,9 @@ func (d *Discover) Render() app.UI {
 			d.group.Cuisines = cuisines
 			osusu.SetCurrentGroup(d.group, ctx)
 
-			users, err := api.GetUsers.Call(d.group.Members)
-			if err != nil {
-				compo.CurrentPage.ShowErrorStatus(err)
-				return
-			}
-			d.users = users
-
 			d.options = osusu.GetOptions(ctx)
 			if d.options.Users == nil {
 				d.options = osusu.DefaultOptions(d.group)
-			}
-			d.options.Mode = "Discover"
-			osusu.SetOptions(d.options, ctx)
-			if d.options.UserNames == nil {
-				d.options.UserNames = make(map[int64]string)
-			}
-			for _, user := range d.users {
-				d.options.UserNames[user.ID] = user.Name
-			}
-
-			d.usersOptions = make(map[string]bool)
-			for _, p := range d.users {
-				if _, ok := d.options.Users[p.ID]; !ok {
-					d.options.Users[p.ID] = true
-				}
-				d.usersOptions[p.Name] = d.options.Users[p.ID]
 			}
 
 			meals, err := api.GetMeals.Call(d.group.ID)
@@ -111,12 +82,8 @@ func (d *Discover) Render() app.UI {
 			compo.ButtonRow().ID("discover-page").Buttons(
 				compo.Button().ID("discover-page-search").Class("primary").Icon("search").Text("Search").OnClick(d.ShowOptions),
 			),
-			compo.ButtonRow().ID("discover-page-quick-options").Buttons(
-				compo.CheckboxSelect().ID("discover-page-options-category").Label("Categories:").Default(map[string]bool{"Dinner": true}).Value(&d.options.Category).Options(append(osusu.AllCategories, "Unset")...).OnChange(d.SaveQuickOptions),
-				compo.CheckboxSelect().ID("discover-page-options-users").Label("People:").Value(&d.usersOptions).Options(usersStrings...).OnChange(d.SaveQuickOptions),
-				compo.CheckboxSelect().ID("discover-page-options-cuisine").Label("Cuisines:").Value(&d.options.Cuisine).Options(osusu.BaseCuisines...).OnChange(d.SaveQuickOptions),
-			),
-			app.Div().ID("discover-page-recipes-container").Class("meal-images-container").Hidden(d.options.Mode != "Discover").Body(
+			compo.QuickOptions().ID("discover-page").Options(&d.options).Group(d.group).Meals(nil).OnSave(func(ctx app.Context, e app.Event) { d.RecommendRecipes() }),
+			app.Div().ID("discover-page-recipes-container").Class("meal-images-container").Body(
 				app.Range(d.recipes).Slice(func(i int) app.UI {
 					si := strconv.Itoa(i)
 					recipe := d.recipes[i]
@@ -142,24 +109,6 @@ func (d *Discover) RecipeOnClick(ctx app.Context, e app.Event, recipe osusu.Reci
 
 func (d *Discover) ShowOptions(ctx app.Context, e app.Event) {
 	app.Window().GetElementByID("discover-page-options").Call("showModal")
-}
-
-func (d *Discover) SaveQuickOptions(ctx app.Context, e app.Event, val string) {
-	d.SaveOptions(ctx, e)
-}
-
-func (d *Discover) SaveOptions(ctx app.Context, e app.Event) {
-	e.PreventDefault()
-
-	for _, u := range d.users {
-		d.options.Users[u.ID] = d.usersOptions[u.Name]
-	}
-
-	osusu.SetOptions(d.options, ctx)
-
-	app.Window().GetElementByID("discover-page-options").Call("close")
-
-	d.RecommendRecipes()
 }
 
 // RecommendRecipes loads recipe recommendations for discover mode

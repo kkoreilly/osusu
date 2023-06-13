@@ -53,5 +53,5 @@ func (g *Groups) New(ctx app.Context, e app.Event) {
 func (g *Groups) GroupOnClick(ctx app.Context, e app.Event, group osusu.Group) {
 	osusu.SetIsGroupNew(false, ctx)
 	osusu.SetCurrentGroup(group, ctx)
-	compo.Navigate("/home", ctx)
+	compo.Navigate("/search", ctx)
 }

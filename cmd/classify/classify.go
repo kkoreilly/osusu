@@ -185,13 +185,13 @@ func Infer(recipes osusu.Recipes, words []string, recipeWordsMap map[int][]strin
 	// ca := decoder.SoftMax{}                                                  // category decoder
 	// ca.Init(len(osusu.AllCategories), len(words))
 	// ca.Lrate = 0.05
-	ca := gobp.NewNetwork(0.1, 1, len(words), len(osusu.AllCategories), len(osusu.AllCategories))
+	ca := gobp.NewNetwork(len(words), len(osusu.AllCategories), 1, len(osusu.AllCategories))
 	ca.OutputActivationFunc = gobp.Rectifier
 
 	// cu := decoder.SoftMax{} // cuisine decoder
 	// cu.Init(len(osusu.BaseCuisines), len(words))
 	// cu.Lrate = 0.05
-	cu := gobp.NewNetwork(0.1, 1, len(words), len(osusu.BaseCuisines), len(osusu.BaseCuisines))
+	cu := gobp.NewNetwork(len(words), len(osusu.BaseCuisines), 1, len(osusu.BaseCuisines))
 	ca.OutputActivationFunc = gobp.Rectifier
 
 	wordMap := map[string]int{}
@@ -253,6 +253,8 @@ func Infer(recipes osusu.Recipes, words []string, recipeWordsMap map[int][]strin
 	log.Println(len(caSet), len(caUnset), len(cuSet), len(cuUnset))
 	log.Println(len(caPerm), len(caTrain), len(cuPerm), len(cuTrain))
 
+	inputs := make([]float32, len(words))
+
 	for e := 0; e < Epochs; e++ {
 		log.Println("Starting Epoch", e)
 		var caNum, caNumRight, caTrainNum, caTrainNumRight, cuNum, cuNumRight, cuTrainNum, cuTrainNumRight int
@@ -267,15 +269,13 @@ func Infer(recipes osusu.Recipes, words []string, recipeWordsMap map[int][]strin
 			// 	cu.Inputs[j] = 0
 			// }
 			for j := 0; j < len(words); j++ {
-				ca.Units[j].Net = 0
-				cu.Units[j].Net = 0
+				inputs[j] = 0
 			}
 			words := recipeWordsMap[i]
 			for _, word := range words {
 				j, ok := wordMap[word]
 				if ok {
-					ca.Units[j].Net = 1
-					cu.Units[j].Net = 1
+					inputs[j] = 1
 				}
 			}
 			ca.Forward()

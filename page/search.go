@@ -14,33 +14,17 @@ import (
 
 type Search struct {
 	app.Compo
-	group         osusu.Group
-	user          osusu.User
-	users         osusu.Users
-	meals         osusu.Meals
-	mealScores    map[int64]osusu.Score
-	entries       osusu.Entries
-	mealEntries   map[int64]osusu.Entries
-	options       osusu.Options
-	usersOptions  map[string]bool
-	cuisinesInUse map[string]bool
-	currentMeal   osusu.Meal
+	group       osusu.Group
+	user        osusu.User
+	meals       osusu.Meals
+	mealScores  map[int64]osusu.Score
+	entries     osusu.Entries
+	mealEntries map[int64]osusu.Entries
+	options     osusu.Options
+	currentMeal osusu.Meal
 }
 
 func (s *Search) Render() app.UI {
-	usersStrings := []string{}
-	for _, u := range s.users {
-		usersStrings = append(usersStrings, u.Name)
-	}
-	cuisines := []string{}
-	for cuisine, val := range s.cuisinesInUse {
-		if val {
-			cuisines = append(cuisines, cuisine)
-		}
-	}
-	// need to sort so options don't keep swapping
-	sort.Strings(cuisines)
-	cuisines = append(cuisines, "Unset")
 	return &compo.Page{
 		ID:                     "search",
 		Title:                  "Search",
@@ -61,32 +45,9 @@ func (s *Search) Render() app.UI {
 			s.group.Cuisines = cuisines
 			osusu.SetCurrentGroup(s.group, ctx)
 
-			users, err := api.GetUsers.Call(s.group.Members)
-			if err != nil {
-				compo.CurrentPage.ShowErrorStatus(err)
-				return
-			}
-			s.users = users
-
 			s.options = osusu.GetOptions(ctx)
 			if s.options.Users == nil {
 				s.options = osusu.DefaultOptions(s.group)
-			}
-			s.options.Mode = "Search"
-			osusu.SetOptions(s.options, ctx)
-			if s.options.UserNames == nil {
-				s.options.UserNames = make(map[int64]string)
-			}
-			for _, user := range s.users {
-				s.options.UserNames[user.ID] = user.Name
-			}
-
-			s.usersOptions = make(map[string]bool)
-			for _, p := range s.users {
-				if _, ok := s.options.Users[p.ID]; !ok {
-					s.options.Users[p.ID] = true
-				}
-				s.usersOptions[p.Name] = s.options.Users[p.ID]
 			}
 
 			meals, err := api.GetMeals.Call(s.group.ID)
@@ -95,23 +56,6 @@ func (s *Search) Render() app.UI {
 				return
 			}
 			s.meals = meals
-
-			s.cuisinesInUse = map[string]bool{}
-			for _, meal := range s.meals {
-				for _, cuisine := range meal.Cuisine {
-					s.cuisinesInUse[cuisine] = true
-					// if the user has not yet set whether or not to allow this cuisine (if it is new), automatically set it to true
-					_, ok := s.options.Cuisine[cuisine]
-					if !ok {
-						s.options.Cuisine[cuisine] = true
-					}
-				}
-			}
-			for cuisine := range s.options.Cuisine {
-				if !s.cuisinesInUse[cuisine] {
-					delete(s.options.Cuisine, cuisine)
-				}
-			}
 
 			entries, err := api.GetEntries.Call(s.group.ID)
 			if err != nil {
@@ -143,12 +87,7 @@ func (s *Search) Render() app.UI {
 				compo.Button().ID("search-page-new").Class("secondary").Icon("add").Text("New Meal").OnClick(s.NewMeal),
 				compo.Button().ID("search-page-search").Class("primary").Icon("search").Text("Search").OnClick(s.ShowOptions),
 			),
-			compo.ButtonRow().ID("search-page-quick-options").Buttons(
-				compo.CheckboxSelect().ID("search-page-options-category").Label("Categories:").Default(map[string]bool{"Dinner": true}).Value(&s.options.Category).Options(append(osusu.AllCategories, "Unset")...).OnChange(s.SaveQuickOptions),
-				compo.CheckboxSelect().ID("search-page-options-users").Label("People:").Value(&s.usersOptions).Options(usersStrings...).OnChange(s.SaveQuickOptions),
-				compo.CheckboxSelect().ID("search-page-options-source").Label("Sources:").Default(map[string]bool{"Cooking": true, "Dine-In": true, "Takeout": true}).Value(&s.options.Source).Options(osusu.AllSources...).OnChange(s.SaveQuickOptions),
-				compo.CheckboxSelect().ID("search-page-options-cuisine").Label("Cuisines:").Value(&s.options.Cuisine).Options(cuisines...).OnChange(s.SaveQuickOptions),
-			),
+			compo.QuickOptions().ID("search-page").Options(&s.options).Group(s.group).Meals(s.meals).OnSave(func(ctx app.Context, e app.Event) { s.SortMeals() }),
 			app.Div().ID("search-page-meals-container").Class("meal-images-container").Body(
 				app.Range(s.meals).Slice(func(i int) app.UI {
 					si := strconv.Itoa(i)
@@ -308,24 +247,6 @@ func (s *Search) EditMeal(ctx app.Context, e app.Event) {
 
 func (s *Search) ShowOptions(ctx app.Context, e app.Event) {
 	app.Window().GetElementByID("search-page-options").Call("showModal")
-}
-
-func (s *Search) SaveQuickOptions(ctx app.Context, e app.Event, val string) {
-	s.SaveOptions(ctx, e)
-}
-
-func (s *Search) SaveOptions(ctx app.Context, e app.Event) {
-	e.PreventDefault()
-
-	for _, u := range s.users {
-		s.options.Users[u.ID] = s.usersOptions[u.Name]
-	}
-
-	osusu.SetOptions(s.options, ctx)
-
-	app.Window().GetElementByID("search-page-options").Call("close")
-
-	s.SortMeals()
 }
 
 func (s *Search) SortMeals() {

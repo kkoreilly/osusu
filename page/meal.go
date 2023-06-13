@@ -93,7 +93,7 @@ func (m *Meal) Render() app.UI {
 				compo.CuisinesDialog("meal-page", m.CuisinesDialogOnSave),
 				compo.ButtonRow().ID("meal-page").Buttons(
 					compo.Button().ID("meal-page-delete").Class("danger").Icon("delete").Text("Delete").OnClick(m.DeleteMeal).Hidden(m.isMealNew),
-					compo.Button().ID("meal-page-cancel").Class("secondary").Icon("cancel").Text("Cancel").OnClick(compo.NavigateEvent("/home")),
+					compo.Button().ID("meal-page-cancel").Class("secondary").Icon("cancel").Text("Cancel").OnClick(compo.ReturnToReturnURL),
 					compo.Button().ID("meal-page-save").Class("primary").Type("submit").Icon(saveButtonIcon).Text(saveButtonText),
 				),
 				app.Dialog().ID("meal-page-confirm-delete-meal").Class("modal").Body(
@@ -108,15 +108,15 @@ func (m *Meal) Render() app.UI {
 	}
 }
 
-func (m *Meal) CuisinesOnChange(ctx app.Context, event app.Event, val string) {
+func (m *Meal) CuisinesOnChange(ctx app.Context, e app.Event, val string) {
 	if val == "+" {
 		m.cuisine[val] = false
-		event.Get("target").Set("checked", false)
+		e.Get("target").Set("checked", false)
 		app.Window().GetElementByID("meal-page-cuisines-dialog").Call("showModal")
 	}
 }
 
-func (m *Meal) CuisinesDialogOnSave(ctx app.Context, event app.Event) {
+func (m *Meal) CuisinesDialogOnSave(ctx app.Context, e app.Event) {
 	m.group = osusu.CurrentGroup(ctx)
 	if compo.NewCuisineCreated {
 		m.cuisine[compo.NewCuisine] = true
@@ -124,8 +124,8 @@ func (m *Meal) CuisinesDialogOnSave(ctx app.Context, event app.Event) {
 	m.meal.RemoveInvalidCuisines(m.group.Cuisines)
 }
 
-func (m *Meal) OnSubmit(ctx app.Context, event app.Event) {
-	event.PreventDefault()
+func (m *Meal) OnSubmit(ctx app.Context, e app.Event) {
+	e.PreventDefault()
 
 	m.meal.Category = []string{}
 	for category, value := range m.category {
@@ -169,11 +169,11 @@ func (m *Meal) OnSubmit(ctx app.Context, event app.Event) {
 
 	osusu.SetCurrentMeal(m.meal, ctx)
 
-	compo.Navigate("/home", ctx)
+	compo.ReturnToReturnURL(ctx, e)
 }
 
-func (m *Meal) ViewEntries(ctx app.Context, event app.Event) {
-	event.PreventDefault()
+func (m *Meal) ViewEntries(ctx app.Context, e app.Event) {
+	e.PreventDefault()
 
 	m.meal.Cuisine = []string{}
 	for cuisine, value := range m.cuisine {

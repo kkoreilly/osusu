@@ -58,7 +58,7 @@ func Authenticate(required bool, ctx app.Context) bool {
 	case required && !ok:
 		ctx.Navigate("/signin")
 	case !required && ok:
-		ctx.Navigate("/home")
+		ctx.Navigate("/search")
 	default:
 		return false
 	}
