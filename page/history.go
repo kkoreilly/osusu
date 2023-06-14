@@ -126,7 +126,8 @@ func (h *History) Render() app.UI {
 					return compo.MealImage().ID("history-page-entry-" + si).Class("history-page-entry").Img(entryMeal.Image).MainText(entry.Date.Format("Monday, January 2, 2006")).SecondaryText(secondaryText).Score(score).OnClick(func(ctx app.Context, e app.Event) { h.EntryOnClick(ctx, e, entry) }).OnClickScope(entry.ID)
 				}),
 			),
-			compo.Options().ID("history-page").Options(&h.options).OnSave(func(ctx app.Context, e app.Event) { h.SortEntries() }),
+			// recency is irrelevant for history
+			compo.Options().ID("history-page").Options(&h.options).Exclude("recency").OnSave(func(ctx app.Context, e app.Event) { h.SortEntries() }),
 		},
 	}
 }

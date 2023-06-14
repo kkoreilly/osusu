@@ -10,7 +10,7 @@
 }
 
 /* hide recency metric for entries because we don't use it */
-#home-page-entries-container .meal-score:nth-child(3),
+#history-page-entries-container .meal-score:nth-child(3),
 #entries-page-entries-container .meal-score:nth-child(3) {
     display: none;
 }

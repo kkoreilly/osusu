@@ -35,7 +35,6 @@ func Start() {
 			"/web/css/global.css",
 			"/web/css/page.css",
 			"/web/css/home.css",
-			"/web/css/entries.css",
 			"/web/css/entry.css",
 			"/web/css/groups.css",
 			"/web/css/group.css",

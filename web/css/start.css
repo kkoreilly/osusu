@@ -47,7 +47,6 @@
 
 .start-page-info-image {
     width: calc(50% - 4rem);
-    /* height: 250px; */
     padding: 2rem;
     background-color: hsl(0, 0%, 95%);
 }

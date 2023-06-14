@@ -80,9 +80,9 @@ html,
 }
 
 .page-status {
-    /* offset by height of top bar so it doesn't move during closing transition */
+    /* put absolutely at top so it doesn't move during closing transition */
     position: absolute;
-    top: 4rem;
+    top: 0;
     width: 100%;
     margin: 0;
     padding: 0;

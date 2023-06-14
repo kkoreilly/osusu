@@ -82,7 +82,7 @@ func (d *Discover) Render() app.UI {
 			compo.ButtonRow().ID("discover-page").Buttons(
 				compo.Button().ID("discover-page-search").Class("primary").Icon("search").Text("Search").OnClick(d.ShowOptions),
 			),
-			compo.QuickOptions().ID("discover-page").Options(&d.options).Group(d.group).Meals(nil).OnSave(func(ctx app.Context, e app.Event) { d.RecommendRecipes() }),
+			compo.QuickOptions().ID("discover-page").Options(&d.options).Exclude("source").Group(d.group).Meals(nil).OnSave(func(ctx app.Context, e app.Event) { d.RecommendRecipes() }),
 			app.Div().ID("discover-page-recipes-container").Class("meal-images-container").Body(
 				app.Range(d.recipes).Slice(func(i int) app.UI {
 					si := strconv.Itoa(i)

@@ -9,10 +9,12 @@ import (
 // OptionsCompo is a pop-up dialog component that displays sorting and filtering options for meals, recipes, and entries
 type OptionsCompo struct {
 	app.Compo
-	id      string
-	class   string
-	options *osusu.Options
-	onSave  app.EventHandler
+	id         string
+	class      string
+	options    *osusu.Options
+	exclude    []string
+	excludeMap map[string]bool // a map version of exclude with every value equal to true
+	onSave     app.EventHandler
 }
 
 // Options returns a new options pop-dialog component that displays sorting and filtering options for meals, recipes, and entries
@@ -25,11 +27,11 @@ func (o *OptionsCompo) Render() app.UI {
 	return app.Dialog().ID(o.id+"-options").Class("modal options", o.class).OnClick(o.onClick).Body(
 		app.Div().ID(o.id + "-options-container").Class("options-container").OnClick(o.containerOnClick).Body(
 			app.Form().ID(o.id+"-options-form").Class("form options-form").OnSubmit(o.SaveOptions).Body(
-				RangeInput().ID(o.id+"-options-taste").Class("options-taste-input").Label("How important is taste?").Value(&o.options.TasteWeight),
-				RangeInput().ID(o.id+"-options-recency").Class("options-recency-input").Label("How important is recency?").Value(&o.options.RecencyWeight),
-				RangeInput().ID(o.id+"-options-cost").Class("options-cost-input").Label("How important is cost?").Value(&o.options.CostWeight),
-				RangeInput().ID(o.id+"-options-effort").Class("options-effort-input").Label("How important is effort?").Value(&o.options.EffortWeight),
-				RangeInput().ID(o.id+"-options-healthiness").Class("options-healthiness-input").Label("How important is healthiness?").Value(&o.options.HealthinessWeight),
+				app.If(!o.excludeMap["taste"], RangeInput().ID(o.id+"-options-taste").Class("options-taste-input").Label("How important is taste?").Value(&o.options.TasteWeight)),
+				app.If(!o.excludeMap["recency"], RangeInput().ID(o.id+"-options-recency").Class("options-recency-input").Label("How important is recency?").Value(&o.options.RecencyWeight)),
+				app.If(!o.excludeMap["cost"], RangeInput().ID(o.id+"-options-cost").Class("options-cost-input").Label("How important is cost?").Value(&o.options.CostWeight)),
+				app.If(!o.excludeMap["effort"], RangeInput().ID(o.id+"-options-effort").Class("options-effort-input").Label("How important is effort?").Value(&o.options.EffortWeight)),
+				app.If(!o.excludeMap["healthiness"], RangeInput().ID(o.id+"-options-healthiness").Class("options-healthiness-input").Label("How important is healthiness?").Value(&o.options.HealthinessWeight)),
 			),
 		),
 	)
@@ -56,6 +58,16 @@ func (o *OptionsCompo) SaveOptions(ctx app.Context, e app.Event) {
 	}
 }
 
+// OnInit is called when the options component is loaded
+func (o *OptionsCompo) OnInit() {
+	o.excludeMap = map[string]bool{}
+	if o.exclude != nil {
+		for _, option := range o.exclude {
+			o.excludeMap[option] = true
+		}
+	}
+}
+
 // ID sets the ID of the options component
 func (o *OptionsCompo) ID(id string) *OptionsCompo {
 	o.id = id
@@ -74,6 +86,12 @@ func (o *OptionsCompo) Options(options *osusu.Options) *OptionsCompo {
 	return o
 }
 
+// Exclude excludes the given options from the options component such that they are not displayed
+func (o *OptionsCompo) Exclude(exclude ...string) *OptionsCompo {
+	o.exclude = exclude
+	return o
+}
+
 // OnSave sets the function to be called when the options are saved
 func (o *OptionsCompo) OnSave(onSave app.EventHandler) *OptionsCompo {
 	o.onSave = onSave
@@ -85,6 +103,8 @@ type QuickOptionsCompo struct {
 	app.Compo
 	id           string
 	options      *osusu.Options
+	exclude      []string
+	excludeMap   map[string]bool // a map version of exclude with every value equal to true
 	group        osusu.Group
 	meals        osusu.Meals
 	onSave       app.EventHandler
@@ -102,10 +122,10 @@ func QuickOptions() *QuickOptionsCompo {
 // Render returns the UI of the quick options component
 func (q *QuickOptionsCompo) Render() app.UI {
 	return ButtonRow().ID(q.id+"-quick-options").Buttons(
-		CheckboxSelect().ID(q.id+"-quick-options-category").Label("Categories:").Default(map[string]bool{"Dinner": true}).Value(&q.options.Category).Options(append(osusu.AllCategories, "Unset")...).OnChange(q.SaveOptions),
-		CheckboxSelect().ID(q.id+"-quick-options-users").Label("People:").Value(&q.usersOptions).Options(q.usersStrings...).OnChange(q.SaveOptions),
-		CheckboxSelect().ID(q.id+"-quick-options-source").Label("Sources:").Default(map[string]bool{"Cooking": true, "Dine-In": true, "Takeout": true}).Value(&q.options.Source).Options(osusu.AllSources...).OnChange(q.SaveOptions),
-		CheckboxSelect().ID(q.id+"-quick-options-cuisine").Label("Cuisines:").Value(&q.options.Cuisine).Options(q.cuisines...).OnChange(q.SaveOptions),
+		CheckboxSelect().ID(q.id+"-quick-options-category").Label("Categories:").Default(map[string]bool{"Dinner": true}).Value(&q.options.Category).Options(append(osusu.AllCategories, "Unset")...).OnChange(q.SaveOptions).Hidden(q.excludeMap["category"]),
+		CheckboxSelect().ID(q.id+"-quick-options-users").Label("People:").Value(&q.usersOptions).Options(q.usersStrings...).OnChange(q.SaveOptions).Hidden(q.excludeMap["users"]),
+		CheckboxSelect().ID(q.id+"-quick-options-source").Label("Sources:").Default(map[string]bool{"Cooking": true, "Dine-In": true, "Takeout": true}).Value(&q.options.Source).Options(osusu.AllSources...).OnChange(q.SaveOptions).Hidden(q.excludeMap["source"]),
+		CheckboxSelect().ID(q.id+"-quick-options-cuisine").Label("Cuisines:").Value(&q.options.Cuisine).Options(q.cuisines...).OnChange(q.SaveOptions).Hidden(q.excludeMap["cuisine"]),
 	)
 }
 
@@ -124,6 +144,13 @@ func (q *QuickOptionsCompo) SaveOptions(ctx app.Context, e app.Event, val string
 
 // OnInit is called when the quick options component is loaded
 func (q *QuickOptionsCompo) OnInit() {
+	q.excludeMap = map[string]bool{}
+	if q.exclude != nil {
+		for _, option := range q.exclude {
+			q.excludeMap[option] = true
+		}
+	}
+
 	users, err := api.GetUsers.Call(q.group.Members)
 	if err != nil {
 		CurrentPage.ShowErrorStatus(err)
@@ -183,6 +210,12 @@ func (q *QuickOptionsCompo) ID(id string) *QuickOptionsCompo {
 // Options sets the actual options value of the quick options component
 func (q *QuickOptionsCompo) Options(options *osusu.Options) *QuickOptionsCompo {
 	q.options = options
+	return q
+}
+
+// Exclude excludes the given options from the quick options component such that they are not displayed
+func (q *QuickOptionsCompo) Exclude(exclude ...string) *QuickOptionsCompo {
+	q.exclude = exclude
 	return q
 }
 
