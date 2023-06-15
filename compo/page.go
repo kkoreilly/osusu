@@ -39,6 +39,24 @@ var CurrentPage *Page
 // Authenticated is when, if ever, the user has already been authenticated in this session of the app. This information is used to skip unnecessary additional authentication requests in the same session.
 var Authenticated time.Time
 
+// pageCategories are the broader categories that each page url is a part of
+var pageCategories = map[string]string{
+	"/account": "account",
+	"/group":   "account",
+	"/groups":  "account",
+	"/join":    "join",
+
+	"/discover": "discover",
+	"/recipe":   "discover",
+
+	"/entries": "search",
+	"/meal":    "search",
+	"/search":  "search",
+
+	"/entry:":  "?history",
+	"/history": "history",
+}
+
 // Authenticate checks whether the user is signed in and takes an action or takes no action based on that. It returns whether the calling function should return.
 // If required is set to true, Auth does nothing if the user is signed in and redirects the user to the sign in page otherwise.
 // If required is set to false, Auth redirects the user to the home page if the user is signed in, and does nothing otherwise.

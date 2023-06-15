@@ -8,20 +8,23 @@ import (
 	"github.com/kkoreilly/osusu/api"
 	"github.com/kkoreilly/osusu/compo"
 	"github.com/kkoreilly/osusu/osusu"
+	"github.com/kkoreilly/osusu/util/cond"
 	"github.com/kkoreilly/osusu/util/list"
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
 )
 
 type Search struct {
 	app.Compo
-	group       osusu.Group
-	user        osusu.User
-	meals       osusu.Meals
-	mealScores  map[int64]osusu.Score
-	entries     osusu.Entries
-	mealEntries map[int64]osusu.Entries
-	options     osusu.Options
-	currentMeal osusu.Meal
+	group         osusu.Group
+	user          osusu.User
+	meals         osusu.Meals
+	mealScores    map[int64]osusu.Score
+	showMeals     map[int64]bool // whether each meal is shown
+	numMealsShown int
+	entries       osusu.Entries
+	mealEntries   map[int64]osusu.Entries
+	options       osusu.Options
+	currentMeal   osusu.Meal
 }
 
 func (s *Search) Render() app.UI {
@@ -76,6 +79,7 @@ func (s *Search) Render() app.UI {
 				s.mealEntries[entry.MealID] = entries
 			}
 			s.mealScores = make(map[int64]osusu.Score)
+			s.showMeals = make(map[int64]bool)
 			s.SortMeals()
 
 			compo.CurrentPage.AddOnClick(s.PageOnClick)
@@ -88,62 +92,16 @@ func (s *Search) Render() app.UI {
 				compo.Button().ID("search-page-search").Class("primary").Icon("search").Text("Search").OnClick(s.ShowOptions),
 			),
 			compo.QuickOptions().ID("search-page").Options(&s.options).Group(s.group).Meals(s.meals).OnSave(func(ctx app.Context, e app.Event) { s.SortMeals() }),
+			app.P().ID("search-page-no-meals-shown").Class("centered-text").Text(cond.IfElse(len(s.meals) == 0, "You have not created any meals yet. Please try adding a new meal by pressing the New Meal button.", "No meals satisfy your filters. Please try changing them or adding a new meal by pressing the New Meal button.")).Hidden(s.numMealsShown != 0),
 			app.Div().ID("search-page-meals-container").Class("meal-images-container").Body(
 				app.Range(s.meals).Slice(func(i int) app.UI {
 					si := strconv.Itoa(i)
 					meal := s.meals[i]
-					entries := s.mealEntries[meal.ID]
 
-					// check if at least one category satisfies a category option (or there are no categories and unset is an option)
-					gotCategory := len(meal.Category) == 0 && s.options.Category["Unset"]
-					if !gotCategory {
-						for _, mealCategory := range meal.Category {
-							for optionCategory, value := range s.options.Category {
-								if value && mealCategory == optionCategory {
-									gotCategory = true
-									break
-								}
-							}
-							if gotCategory {
-								break
-							}
-						}
-						if !gotCategory {
-							return app.Text("")
-						}
+					if !s.showMeals[meal.ID] {
+						return app.Text("")
 					}
 
-					// check if at least one cuisine satisfies a cuisine option (or there are no cuisines and unset is an option)
-					gotCuisine := len(meal.Cuisine) == 0 && s.options.Cuisine["Unset"]
-					if !gotCuisine {
-						for _, mealCuisine := range meal.Cuisine {
-							for optionCuisine, value := range s.options.Cuisine {
-								if value && mealCuisine == optionCuisine {
-									gotCuisine = true
-									break
-								}
-							}
-							if gotCuisine {
-								break
-							}
-						}
-						if !gotCuisine {
-							return app.Text("")
-						}
-					}
-
-					// check if at least one entry satisfies the source requirements if there is at least one entry.
-					if len(entries) > 0 {
-						gotSource := false
-						for _, entry := range entries {
-							if s.options.Source[entry.Source] {
-								gotSource = true
-							}
-						}
-						if !gotSource {
-							return app.Text("")
-						}
-					}
 					score := s.mealScores[meal.ID]
 					isCurrentMeal := meal.ID == s.currentMeal.ID
 
@@ -246,7 +204,64 @@ func (s *Search) ShowOptions(ctx app.Context, e app.Event) {
 }
 
 func (s *Search) SortMeals() {
+	s.numMealsShown = 0
 	for _, meal := range s.meals {
+		entries := s.mealEntries[meal.ID]
+		// check if at least one category satisfies a category option (or there are no categories and unset is an option)
+		gotCategory := len(meal.Category) == 0 && s.options.Category["Unset"]
+		if !gotCategory {
+			for _, mealCategory := range meal.Category {
+				for optionCategory, value := range s.options.Category {
+					if value && mealCategory == optionCategory {
+						gotCategory = true
+						break
+					}
+				}
+				if gotCategory {
+					break
+				}
+			}
+			if !gotCategory {
+				s.showMeals[meal.ID] = false
+				continue
+			}
+		}
+
+		// check if at least one cuisine satisfies a cuisine option (or there are no cuisines and unset is an option)
+		gotCuisine := len(meal.Cuisine) == 0 && s.options.Cuisine["Unset"]
+		if !gotCuisine {
+			for _, mealCuisine := range meal.Cuisine {
+				for optionCuisine, value := range s.options.Cuisine {
+					if value && mealCuisine == optionCuisine {
+						gotCuisine = true
+						break
+					}
+				}
+				if gotCuisine {
+					break
+				}
+			}
+			if !gotCuisine {
+				s.showMeals[meal.ID] = false
+				continue
+			}
+		}
+
+		// check if at least one entry satisfies the source requirements if there is at least one entry.
+		if len(entries) > 0 {
+			gotSource := false
+			for _, entry := range entries {
+				if s.options.Source[entry.Source] {
+					gotSource = true
+				}
+			}
+			if !gotSource {
+				s.showMeals[meal.ID] = false
+				continue
+			}
+		}
+		s.showMeals[meal.ID] = true
+		s.numMealsShown++
 		s.mealScores[meal.ID] = meal.Score(s.mealEntries[meal.ID], s.options)
 	}
 	sort.Slice(s.meals, func(i, j int) bool {

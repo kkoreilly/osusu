@@ -7,17 +7,21 @@ import (
 	"github.com/kkoreilly/osusu/api"
 	"github.com/kkoreilly/osusu/compo"
 	"github.com/kkoreilly/osusu/osusu"
+	"github.com/kkoreilly/osusu/util/cond"
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
 )
 
 type History struct {
 	app.Compo
-	group       osusu.Group
-	user        osusu.User
-	meals       osusu.Meals
-	entries     osusu.Entries
-	entryScores map[int64]osusu.Score
-	options     osusu.Options
+	group           osusu.Group
+	user            osusu.User
+	meals           osusu.Meals
+	entries         osusu.Entries
+	entryMeals      map[int64]osusu.Meal // the meal each entry is associated with
+	entryScores     map[int64]osusu.Score
+	showEntries     map[int64]bool // whether each entry is shown
+	numEntriesShown int
+	options         osusu.Options
 }
 
 func (h *History) Render() app.UI {
@@ -59,7 +63,19 @@ func (h *History) Render() app.UI {
 				return
 			}
 			h.entries = entries
+
+			h.entryMeals = make(map[int64]osusu.Meal)
+			for _, entry := range h.entries {
+				for _, meal := range h.meals {
+					if entry.MealID == meal.ID {
+						h.entryMeals[entry.ID] = meal
+						break
+					}
+				}
+			}
+
 			h.entryScores = make(map[int64]osusu.Score)
+			h.showEntries = make(map[int64]bool)
 			h.SortEntries()
 		},
 		TitleElement:    "History",
@@ -69,53 +85,18 @@ func (h *History) Render() app.UI {
 				compo.Button().ID("history-page-search").Class("primary").Icon("search").Text("Search").OnClick(h.ShowOptions),
 			),
 			compo.QuickOptions().ID("history-page").Options(&h.options).Group(h.group).Meals(h.meals).OnSave(func(ctx app.Context, e app.Event) { h.SortEntries() }),
+			app.P().ID("history-page-no-entries-shown").Class("centered-text").Text(cond.IfElse(len(h.entries) == 0, "You have not created any entries yet. Please try adding a new entry by navigating to the Search page, selecting a meal, and pressing the New Entry button.", "No entries satisfy your filters. Please try changing them or adding a new entry by navigating to the Search page, selecting a meal, and pressing the New Entry button.")).Hidden(h.numEntriesShown != 0),
 			app.Div().ID("history-page-entries-container").Class("meal-images-container").Body(
 				app.Range(h.entries).Slice(func(i int) app.UI {
 					si := strconv.Itoa(i)
 					entry := h.entries[i]
+
+					if !h.showEntries[entry.ID] {
+						return app.Text("")
+					}
+
 					score := h.entryScores[entry.ID]
-					entryMeal := osusu.Meal{}
-					for _, meal := range h.meals {
-						if meal.ID == entry.MealID {
-							entryMeal = meal
-							break
-						}
-					}
-					gotCategory := false
-					for category, val := range h.options.Category {
-						if val && category == entry.Category {
-							gotCategory = true
-							break
-						}
-					}
-					if !gotCategory {
-						return app.Text("")
-					}
-					gotCuisine := false
-					for _, mealCuisine := range entryMeal.Cuisine {
-						for optionCuisine, val := range h.options.Cuisine {
-							if val && mealCuisine == optionCuisine {
-								gotCuisine = true
-								break
-							}
-						}
-						if gotCuisine {
-							break
-						}
-					}
-					if !gotCuisine {
-						return app.Text("")
-					}
-					gotSource := false
-					for source, val := range h.options.Source {
-						if val && source == entry.Source {
-							gotSource = true
-							break
-						}
-					}
-					if !gotSource {
-						return app.Text("")
-					}
+					entryMeal := h.entryMeals[entry.ID]
 					secondaryText := entryMeal.Name
 					if entry.Category != "" {
 						secondaryText += " • " + entry.Category
@@ -143,7 +124,49 @@ func (h *History) EntryOnClick(ctx app.Context, e app.Event, entry osusu.Entry) 
 }
 
 func (h *History) SortEntries() {
+	h.numEntriesShown = 0
 	for _, entry := range h.entries {
+		entryMeal := h.entryMeals[entry.ID]
+		gotCategory := false
+		for category, val := range h.options.Category {
+			if val && category == entry.Category {
+				gotCategory = true
+				break
+			}
+		}
+		if !gotCategory {
+			h.showEntries[entry.ID] = false
+			continue
+		}
+		gotCuisine := false
+		for _, mealCuisine := range entryMeal.Cuisine {
+			for optionCuisine, val := range h.options.Cuisine {
+				if val && mealCuisine == optionCuisine {
+					gotCuisine = true
+					break
+				}
+			}
+			if gotCuisine {
+				break
+			}
+		}
+		if !gotCuisine {
+			h.showEntries[entry.ID] = false
+			continue
+		}
+		gotSource := false
+		for source, val := range h.options.Source {
+			if val && source == entry.Source {
+				gotSource = true
+				break
+			}
+		}
+		if !gotSource {
+			h.showEntries[entry.ID] = false
+			continue
+		}
+		h.showEntries[entry.ID] = true
+		h.numEntriesShown++
 		h.entryScores[entry.ID] = entry.Score(h.options)
 	}
 	sort.Slice(h.entries, func(i, j int) bool {
