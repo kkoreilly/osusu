@@ -6,7 +6,7 @@ require (
 	github.com/emer/etable v1.1.22
 	github.com/gocolly/colly/v2 v2.1.0
 	github.com/goki/gi v1.3.18
-	github.com/kkoreilly/gobp v0.0.0-20230613041509-fb274faed194
+	github.com/kkoreilly/gobp v0.0.0-20230615045839-013dcd92b836
 	github.com/lib/pq v1.10.9
 	github.com/maxence-charriere/go-app/v9 v9.6.7
 	golang.org/x/crypto v0.10.0
@@ -71,11 +71,11 @@ require (
 	github.com/srwiley/scanx v0.0.0-20190309010443-e94503791388 // indirect
 	github.com/temoto/robotstxt v1.1.2 // indirect
 	golang.org/x/image v0.8.0 // indirect
-	golang.org/x/mod v0.10.0 // indirect
+	golang.org/x/mod v0.11.0 // indirect
 	golang.org/x/net v0.11.0 // indirect
 	golang.org/x/sys v0.9.0 // indirect
 	golang.org/x/text v0.10.0 // indirect
-	golang.org/x/tools v0.9.3 // indirect
+	golang.org/x/tools v0.10.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	gonum.org/v1/gonum v0.13.0 // indirect
 	gonum.org/v1/plot v0.13.0 // indirect
