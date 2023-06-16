@@ -154,3 +154,14 @@
 .page-status-close-button:hover {
     background-color: hsl(0, 0%, 70%);
 }
+
+.input-button {
+    background-color: white;
+    position: absolute;
+    right: 0.2rem;
+    top: 2rem;
+}
+
+.input-button:hover {
+    background-color: hsl(0, 0%, 80%);
+}

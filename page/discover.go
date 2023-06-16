@@ -80,7 +80,7 @@ func (d *Discover) Render() app.UI {
 		SubtitleElement: "Discover new recipes recommended based on your previous ratings",
 		Elements: []app.UI{
 			compo.ButtonRow().ID("discover-page").Buttons(
-				compo.Button().ID("discover-page-search").Class("primary").Icon("search").Text("Search").OnClick(d.ShowOptions),
+				compo.Button().ID("discover-page-sort").Class("primary").Icon("sort").Text("Sort").OnClick(d.ShowOptions),
 			),
 			compo.QuickOptions().ID("discover-page").Options(&d.options).Exclude("source").Group(d.group).Meals(nil).OnSave(func(ctx app.Context, e app.Event) { d.RecommendRecipes() }),
 			app.P().ID("discover-page-no-recipes-shown").Class("centered-text").Text("No recipes satisfy your filters. Please try changing them.").Hidden(len(d.recipes) != 0),

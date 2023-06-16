@@ -3,6 +3,7 @@
     flex-direction: column;
     row-gap: 10px;
     align-items: center;
+    position: relative;
 }
 
 .input-label {
@@ -19,6 +20,11 @@
     height: 1rem;
     border-radius: 10px;
     border: 1px solid black;
+}
+
+.input-container[data-has-button="true"]>.input {
+    width: calc(min(70vw, 700px) - 2.75rem);
+    padding-right: 3.5rem;
 }
 
 .input-range {

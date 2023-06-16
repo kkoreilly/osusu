@@ -19,6 +19,6 @@ buildclassify:
 	go build -o ./bin/classify ./cmd/classify
 
 runclassify: buildclassify
-	./bin/classify
+	./bin/classify -layers=$(layers) -units=$(units)
 
 classify: runclassify

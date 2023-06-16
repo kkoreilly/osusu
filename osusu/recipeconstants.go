@@ -4,7 +4,7 @@ package osusu
 var AllCategories = []string{"Breakfast", "Brunch", "Lunch", "Dinner", "Dessert", "Snack", "Appetizer", "Side", "Drink", "Ingredient"}
 
 // AllSources are all of the possible meal sources
-var AllSources = []string{"Cooking", "Dine-In", "Takeout"}
+var AllSources = []string{"Cooking", "Dine-In", "Takeout", "Delivery"}
 
 // CategoryToCategoryMap has a list of all categories and their aliases
 var CategoryToCategoryMap = map[string][]string{

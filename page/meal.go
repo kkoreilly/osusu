@@ -4,36 +4,34 @@ import (
 	"github.com/kkoreilly/osusu/api"
 	"github.com/kkoreilly/osusu/compo"
 	"github.com/kkoreilly/osusu/osusu"
+	"github.com/kkoreilly/osusu/util/cond"
+	"github.com/kkoreilly/osusu/util/urlu"
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
 )
 
 type Meal struct {
 	app.Compo
-	group     osusu.Group
-	user      osusu.User
-	meal      osusu.Meal
-	isMealNew bool
-	category  map[string]bool
-	cuisine   map[string]bool
+	group           osusu.Group
+	user            osusu.User
+	meal            osusu.Meal
+	isMealNew       bool
+	category        map[string]bool
+	cuisine         map[string]bool
+	cuisineOptions  []string
+	lastMealSource  string // the last meal source, to be compared to check if the meal source has changed
+	mealSourceURL   string // the meal source as a URL string
+	mealSourceIsURL bool   // whether the meal source is a URL
 }
 
 func (m *Meal) Render() app.UI {
-	// need to copy to separate array from because append sometimes modifies the underlying array
-	var cuisines = make([]string, len(m.group.Cuisines))
-	copy(cuisines, m.group.Cuisines)
-	cuisines = append(cuisines, osusu.BaseCuisines...)
-	cuisines = append(cuisines, "+")
-	titleText := "Edit Meal"
-	saveButtonIcon := "save"
-	saveButtonText := "Save"
-	if m.isMealNew {
-		titleText = "Create Meal"
-		saveButtonIcon = "add"
-		saveButtonText = "Create"
+	// if the source has changed, we need to determine the url status again
+	if m.lastMealSource != m.meal.Source {
+		m.mealSourceURL, m.mealSourceIsURL = urlu.AsURL(m.meal.Source)
+		m.lastMealSource = m.meal.Source
 	}
 	return &compo.Page{
 		ID:                     "meal",
-		Title:                  titleText,
+		Title:                  cond.IfElse(m.isMealNew, "Create Meal", "Edit Meal"),
 		Description:            "Edit, view, or create a meal.",
 		AuthenticationRequired: true,
 		OnNavFunc: func(ctx app.Context) {
@@ -72,21 +70,27 @@ func (m *Meal) Render() app.UI {
 			for _, cuisine := range m.meal.Cuisine {
 				m.cuisine[cuisine] = true
 			}
+
+			// need to copy to separate array from because append sometimes modifies the underlying array
+			m.cuisineOptions = make([]string, len(m.group.Cuisines))
+			copy(m.cuisineOptions, m.group.Cuisines)
+			m.cuisineOptions = append(m.cuisineOptions, osusu.BaseCuisines...)
+			m.cuisineOptions = append(m.cuisineOptions, "+")
 		},
-		TitleElement: titleText,
+		TitleElement: cond.IfElse(m.isMealNew, "Create Meal", "Edit Meal"),
 		Elements: []app.UI{
 			app.Form().ID("meal-page-form").Class("form").OnSubmit(m.OnSubmit).Body(
 				compo.TextInput().ID("meal-page-name").Label("Name:").Value(&m.meal.Name).AutoFocus(true),
 				compo.Textarea().ID("meal-page-description").Label("Description:").Value(&m.meal.Description),
-				compo.TextInput().ID("meal-page-source").Label("Source:").Value(&m.meal.Source),
+				compo.TextInput().ID("meal-page-source").Label("Source:").Value(&m.meal.Source).ButtonIcon(cond.If(m.mealSourceIsURL, "open_in_new")).ButtonOnClick(compo.NavigateEvent(m.mealSourceURL)),
 				compo.TextInput().ID("meal-page-image").Label("Image:").Value(&m.meal.Image),
 				compo.CheckboxChips().ID("meal-page-category").Label("Categories:").Value(&m.category).Options(osusu.AllCategories...),
-				compo.CheckboxChips().ID("meal-page-cuisine").Label("Cuisines:").Value(&m.cuisine).Options(cuisines...).OnChange(m.CuisinesOnChange),
+				compo.CheckboxChips().ID("meal-page-cuisine").Label("Cuisines:").Value(&m.cuisine).Options(m.cuisineOptions...).OnChange(m.CuisinesOnChange),
 				compo.CuisinesDialog("meal-page", m.CuisinesDialogOnSave),
 				compo.ButtonRow().ID("meal-page").Buttons(
 					compo.Button().ID("meal-page-delete").Class("danger").Icon("delete").Text("Delete").OnClick(m.DeleteMeal).Hidden(m.isMealNew),
 					compo.Button().ID("meal-page-cancel").Class("secondary").Icon("cancel").Text("Cancel").OnClick(compo.ReturnToReturnURL),
-					compo.Button().ID("meal-page-save").Class("primary").Type("submit").Icon(saveButtonIcon).Text(saveButtonText),
+					compo.Button().ID("meal-page-save").Class("primary").Type("submit").Icon(cond.IfElse(m.isMealNew, "add", "save")).Text(cond.IfElse(m.isMealNew, "Create", "Save")),
 				),
 				app.Dialog().ID("meal-page-confirm-delete-meal").Class("modal").Body(
 					app.P().ID("meal-page-confirm-delete-meal-text").Class("confirm-delete-text").Text("Are you sure you want to delete this meal?"),

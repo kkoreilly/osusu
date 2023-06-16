@@ -29,7 +29,7 @@ type Page struct {
 	updateAvailable        bool
 	installAvailable       bool
 	user                   osusu.User
-	url                    string
+	category               string    // the broader category that the current page is part of (account, discover, etc)
 	dialogElements         app.Value // all of the elements that should be closed on page click
 }
 
@@ -39,12 +39,15 @@ var CurrentPage *Page
 // Authenticated is when, if ever, the user has already been authenticated in this session of the app. This information is used to skip unnecessary additional authentication requests in the same session.
 var Authenticated time.Time
 
-// pageCategories are the broader categories that each page url is a part of
+// pageCategories are the broader categories that each page url is a part of.
 var pageCategories = map[string]string{
 	"/account": "account",
 	"/group":   "account",
 	"/groups":  "account",
-	"/join":    "join",
+	"/join":    "account",
+	"/signin":  "account",
+	"/signup":  "account",
+	"/start":   "account",
 
 	"/discover": "discover",
 	"/recipe":   "discover",
@@ -53,7 +56,7 @@ var pageCategories = map[string]string{
 	"/meal":    "search",
 	"/search":  "search",
 
-	"/entry:":  "?history",
+	"/entry":   "s|h", // either search or history, dependent on the return url
 	"/history": "history",
 }
 
@@ -114,10 +117,10 @@ func (p *Page) Render() app.UI {
 			app.If(true, elements...),
 		),
 		app.Div().ID(p.ID+"-page-nav-bar").Class("page-nav-bar").Body(
-			Button().ID(p.ID+"page-nav-bar-search").Class("open-"+strconv.FormatBool(CurrentPage.url == "/search")+" nav-bar").Icon("search").Text("Search").OnClick(p.NavBarOnClick("/search")),
-			Button().ID(p.ID+"page-nav-bar-discover").Class("open-"+strconv.FormatBool(CurrentPage.url == "/discover")+" nav-bar").Icon("explore").Text("Discover").OnClick(p.NavBarOnClick("/discover")),
-			Button().ID(p.ID+"page-nav-bar-history").Class("open-"+strconv.FormatBool(CurrentPage.url == "/history")+" nav-bar").Icon("history").Text("History").OnClick(p.NavBarOnClick("/history")),
-			Button().ID(p.ID+"-page-nav-bar-account").Class("open-"+strconv.FormatBool(CurrentPage.url == "/account")+" nav-bar").Icon("person").Text("Account").OnClick(p.NavBarOnClick("/account")),
+			Button().ID(p.ID+"page-nav-bar-search").Class("open-"+strconv.FormatBool(CurrentPage.category == "search")+" nav-bar").Icon("search").Text("Search").OnClick(p.NavBarOnClick("/search")),
+			Button().ID(p.ID+"page-nav-bar-discover").Class("open-"+strconv.FormatBool(CurrentPage.category == "discover")+" nav-bar").Icon("explore").Text("Discover").OnClick(p.NavBarOnClick("/discover")),
+			Button().ID(p.ID+"page-nav-bar-history").Class("open-"+strconv.FormatBool(CurrentPage.category == "history")+" nav-bar").Icon("history").Text("History").OnClick(p.NavBarOnClick("/history")),
+			Button().ID(p.ID+"-page-nav-bar-account").Class("open-"+strconv.FormatBool(CurrentPage.category == "account")+" nav-bar").Icon("person").Text("Account").OnClick(p.NavBarOnClick("/account")),
 		),
 	)
 }
@@ -161,11 +164,18 @@ func (p *Page) OnNav(ctx app.Context) {
 	if Authenticate(p.AuthenticationRequired, ctx) {
 		return
 	}
-	// if we have no url already loaded, just use current. otherwise, carry over current page (so we will keep nav bar urls as we navigate to other pages like /meal, /entry, /recipe, etc)
-	if CurrentPage.url == "" {
-		p.url = ctx.Page().URL().Path
+	// if we have no category already loaded, use the category associated with our current URL. otherwise, carry over the category from CurrentPage (so we will keep nav bar urls as we navigate to other pages like /meal, /entry, /recipe, etc)
+	if CurrentPage.category == "" {
+		p.category = pageCategories[ctx.Page().URL().Path]
+		if p.category == "s|h" {
+			if ReturnURL(ctx) == "/history" {
+				p.category = "history"
+			} else {
+				p.category = "search"
+			}
+		}
 	} else {
-		p.url = CurrentPage.url
+		p.category = CurrentPage.category
 	}
 
 	CurrentPage = p
@@ -196,10 +206,10 @@ func (p *Page) OnClickEvent(ctx app.Context, e app.Event) {
 	}
 }
 
-// NavBarOnClick returns an event handler for a nav bar button that sets p.url to the given path and then navigates to it
+// NavBarOnClick returns an event handler for a nav bar button that sets p.category to the category associated with the given path and then navigates to it
 func (p *Page) NavBarOnClick(path string) app.EventHandler {
 	return func(ctx app.Context, e app.Event) {
-		p.url = path
+		p.category = pageCategories[path]
 		Navigate(path, ctx)
 	}
 }

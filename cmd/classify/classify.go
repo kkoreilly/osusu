@@ -2,9 +2,10 @@
 package main
 
 import (
+	"flag"
 	"log"
+	"math"
 	"math/rand"
-	"sort"
 	"time"
 
 	"github.com/emer/etable/eplot"
@@ -56,8 +57,10 @@ func mainrun() {
 
 	ErrorTable = etable.NewTable("error-table")
 	ErrorTable.AddCol(etensor.NewFloat64([]int{1}, nil, nil), "epoch")
-	ErrorTable.AddCol(etensor.NewFloat64([]int{1}, nil, nil), "categoryError")
-	ErrorTable.AddCol(etensor.NewFloat64([]int{1}, nil, nil), "cuisineError")
+	ErrorTable.AddCol(etensor.NewFloat64([]int{1}, nil, nil), "categoryTestError")
+	ErrorTable.AddCol(etensor.NewFloat64([]int{1}, nil, nil), "cuisineTestError")
+	ErrorTable.AddCol(etensor.NewFloat64([]int{1}, nil, nil), "categoryAverageSSE")
+	ErrorTable.AddCol(etensor.NewFloat64([]int{1}, nil, nil), "cuisineAverageSSE")
 	ErrorTable.AddCol(etensor.NewFloat64([]int{1}, nil, nil), "categoryTrainError")
 	ErrorTable.AddCol(etensor.NewFloat64([]int{1}, nil, nil), "cuisineTrainError")
 	ErrorTable.AddRows(Epochs)
@@ -72,10 +75,18 @@ func mainrun() {
 	ErrorPlot.Params.Points = true
 
 	ErrorPlot.ColParams("epoch").On = true
-	ErrorPlot.ColParams("categoryError").On = true
-	ErrorPlot.ColParams("cuisineError").On = true
+	ErrorPlot.ColParams("categoryTestError").On = true
+	ErrorPlot.ColParams("categoryTestError").Lbl = "Category Test Error"
+	ErrorPlot.ColParams("cuisineTestError").On = true
+	ErrorPlot.ColParams("cuisineTestError").Lbl = "Cuisine Test Error"
+	ErrorPlot.ColParams("categoryAverageSSE").On = true
+	ErrorPlot.ColParams("categoryAverageSSE").Lbl = "Category Average SSE"
+	ErrorPlot.ColParams("cuisineAverageSSE").On = true
+	ErrorPlot.ColParams("cuisineAverageSSE").Lbl = "Cuisine Average SSE"
 	ErrorPlot.ColParams("categoryTrainError").On = true
+	ErrorPlot.ColParams("categoryTrainError").Lbl = "Category Train Error"
 	ErrorPlot.ColParams("cuisineTrainError").On = true
+	ErrorPlot.ColParams("cuisineTrainError").Lbl = "Cuisine Train Error"
 	ErrorPlot.SetStretchMax()
 
 	go Classify()
@@ -152,22 +163,27 @@ func GetRecipeWords(recipes osusu.Recipes) ([]string, map[int][]string) {
 		}
 		recipeWordsMap[i] = newWords
 	}
-	sort.Slice(words, func(i, j int) bool {
-		return wordMap[words[i]] < wordMap[words[j]]
-	})
-	for _, word := range words {
-		log.Println(word, wordMap[word])
-	}
+	// sort.Slice(words, func(i, j int) bool {
+	// 	return wordMap[words[i]] < wordMap[words[j]]
+	// })
+	// for _, word := range words {
+	// 	log.Println(word, wordMap[word])
+	// }
 	return words, recipeWordsMap
 }
 
 // Infer infers the categories and cuisines of all of the given recipes with them missing using the given recipe words using the SoftMax decoder.
 func Infer(recipes osusu.Recipes, words []string, recipeWordsMap map[int][]string) osusu.Recipes {
-	ca := gobp.NewNetwork(len(words), len(osusu.AllCategories), 1, len(osusu.AllCategories)) // category decoder
-	ca.OutputActivationFunc = gobp.Rectifier
+	numHiddenLayers := flag.Int("layers", 2, "number of hidden layers")
+	numHiddenUnits := flag.Int("units", 500, "number of hidden units")
+	flag.Parse()
+	ca := gobp.NewNetwork(len(words), len(osusu.AllCategories), *numHiddenLayers, *numHiddenUnits) // category decoder
+	ca.OutputActivationFunc = gobp.Logistic
+	ca.LearningRate = 0.05
 
-	cu := gobp.NewNetwork(len(words), len(osusu.BaseCuisines), 1, len(osusu.BaseCuisines)) // cuisine decoder
-	ca.OutputActivationFunc = gobp.Rectifier
+	cu := gobp.NewNetwork(len(words), len(osusu.BaseCuisines), *numHiddenLayers, *numHiddenUnits) // cuisine decoder
+	ca.OutputActivationFunc = gobp.Logistic
+	cu.LearningRate = 0.05
 
 	wordMap := map[string]int{}
 	for i, word := range words {
@@ -228,23 +244,24 @@ func Infer(recipes osusu.Recipes, words []string, recipeWordsMap map[int][]strin
 	log.Println(len(caSet), len(caUnset), len(cuSet), len(cuUnset))
 	log.Println(len(caPerm), len(caTrain), len(cuPerm), len(cuTrain))
 
-	inputs := make([]float32, len(words))
-
 	for e := 0; e < Epochs; e++ {
 		log.Println("Starting Epoch", e)
 		var caNum, caNumRight, caTrainNum, caTrainNumRight, cuNum, cuNumRight, cuTrainNum, cuTrainNumRight int
+		var caTotalSSE, cuTotalSSE float32
 		for i, recipe := range recipes {
-			if i%100 == 0 {
+			if i%1000 == 0 {
 				log.Println("Starting Recipe", i)
 			}
 			for j := 0; j < len(words); j++ {
-				inputs[j] = 0
+				ca.Inputs[j] = 0
+				cu.Inputs[j] = 0
 			}
 			words := recipeWordsMap[i]
 			for _, word := range words {
 				j, ok := wordMap[word]
 				if ok {
-					inputs[j] = 1
+					ca.Inputs[j] = 1
+					cu.Inputs[j] = 1
 				}
 			}
 			ca.Forward()
@@ -256,7 +273,12 @@ func Infer(recipes osusu.Recipes, words []string, recipeWordsMap map[int][]strin
 				}
 				for _, category := range recipe.Category {
 					ca.Targets[categoryMap[category]] = 1
-					log.Println(ca.Back())
+				}
+				sse := ca.Back()
+				if math.IsNaN(float64(sse)) || math.IsInf(float64(sse), 0) {
+					log.Println("infinite or NaN category sse: epoch", e, "recipe", i, "sse", sse)
+				} else {
+					caTotalSSE += sse
 				}
 			}
 			if cuTrain[i] {
@@ -265,7 +287,12 @@ func Infer(recipes osusu.Recipes, words []string, recipeWordsMap map[int][]strin
 				}
 				for _, cuisine := range recipe.Cuisine {
 					cu.Targets[cuisineMap[cuisine]] = 1
-					log.Println(cu.Back())
+				}
+				sse := cu.Back()
+				if math.IsNaN(float64(sse)) || math.IsInf(float64(sse), 0) {
+					log.Println("infinite or NaN cuisine sse: epoch", e, "recipe", i, "sse", sse)
+				} else {
+					cuTotalSSE += sse
 				}
 			}
 
@@ -338,13 +365,18 @@ func Infer(recipes osusu.Recipes, words []string, recipeWordsMap map[int][]strin
 				recipes[i] = recipe
 			}
 		}
+		caAverageSSE := float64(caTotalSSE) / float64(len(caTrain))
+		cuAverageSSE := float64(cuTotalSSE) / float64(len(cuTrain))
 		caError := 1 - (float64(caNumRight) / float64(caNum))
 		cuError := 1 - (float64(cuNumRight) / float64(cuNum))
 		caTrainError := 1 - (float64(caTrainNumRight) / float64(caTrainNum))
 		cuTrainError := 1 - (float64(cuTrainNumRight) / float64(cuTrainNum))
+		log.Println(e, caAverageSSE, cuAverageSSE, caError, cuError, caTrainError, cuTrainError)
 		ErrorTable.SetCellFloat("epoch", e, float64(e))
-		ErrorTable.SetCellFloat("categoryError", e, caError)
-		ErrorTable.SetCellFloat("cuisineError", e, cuError)
+		ErrorTable.SetCellFloat("categoryTestError", e, caError)
+		ErrorTable.SetCellFloat("cuisineTestError", e, cuError)
+		ErrorTable.SetCellFloat("categoryAverageSSE", e, caAverageSSE)
+		ErrorTable.SetCellFloat("cuisineAverageSSE", e, cuAverageSSE)
 		ErrorTable.SetCellFloat("categoryTrainError", e, caTrainError)
 		ErrorTable.SetCellFloat("cuisineTrainError", e, cuTrainError)
 		ErrorPlot.GoUpdatePlot()
