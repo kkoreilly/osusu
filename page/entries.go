@@ -43,10 +43,10 @@ func (e *Entries) Render() app.UI {
 		},
 		TitleElement: "Entries for " + e.meal.Name,
 		Elements: []app.UI{
-			compo.ButtonRow().ID("entries-page").Buttons(
-				compo.Button().ID("entries-page-back").Class("secondary").Icon("arrow_back").Text("Back").OnClick(compo.NavigateEvent("/search")),
-				compo.Button().ID("entries-page-new").Class("primary").Icon("add").Text("New").OnClick(e.New),
-			),
+			&compo.ButtonRow{ID: "entries-page", Buttons: []app.UI{
+				&compo.Button{ID: "entries-page-back", Class: "secondary", Icon: "arrow_back", Text: "Back", OnClick: compo.NavigateEvent("/search")},
+				&compo.Button{ID: "entries-page-new", Class: "primary", Icon: "add", Text: "New", OnClick: e.New},
+			}},
 			app.Div().ID("entries-page-entries-container").Class("meal-images-container").Body(
 				app.Range(e.entries).Slice(func(i int) app.UI {
 					si := strconv.Itoa(i)

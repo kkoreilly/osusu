@@ -1,7 +1,6 @@
 package compo
 
 import (
-	"log"
 	"time"
 
 	"github.com/kkoreilly/osusu/osusu"
@@ -11,18 +10,19 @@ import (
 // InputCompo is a component that includes an input field and an associated label
 type InputCompo[T any] struct {
 	app.Compo
-	id            string
-	class         string
-	isTextarea    bool   // whether the input is a text area instead of an input
-	InputType     string // can sometimes change (with password field and show password) so needs to be exported
-	label         string
-	placeholder   string
-	value         *T
-	valueFunc     func(app.Value) T
-	displayFunc   func(T) any
-	autoFocus     bool
-	ButtonIconVal string // can sometimes change so needs to be exported
-	buttonOnClick app.EventHandler
+	id                    string
+	class                 string
+	isTextarea            bool   // whether the input is a text area instead of an input
+	InputType             string // can sometimes change (with password field and show password) so needs to be exported
+	label                 string
+	placeholder           string
+	value                 *T
+	valueFunc             func(app.Value) T
+	displayFunc           func(T) any
+	autoFocus             bool
+	ButtonIconVal         string           // can sometimes change so needs to be exported
+	ButtonOnClickVal      app.EventHandler // can sometimes change so needs to be exported
+	ButtonOnClickScopeVal []any            // can sometimes change so needs to be exported
 }
 
 // Render returns the UI of the input component, which includes a label and an input associated with it
@@ -33,7 +33,6 @@ func (i *InputCompo[T]) Render() app.UI {
 	}
 	var input app.UI = app.Input().ID(i.id+"-input").Class("input", i.class).Type(i.InputType).Placeholder(i.placeholder).AutoFocus(i.autoFocus).Value(value).OnChange(func(ctx app.Context, e app.Event) {
 		*i.value = i.valueFunc(e.Get("target"))
-		log.Println(*i.value)
 	})
 	if i.isTextarea {
 		input = app.Textarea().ID(i.id+"-input").Class("input", i.class).Placeholder(i.placeholder).AutoFocus(i.autoFocus).Text(value).OnChange(func(ctx app.Context, e app.Event) {
@@ -44,7 +43,7 @@ func (i *InputCompo[T]) Render() app.UI {
 	return app.Div().ID(i.id+"-input-container").Class("input-container").DataSet("has-button", i.ButtonIconVal != "").Body(
 		app.Label().ID(i.id+"-input-label").Class("input-label").For(i.id+"-input").Text(i.label),
 		input,
-		Button().ID(i.id+"-input-button").Class("input").Icon(i.ButtonIconVal).OnClick(i.buttonOnClick).Hidden(i.ButtonIconVal == ""),
+		&Button{ID: i.id + "-input-button", Class: "input", Icon: i.ButtonIconVal, OnClick: i.ButtonOnClickVal, OnClickScope: i.ButtonOnClickScopeVal, Hidden: i.ButtonIconVal == ""},
 	)
 }
 
@@ -152,7 +151,14 @@ func (i *InputCompo[T]) ButtonIcon(buttonIcon string) *InputCompo[T] {
 
 // ButtonOnClick sets the function that is called when the icon button specified with ButtonIcon is clicked on.
 func (i *InputCompo[T]) ButtonOnClick(buttonOnClick app.EventHandler) *InputCompo[T] {
-	i.buttonOnClick = buttonOnClick
+	i.ButtonOnClickVal = buttonOnClick
+	return i
+}
+
+// ButtonOnClickScope sets the on click event scope value for the button of the input component.
+// Use this to trigger updates to the input button on click event when certain value(s) change.
+func (i *InputCompo[T]) ButtonOnClickScope(scope ...any) *InputCompo[T] {
+	i.ButtonOnClickScopeVal = scope
 	return i
 }
 

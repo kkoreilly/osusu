@@ -34,11 +34,11 @@ func (r *Recipe) Render() app.UI {
 					app.Span().ID("recipe-page-image-label").Text("Image:"),
 					app.Img().ID("recipe-page-image").Src(r.recipe.Image).Alt(r.recipe.Name+" image"),
 				),
-				compo.ButtonRow().ID("recipe-page").Buttons(
-					compo.Button().ID("recipe-page-back").Class("secondary").Icon("arrow_back").Text("Back").OnClick(compo.ReturnToReturnURL),
-					compo.Button().ID("recipe-page-view-recipe").Class("tertiary").Icon("visibility").Text("View").OnClick(compo.NavigateEvent(r.recipe.URL)),
-					compo.Button().ID("recipe-page-add-recipe").Class("primary").Icon("add").Text("Add").OnClick(r.Add),
-				),
+				&compo.ButtonRow{ID: "recipe-page", Buttons: []app.UI{
+					&compo.Button{ID: "recipe-page-back", Class: "secondary", Icon: "arrow_back", Text: "Back", OnClick: compo.ReturnToReturnURL},
+					&compo.Button{ID: "recipe-page-view-recipe", Class: "tertiary", Icon: "visibility", Text: "View", OnClick: compo.NavigateEvent(r.recipe.URL)},
+					&compo.Button{ID: "recipe-page-add-recipe", Class: "primary", Icon: "add", Text: "Add", OnClick: r.Add},
+				}},
 			),
 		},
 	}

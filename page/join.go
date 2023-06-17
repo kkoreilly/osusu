@@ -51,10 +51,10 @@ func (j *Join) Render() app.UI {
 		Elements: []app.UI{
 			app.Form().ID("join-page-form").Class("form").OnSubmit(j.OnSubmit).Body(
 				compo.TextInput().ID("join-page-form-join-url").Label("Join Code:").Value(&j.groupCode).AutoFocus(true),
-				compo.ButtonRow().ID("join-page").Buttons(
-					compo.Button().ID("join-page-cancel").Class("secondary").Icon("cancel").Text("Cancel").OnClick(compo.ReturnToReturnURL),
-					compo.Button().ID("join-page-join").Class("primary").Type("submit").Icon("group").Text("Join Group"),
-				),
+				&compo.ButtonRow{ID: "join-page", Buttons: []app.UI{
+					&compo.Button{ID: "join-page-cancel", Class: "secondary", Icon: "cancel", Text: "Cancel", OnClick: compo.ReturnToReturnURL},
+					&compo.Button{ID: "join-page-join", Class: "primary", Type: "submit", Icon: "group", Text: "Join Group"},
+				}},
 			),
 		},
 	}

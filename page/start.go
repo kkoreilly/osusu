@@ -18,10 +18,10 @@ func (s *Start) Render() app.UI {
 		TitleElement:           "Welcome to Osusu!",
 		SubtitleElement:        "Osusu is an app for getting recommendations on what meals to eat in a group based on the ratings of each member of the group.",
 		Elements: []app.UI{
-			compo.ButtonRow().ID("start-page").Buttons(
-				compo.Button().ID("start-page-sign-in").Class("secondary").Icon("login").Text("Sign In").OnClick(compo.NavigateEvent("/signin")),
-				compo.Button().ID("start-page-sign-up").Class("primary").Icon("app_registration").Text("Sign Up").OnClick(compo.NavigateEvent("/signup")),
-			),
+			&compo.ButtonRow{ID: "start-page", Buttons: []app.UI{
+				&compo.Button{ID: "start-page-sign-in", Class: "secondary", Icon: "login", Text: "Sign In", OnClick: compo.NavigateEvent("/signin")},
+				&compo.Button{ID: "start-page-sign-up", Class: "primary", Icon: "app_registration", Text: "Sign Up", OnClick: compo.NavigateEvent("/signup")},
+			}},
 			app.Div().ID("start-page-info").Body(
 				StartPageInfos([]startPageInfo{
 					{id: "recommendations", title: "Get Recommendations", body: "Get a ranked list of the best meals to eat based on your preferences. Each meal is scored on various metrics, so you can always pick the best meals that satisfy your needs.", img: "/web/images/recommendations.png"},

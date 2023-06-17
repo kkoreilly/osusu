@@ -178,11 +178,11 @@ func Infer(recipes osusu.Recipes, words []string, recipeWordsMap map[int][]strin
 	numHiddenUnits := flag.Int("units", 500, "number of hidden units")
 	flag.Parse()
 	ca := gobp.NewNetwork(len(words), len(osusu.AllCategories), *numHiddenLayers, *numHiddenUnits) // category decoder
-	ca.OutputActivationFunc = gobp.Logistic
+	ca.OutputActivationFunc = gobp.SoftMax
 	ca.LearningRate = 0.05
 
 	cu := gobp.NewNetwork(len(words), len(osusu.BaseCuisines), *numHiddenLayers, *numHiddenUnits) // cuisine decoder
-	ca.OutputActivationFunc = gobp.Logistic
+	cu.OutputActivationFunc = gobp.SoftMax
 	cu.LearningRate = 0.05
 
 	wordMap := map[string]int{}
@@ -244,26 +244,36 @@ func Infer(recipes osusu.Recipes, words []string, recipeWordsMap map[int][]strin
 	log.Println(len(caSet), len(caUnset), len(cuSet), len(cuUnset))
 	log.Println(len(caPerm), len(caTrain), len(cuPerm), len(cuTrain))
 
+	recipeInputs := make([][]float32, len(recipes))
+
+	for i := range recipes {
+		inputs := make([]float32, len(words))
+		words := recipeWordsMap[i]
+		for _, word := range words {
+			j, ok := wordMap[word]
+			if ok {
+				inputs[j] = 1
+			}
+		}
+		recipeInputs[i] = inputs
+	}
+
 	for e := 0; e < Epochs; e++ {
 		log.Println("Starting Epoch", e)
 		var caNum, caNumRight, caTrainNum, caTrainNumRight, cuNum, cuNumRight, cuTrainNum, cuTrainNumRight int
 		var caTotalSSE, cuTotalSSE float32
+		var totalTime time.Duration
 		for i, recipe := range recipes {
 			if i%1000 == 0 {
-				log.Println("Starting Recipe", i)
+				log.Println("Starting Recipe", i, totalTime)
+				totalTime = 0
 			}
-			for j := 0; j < len(words); j++ {
-				ca.Inputs[j] = 0
-				cu.Inputs[j] = 0
-			}
-			words := recipeWordsMap[i]
-			for _, word := range words {
-				j, ok := wordMap[word]
-				if ok {
-					ca.Inputs[j] = 1
-					cu.Inputs[j] = 1
-				}
-			}
+
+			ca.Inputs = recipeInputs[i]
+			cu.Inputs = recipeInputs[i]
+
+			t := time.Now()
+
 			ca.Forward()
 			cu.Forward()
 
@@ -274,6 +284,7 @@ func Infer(recipes osusu.Recipes, words []string, recipeWordsMap map[int][]strin
 				for _, category := range recipe.Category {
 					ca.Targets[categoryMap[category]] = 1
 				}
+
 				sse := ca.Back()
 				if math.IsNaN(float64(sse)) || math.IsInf(float64(sse), 0) {
 					log.Println("infinite or NaN category sse: epoch", e, "recipe", i, "sse", sse)
@@ -295,6 +306,7 @@ func Infer(recipes osusu.Recipes, words []string, recipeWordsMap map[int][]strin
 					cuTotalSSE += sse
 				}
 			}
+			totalTime += time.Since(t)
 
 			outputs := ca.Outputs()
 			highestIdx := -1

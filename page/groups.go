@@ -30,10 +30,10 @@ func (g *Groups) Render() app.UI {
 		},
 		TitleElement: "Select a Group",
 		Elements: []app.UI{
-			compo.ButtonRow().ID("groups-page").Buttons(
-				compo.Button().ID("groups-page-new-group").Class("secondary").Icon("add").Text("New Group").OnClick(g.New),
-				compo.Button().ID("groups-page-join-group").Class("primary").Icon("group").Text("Join Group").OnClick(compo.NavigateEvent("/join")),
-			),
+			&compo.ButtonRow{ID: "groups-page", Buttons: []app.UI{
+				&compo.Button{ID: "groups-page-new-group", Class: "secondary", Icon: "add", Text: "New Group", OnClick: g.New},
+				&compo.Button{ID: "groups-page-join-group", Class: "primary", Icon: "group", Text: "Join Group", OnClick: compo.NavigateEvent("/join")},
+			}},
 			app.Div().ID("groups-page-groups-container").Body(
 				app.Range(g.groups).Slice(func(i int) app.UI {
 					return app.Button().ID("groups-page-group-" + strconv.Itoa(i)).Class("groups-page-group").Text(g.groups[i].Name).

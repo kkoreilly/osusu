@@ -87,10 +87,10 @@ func (s *Search) Render() app.UI {
 		TitleElement:    "Search",
 		SubtitleElement: "Search for the best meals to eat given your current circumstances",
 		Elements: []app.UI{
-			compo.ButtonRow().ID("search-page").Buttons(
-				compo.Button().ID("search-page-new").Class("secondary").Icon("add").Text("New Meal").OnClick(s.NewMeal),
-				compo.Button().ID("search-page-sort").Class("primary").Icon("sort").Text("Sort").OnClick(s.ShowOptions),
-			),
+			&compo.ButtonRow{ID: "search-page", Buttons: []app.UI{
+				&compo.Button{ID: "search-page-new", Class: "secondary", Icon: "add", Text: "New Meal", OnClick: s.NewMeal},
+				&compo.Button{ID: "search-page-sort", Class: "primary", Icon: "sort", Text: "Sort", OnClick: s.ShowOptions},
+			}},
 			compo.QuickOptions().ID("search-page").Options(&s.options).Group(s.group).Meals(s.meals).OnSave(func(ctx app.Context, e app.Event) { s.SortMeals() }),
 			app.P().ID("search-page-no-meals-shown").Class("centered-text").Text(cond.IfElse(len(s.meals) == 0, "You have not created any meals yet. Please try adding a new meal by pressing the New Meal button.", "No meals satisfy your filters. Please try changing them or adding a new meal by pressing the New Meal button.")).Hidden(s.numMealsShown != 0),
 			app.Div().ID("search-page-meals-container").Class("meal-images-container").Body(
@@ -116,9 +116,9 @@ func (s *Search) Render() app.UI {
 				}),
 			),
 			app.Dialog().ID("search-page-meal-dialog").OnClick(s.MealDialogOnClick).Body(
-				compo.Button().ID("search-page-meal-dialog-new-entry").Class("primary").Icon("add").Text("New Entry").OnClick(s.NewEntry),
-				compo.Button().ID("search-page-meal-dialog-view-entries").Class("secondary").Icon("visibility").Text("View Entries").OnClick(s.ViewEntries),
-				compo.Button().ID("search-page-meal-dialog-edit-meal").Class("secondary").Icon("edit").Text("Edit Meal").OnClick(s.EditMeal),
+				&compo.Button{ID: "search-page-meal-dialog-new-entry", Class: "primary", Icon: "add", Text: "New Entry", OnClick: s.NewEntry},
+				&compo.Button{ID: "search-page-meal-dialog-view-entries", Class: "secondary", Icon: "visibility", Text: "View Entries", OnClick: s.ViewEntries},
+				&compo.Button{ID: "search-page-meal-dialog-edit-meal", Class: "secondary", Icon: "edit", Text: "Edit Meal", OnClick: s.EditMeal},
 			),
 			compo.Options().ID("search-page").Options(&s.options).OnSave(func(ctx app.Context, e app.Event) { s.SortMeals() }),
 		},

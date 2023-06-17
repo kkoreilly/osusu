@@ -82,22 +82,22 @@ func (m *Meal) Render() app.UI {
 			app.Form().ID("meal-page-form").Class("form").OnSubmit(m.OnSubmit).Body(
 				compo.TextInput().ID("meal-page-name").Label("Name:").Value(&m.meal.Name).AutoFocus(true),
 				compo.Textarea().ID("meal-page-description").Label("Description:").Value(&m.meal.Description),
-				compo.TextInput().ID("meal-page-source").Label("Source:").Value(&m.meal.Source).ButtonIcon(cond.If(m.mealSourceIsURL, "open_in_new")).ButtonOnClick(compo.NavigateEvent(m.mealSourceURL)),
+				compo.TextInput().ID("meal-page-source").Label("Source:").Value(&m.meal.Source).ButtonIcon(cond.If(m.mealSourceIsURL, "open_in_new")).ButtonOnClick(compo.NavigateEvent(m.mealSourceURL)).ButtonOnClickScope(m.mealSourceURL),
 				compo.TextInput().ID("meal-page-image").Label("Image:").Value(&m.meal.Image),
 				compo.CheckboxChips().ID("meal-page-category").Label("Categories:").Value(&m.category).Options(osusu.AllCategories...),
 				compo.CheckboxChips().ID("meal-page-cuisine").Label("Cuisines:").Value(&m.cuisine).Options(m.cuisineOptions...).OnChange(m.CuisinesOnChange),
 				compo.CuisinesDialog("meal-page", m.CuisinesDialogOnSave),
-				compo.ButtonRow().ID("meal-page").Buttons(
-					compo.Button().ID("meal-page-delete").Class("danger").Icon("delete").Text("Delete").OnClick(m.DeleteMeal).Hidden(m.isMealNew),
-					compo.Button().ID("meal-page-cancel").Class("secondary").Icon("cancel").Text("Cancel").OnClick(compo.ReturnToReturnURL),
-					compo.Button().ID("meal-page-save").Class("primary").Type("submit").Icon(cond.IfElse(m.isMealNew, "add", "save")).Text(cond.IfElse(m.isMealNew, "Create", "Save")),
-				),
+				&compo.ButtonRow{ID: "meal-page", Buttons: []app.UI{
+					&compo.Button{ID: "meal-page-delete", Class: "danger", Icon: "delete", Text: "Delete", OnClick: m.DeleteMeal, Hidden: m.isMealNew},
+					&compo.Button{ID: "meal-page-cancel", Class: "secondary", Icon: "cancel", Text: "Cancel", OnClick: compo.ReturnToReturnURL},
+					&compo.Button{ID: "meal-page-save", Class: "primary", Type: "submit", Icon: cond.IfElse(m.isMealNew, "add", "save"), Text: cond.IfElse(m.isMealNew, "Create", "Save")},
+				}},
 				app.Dialog().ID("meal-page-confirm-delete-meal").Class("modal").Body(
 					app.P().ID("meal-page-confirm-delete-meal-text").Class("confirm-delete-text").Text("Are you sure you want to delete this meal?"),
-					compo.ButtonRow().ID("meal-page-confirm-delete-meal").Buttons(
-						compo.Button().ID("meal-page-confirm-delete-meal-delete").Class("danger").Icon("delete").Text("Yes, Delete").OnClick(m.ConfirmDeleteMeal),
-						compo.Button().ID("meal-page-confirm-delete-meal-cancel").Class("secondary").Icon("cancel").Text("No, Cancel").OnClick(m.CancelDeleteMeal),
-					),
+					&compo.ButtonRow{ID: "meal-page-confirm-delete-meal", Buttons: []app.UI{
+						&compo.Button{ID: "meal-page-confirm-delete-meal-delete", Class: "danger", Icon: "delete", Text: "Yes, Delete", OnClick: m.ConfirmDeleteMeal},
+						&compo.Button{ID: "meal-page-confirm-delete-meal-cancel", Class: "secondary", Icon: "cancel", Text: "No, Cancel", OnClick: m.CancelDeleteMeal},
+					}},
 				),
 			),
 		},

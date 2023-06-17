@@ -6,6 +6,7 @@ import (
 	"github.com/kkoreilly/osusu/api"
 	"github.com/kkoreilly/osusu/compo"
 	"github.com/kkoreilly/osusu/osusu"
+	"github.com/kkoreilly/osusu/util/cond"
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
 )
 
@@ -29,15 +30,15 @@ func (s *SignIn) Render() app.UI {
 		Elements: []app.UI{
 			app.Form().ID("sign-in-page-form").Class("form").OnSubmit(s.OnSubmit).Body(
 				compo.TextInput().ID("sign-in-page-username").Label("Username:").Value(&s.user.Username).AutoFocus(true),
-				compo.TextInput().ID("sign-in-page-password").Type(passwordInputType).Label("Password:").Value(&s.user.Password),
-				compo.ButtonRow().ID("sign-in-page-checkboxes").Buttons(
+				compo.TextInput().ID("sign-in-page-password").Type(passwordInputType).Label("Password:").Value(&s.user.Password).ButtonIcon(cond.IfElse(s.showPassword, "visibility_off", "visibility")).ButtonOnClick(func(ctx app.Context, e app.Event) { s.showPassword = !s.showPassword }),
+				&compo.ButtonRow{ID: "sign-in-page-checkboxes", Buttons: []app.UI{
 					compo.CheckboxChip().ID("sign-in-page-show-password").Label("Show Password").Default(false).Value(&s.showPassword),
 					compo.CheckboxChip().ID("sign-in-page-remember-me").Label("Remember Me").Default(true).Value(&s.user.RememberMe),
-				),
-				compo.ButtonRow().ID("sign-in-page").Buttons(
-					compo.Button().ID("sign-in-page-cancel").Class("secondary").Icon("cancel").Text("Cancel").OnClick(compo.NavigateEvent("/")),
-					compo.Button().ID("sign-in-page-submit").Class("primary").Type("submit").Icon("login").Text("Sign In"),
-				),
+				}},
+				&compo.ButtonRow{ID: "sign-in-page", Buttons: []app.UI{
+					&compo.Button{ID: "sign-in-page-cancel", Class: "secondary", Icon: "cancel", Text: "Cancel", OnClick: compo.NavigateEvent("/")},
+					&compo.Button{ID: "sign-in-page-submit", Class: "primary", Type: "submit", Icon: "login", Text: "Sign In"},
+				}},
 			),
 		},
 	}

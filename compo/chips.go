@@ -43,7 +43,7 @@ func (c *ChipsCompo[T]) Render() app.UI {
 	return app.Div().ID(c.id+"-chips-outer-container").Class("chips-outer-container", c.class).DataSet("open", c.selectOpen).Hidden(c.HiddenValue).Body(
 		app.Span().ID(c.id+"-chips-label").Class("input-label").Text(c.label),
 		// current value of the chips, used in select
-		Button().ID(c.id+"-chips-value").Class("tertiary").Icon(valueIcon).Text(valueText).Hidden(!c.isSelect).OnClick(c.ToggleSelect),
+		&Button{ID: c.id + "-chips-value", Class: "tertiary", Icon: valueIcon, Text: valueText, Hidden: !c.isSelect, OnClick: c.ToggleSelect},
 		app.Div().ID(c.id+"-chips-container").Class("chips-container").Hidden(c.isSelect && !c.selectOpen).Body(
 			app.Range(c.OptionsValue).Slice(func(i int) app.UI {
 				si := strconv.Itoa(i)

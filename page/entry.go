@@ -49,18 +49,18 @@ func (e *Entry) Render() app.UI {
 				compo.RangeInputUserMap(&e.entry.Cost, e.user).ID("entry-page-cost").Label("How expensive was this?"),
 				compo.RangeInputUserMap(&e.entry.Effort, e.user).ID("entry-page-effort").Label("How much effort did this take?"),
 				compo.RangeInputUserMap(&e.entry.Healthiness, e.user).ID("entry-page-healthiness").Label("How healthy was this?"),
-				compo.ButtonRow().ID("entry-page").Buttons(
-					compo.Button().ID("entry-page-delete").Class("danger").Icon("delete").Text("Delete").OnClick(e.InitialDelete).Hidden(e.isEntryNew),
-					compo.Button().ID("entry-page-cancel").Class("secondary").Icon("cancel").Text("Cancel").OnClick(compo.ReturnToReturnURL),
-					compo.Button().ID("entry-page-save").Class("primary").Type("submit").Icon(saveButtonIcon).Text(saveButtonText),
-				),
+				&compo.ButtonRow{ID: "entry-page", Buttons: []app.UI{
+					&compo.Button{ID: "entry-page-delete", Class: "danger", Icon: "delete", Text: "Delete", OnClick: e.InitialDelete, Hidden: e.isEntryNew},
+					&compo.Button{ID: "entry-page-cancel", Class: "secondary", Icon: "cancel", Text: "Cancel", OnClick: compo.ReturnToReturnURL},
+					&compo.Button{ID: "entry-page-save", Class: "primary", Type: "submit", Icon: saveButtonIcon, Text: saveButtonText},
+				}},
 			),
 			app.Dialog().ID("entry-page-confirm-delete").Class("modal").Body(
 				app.P().ID("entry-page-confirm-delete-text").Class("confirm-delete-text").Text("Are you sure you want to delete this entry?"),
-				compo.ButtonRow().ID("entry-page-confirm-delete").Buttons(
-					compo.Button().ID("entry-page-confirm-delete-delete").Class("danger").Icon("delete").Text("Yes, Delete").OnClick(e.ConfirmDelete),
-					compo.Button().ID("entry-page-confirm-delete-cancel").Class("secondary").Icon("cancel").Text("No, Cancel").OnClick(e.CancelDelete),
-				),
+				&compo.ButtonRow{ID: "entry-page-confirm-delete", Buttons: []app.UI{
+					&compo.Button{ID: "entry-page-confirm-delete-delete", Class: "danger", Icon: "delete", Text: "Yes, Delete", OnClick: e.ConfirmDelete},
+					&compo.Button{ID: "entry-page-confirm-delete-cancel", Class: "secondary", Icon: "cancel", Text: "No, Cancel", OnClick: e.CancelDelete},
+				}},
 			),
 		},
 	}

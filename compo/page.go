@@ -110,17 +110,17 @@ func (p *Page) Render() app.UI {
 		app.Main().ID(p.ID+"-page-main").Class("page-main").Body(
 			app.Dialog().ID(p.ID+"-page-status").Class("page-status").DataSet("status-type", p.statusType).Body(
 				app.Span().ID(p.ID+"-page-status-text").Class("page-status-text").Text(p.statusText),
-				Button().ID(p.ID+"page-status-close-button").Class("page-status-close").Icon("close").OnClick(p.ClosePageStatus),
+				&Button{ID: p.ID + "page-status-close-button", Class: "page-status-close", Icon: "close", OnClick: p.ClosePageStatus},
 			),
 			app.If(p.TitleElement != "", app.H1().ID(p.ID+"-page-title").Class("page-title").Text(p.TitleElement)),
 			app.If(p.SubtitleElement != "", app.P().ID(p.ID+"-page-subtitle").Class("page-subtitle").Text(p.SubtitleElement)),
 			app.If(true, elements...),
 		),
 		app.Div().ID(p.ID+"-page-nav-bar").Class("page-nav-bar").Body(
-			Button().ID(p.ID+"page-nav-bar-search").Class("open-"+strconv.FormatBool(CurrentPage.category == "search")+" nav-bar").Icon("search").Text("Search").OnClick(p.NavBarOnClick("/search")),
-			Button().ID(p.ID+"page-nav-bar-discover").Class("open-"+strconv.FormatBool(CurrentPage.category == "discover")+" nav-bar").Icon("explore").Text("Discover").OnClick(p.NavBarOnClick("/discover")),
-			Button().ID(p.ID+"page-nav-bar-history").Class("open-"+strconv.FormatBool(CurrentPage.category == "history")+" nav-bar").Icon("history").Text("History").OnClick(p.NavBarOnClick("/history")),
-			Button().ID(p.ID+"-page-nav-bar-account").Class("open-"+strconv.FormatBool(CurrentPage.category == "account")+" nav-bar").Icon("person").Text("Account").OnClick(p.NavBarOnClick("/account")),
+			&Button{ID: p.ID + "page-nav-bar-search", Class: "open-" + strconv.FormatBool(CurrentPage.category == "search") + " nav-bar", Icon: "search", Text: "Search", OnClick: p.NavBarOnClick("/search")},
+			&Button{ID: p.ID + "page-nav-bar-discover", Class: "open-" + strconv.FormatBool(CurrentPage.category == "discover") + " nav-bar", Icon: "explore", Text: "Discover", OnClick: p.NavBarOnClick("/discover")},
+			&Button{ID: p.ID + "page-nav-bar-history", Class: "open-" + strconv.FormatBool(CurrentPage.category == "history") + " nav-bar", Icon: "history", Text: "History", OnClick: p.NavBarOnClick("/history")},
+			&Button{ID: p.ID + "-page-nav-bar-account", Class: "open-" + strconv.FormatBool(CurrentPage.category == "account") + " nav-bar", Icon: "person", Text: "Account", OnClick: p.NavBarOnClick("/account")},
 		),
 	)
 }

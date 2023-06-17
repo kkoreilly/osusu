@@ -121,12 +121,12 @@ func QuickOptions() *QuickOptionsCompo {
 
 // Render returns the UI of the quick options component
 func (q *QuickOptionsCompo) Render() app.UI {
-	return ButtonRow().ID(q.id+"-quick-options").Buttons(
-		CheckboxSelect().ID(q.id+"-quick-options-category").Label("Categories:").Default(map[string]bool{"Dinner": true}).Value(&q.options.Category).Options(append(osusu.AllCategories, "Unset")...).OnChange(q.SaveOptions).Hidden(q.excludeMap["category"]),
-		CheckboxSelect().ID(q.id+"-quick-options-users").Label("People:").Value(&q.usersOptions).Options(q.usersStrings...).OnChange(q.SaveOptions).Hidden(q.excludeMap["users"]),
-		CheckboxSelect().ID(q.id+"-quick-options-source").Label("Sources:").Default(map[string]bool{"Cooking": true, "Dine-In": true, "Takeout": true}).Value(&q.options.Source).Options(osusu.AllSources...).OnChange(q.SaveOptions).Hidden(q.excludeMap["source"]),
-		CheckboxSelect().ID(q.id+"-quick-options-cuisine").Label("Cuisines:").Value(&q.options.Cuisine).Options(q.cuisines...).OnChange(q.SaveOptions).Hidden(q.excludeMap["cuisine"]),
-	)
+	return &ButtonRow{ID: q.id + "-quick-options", Buttons: []app.UI{
+		CheckboxSelect().ID(q.id + "-quick-options-category").Label("Categories:").Default(map[string]bool{"Dinner": true}).Value(&q.options.Category).Options(append(osusu.AllCategories, "Unset")...).OnChange(q.SaveOptions).Hidden(q.excludeMap["category"]),
+		CheckboxSelect().ID(q.id + "-quick-options-users").Label("People:").Value(&q.usersOptions).Options(q.usersStrings...).OnChange(q.SaveOptions).Hidden(q.excludeMap["users"]),
+		CheckboxSelect().ID(q.id + "-quick-options-source").Label("Sources:").Default(map[string]bool{"Cooking": true, "Dine-In": true, "Takeout": true}).Value(&q.options.Source).Options(osusu.AllSources...).OnChange(q.SaveOptions).Hidden(q.excludeMap["source"]),
+		CheckboxSelect().ID(q.id + "-quick-options-cuisine").Label("Cuisines:").Value(&q.options.Cuisine).Options(q.cuisines...).OnChange(q.SaveOptions).Hidden(q.excludeMap["cuisine"]),
+	}}
 }
 
 // SaveOptions saves the quick options to local storage

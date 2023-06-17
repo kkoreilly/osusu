@@ -36,28 +36,28 @@ func (a *Account) Render() app.UI {
 		TitleElement:    "Account",
 		SubtitleElement: "You are currently signed into " + a.user.Username + " with the name " + a.user.Name + " and the group " + a.group.Name + ".",
 		Elements: []app.UI{
-			compo.ButtonRow().ID("account-page-top").Buttons(
-				compo.Button().ID("account-page-sign-out").Class("danger").Icon("logout").Text("Sign Out").OnClick(a.InitialSignOut),
-				compo.Button().ID("account-page-change-group").Class("secondary").Icon("group").Text("Change Group").OnClick(compo.NavigateEvent("/groups")),
-				compo.Button().ID("account-page-view-group").Class("primary").Icon(viewGroupIcon).Text(viewGroupText).OnClick(a.ViewGroup),
-			),
+			&compo.ButtonRow{ID: "account-page-top", Buttons: []app.UI{
+				&compo.Button{ID: "account-page-sign-out", Class: "danger", Icon: "logout", Text: "Sign Out", OnClick: a.InitialSignOut},
+				&compo.Button{ID: "account-page-change-group", Class: "secondary", Icon: "group", Text: "Change Group", OnClick: compo.NavigateEvent("/groups")},
+				&compo.Button{ID: "account-page-view-group", Class: "primary", Icon: viewGroupIcon, Text: viewGroupText, OnClick: a.ViewGroup},
+			}},
 			app.H2().ID("account-page-user-info-subtitle").Text("Change User Information:"),
 			app.Form().ID("account-page-user-info-form").Class("form").OnSubmit(a.ChangeUserInfo).Body(
 				compo.TextInput().ID("account-page-username").Label("Username:").Value(&a.user.Username),
 				compo.TextInput().ID("account-page-name").Label("Name:").Value(&a.user.Name),
-				compo.Button().ID("account-page-user-info-save").Class("primary").Type("submit").Icon("save").Text("Save"),
+				&compo.Button{ID: "account-page-user-info-save", Class: "primary", Type: "submit", Icon: "save", Text: "Save"},
 			),
 			app.H2().ID("account-page-password-subtitle").Text("Change Password:"),
 			app.Form().ID("account-page-password-form").Class("form").OnSubmit(a.ChangePassword).Body(
 				compo.TextInput().ID("account-page-password").Type("password").Label("Password:").Value(&a.user.Password),
-				compo.Button().ID("account-page-password-save").Class("tertiary").Type("submit").Icon("save").Text("Save"),
+				&compo.Button{ID: "account-page-password-save", Class: "tertiary", Type: "submit", Icon: "save", Text: "Save"},
 			),
 			app.Dialog().ID("account-page-confirm-sign-out").Class("modal").Body(
 				app.P().ID("account-page-confirm-sign-out-text").Class("confirm-delete-text").Text("Are you sure you want to sign out?"),
-				compo.ButtonRow().ID("account-page-confirm-sign-out").Buttons(
-					compo.Button().ID("account-page-confirm-sign-out-sign-out").Class("danger").Icon("logout").Text("Yes, Sign Out").OnClick(a.ConfirmSignOut),
-					compo.Button().ID("account-page-confirm-sign-out-cancel").Class("secondary").Icon("cancel").Text("No, Cancel").OnClick(a.CancelSignOut),
-				),
+				&compo.ButtonRow{ID: "account-page-confirm-sign-out", Buttons: []app.UI{
+					&compo.Button{ID: "account-page-confirm-sign-out-sign-out", Class: "danger", Icon: "logout", Text: "Yes, Sign Out", OnClick: a.ConfirmSignOut},
+					&compo.Button{ID: "account-page-confirm-sign-out-cancel", Class: "secondary", Icon: "cancel", Text: "No, Cancel", OnClick: a.CancelSignOut},
+				}},
 			),
 		},
 	}

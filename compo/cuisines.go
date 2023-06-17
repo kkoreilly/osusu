@@ -25,19 +25,19 @@ func (c *CuisinesDialogCompo) Render() app.UI {
 		app.Dialog().ID(c.ID+"-cuisines-dialog").Class("cuisines-dialog", "modal").Body(
 			app.Form().ID(c.ID+"-cuisines-dialog-form").Class("form").OnSubmit(c.NewCuisine).Body(
 				TextInput().ID(c.ID+"-cuisines-dialog-name").Label("Create New Cuisine:").Value(&c.newCuisineName),
-				ButtonRow().ID(c.ID+"-cuisines-dialog-button-row").Buttons(
-					Button().ID(c.ID+"-cuisines-dialog-delete").Class("danger").Icon("delete").Text("Delete Unused Cuisines").OnClick(c.InitialDelete),
-					Button().ID(c.ID+"-cuisines-dialog-cancel").Class("secondary").Icon("cancel").Text("Cancel").OnClick(c.Cancel),
-					Button().ID(c.ID+"-cuisines-dialog-new").Class("primary").Type("submit").Icon("add").Text("Create"),
-				),
+				&ButtonRow{ID: c.ID + "-cuisines-dialog-button-row", Buttons: []app.UI{
+					&Button{ID: c.ID + "-cuisines-dialog-delete", Class: "danger", Icon: "delete", Text: "Delete Unused Cuisines", OnClick: c.InitialDelete},
+					&Button{ID: c.ID + "-cuisines-dialog-cancel", Class: "secondary", Icon: "cancel", Text: "Cancel", OnClick: c.Cancel},
+					&Button{ID: c.ID + "-cuisines-dialog-new", Class: "primary", Type: "submit", Icon: "add", Text: "Create"},
+				}},
 			),
 		),
 		app.Dialog().ID(c.ID+"-cuisines-dialog-confirm-delete").Class("cuisines-dialog-confirm-delete", "modal").Body(
 			app.P().ID(c.ID+"-cuisines-dialog-confirm-delete-text").Class("confirm-delete-text").Text("Are you sure you want to delete all unused cuisines?"),
-			ButtonRow().ID(c.ID+"-cuisines-dialog-confirm-delete").Buttons(
-				Button().ID(c.ID+"-cuisines-dialog-confirm-delete-delete").Class("danger").Icon("delete").Text("Yes, Delete").OnClick(c.DeleteUnusedCuisines),
-				Button().ID(c.ID+"-cuisines-dialog-confirm-delete-cancel").Class("secondary").Icon("cancel").Text("No, Cancel").OnClick(c.CancelDelete),
-			),
+			&ButtonRow{ID: c.ID + "-cuisines-dialog-confirm-delete", Buttons: []app.UI{
+				&Button{ID: c.ID + "-cuisines-dialog-confirm-delete-delete", Class: "danger", Icon: "delete", Text: "Yes, Delete", OnClick: c.DeleteUnusedCuisines},
+				&Button{ID: c.ID + "-cuisines-dialog-confirm-delete-cancel", Class: "secondary", Icon: "cancel", Text: "No, Cancel", OnClick: c.CancelDelete},
+			}},
 		),
 	)
 }

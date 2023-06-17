@@ -99,11 +99,11 @@ func (g *Group) Render() app.UI {
 						),
 					),
 				),
-				compo.ButtonRow().ID("group-page").Buttons(
-					compo.Button().ID("group-page-delete").Class("danger").Icon("delete").Text("Delete").Hidden(!g.isOwner || g.isGroupNew),
-					compo.Button().ID("group-page-cancel").Class("secondary").Icon(cancelButtonIcon).Text(cancelButtonText).OnClick(compo.ReturnToReturnURL),
-					compo.Button().ID("group-page-save").Class("primary").Type("submit").Icon(saveButtonIcon).Text(saveButtonText).Hidden(!g.isOwner),
-				),
+				&compo.ButtonRow{ID: "group-page", Buttons: []app.UI{
+					&compo.Button{ID: "group-page-delete", Class: "danger", Icon: "delete", Text: "Delete", Hidden: !g.isOwner || g.isGroupNew},
+					&compo.Button{ID: "group-page-cancel", Class: "secondary", Icon: cancelButtonIcon, Text: cancelButtonText, OnClick: compo.ReturnToReturnURL},
+					&compo.Button{ID: "group-page-save", Class: "primary", Type: "submit", Icon: saveButtonIcon, Text: saveButtonText, Hidden: !g.isOwner},
+				}},
 			),
 		},
 	}

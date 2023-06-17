@@ -81,9 +81,9 @@ func (h *History) Render() app.UI {
 		TitleElement:    "History",
 		SubtitleElement: "View the history of what meals you've eaten and how they were",
 		Elements: []app.UI{
-			compo.ButtonRow().ID("history-page").Buttons(
-				compo.Button().ID("history-page-sort").Class("primary").Icon("sort").Text("Sort").OnClick(h.ShowOptions),
-			),
+			&compo.ButtonRow{ID: "history-page", Buttons: []app.UI{
+				&compo.Button{ID: "history-page-sort", Class: "primary", Icon: "sort", Text: "Sort", OnClick: h.ShowOptions},
+			}},
 			compo.QuickOptions().ID("history-page").Options(&h.options).Group(h.group).Meals(h.meals).OnSave(func(ctx app.Context, e app.Event) { h.SortEntries() }),
 			app.P().ID("history-page-no-entries-shown").Class("centered-text").Text(cond.IfElse(len(h.entries) == 0, "You have not created any entries yet. Please try adding a new entry by navigating to the Search page, selecting a meal, and pressing the New Entry button.", "No entries satisfy your filters. Please try changing them or adding a new entry by navigating to the Search page, selecting a meal, and pressing the New Entry button.")).Hidden(h.numEntriesShown != 0),
 			app.Div().ID("history-page-entries-container").Class("meal-images-container").Body(
