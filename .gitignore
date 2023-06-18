@@ -1,6 +1,8 @@
 *.wasm
 *.exe
 .DS_Store
+go.work
+go.work.sum
 
 bin/*
 plots/*

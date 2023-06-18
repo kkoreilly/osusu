@@ -29,6 +29,10 @@ func (m *Meal) Render() app.UI {
 		m.mealSourceURL, m.mealSourceIsURL = urlu.AsURL(m.meal.Source)
 		m.lastMealSource = m.meal.Source
 	}
+	// if the number of cuisine options has changed, refresh them
+	if len(m.cuisineOptions) != len(m.group.Cuisines)+len(osusu.BaseCuisines)+1 {
+		m.SetCuisineOptions()
+	}
 	return &compo.Page{
 		ID:                     "meal",
 		Title:                  cond.IfElse(m.isMealNew, "Create Meal", "Edit Meal"),
@@ -70,12 +74,7 @@ func (m *Meal) Render() app.UI {
 			for _, cuisine := range m.meal.Cuisine {
 				m.cuisine[cuisine] = true
 			}
-
-			// need to copy to separate array from because append sometimes modifies the underlying array
-			m.cuisineOptions = make([]string, len(m.group.Cuisines))
-			copy(m.cuisineOptions, m.group.Cuisines)
-			m.cuisineOptions = append(m.cuisineOptions, osusu.BaseCuisines...)
-			m.cuisineOptions = append(m.cuisineOptions, "+")
+			m.SetCuisineOptions()
 		},
 		TitleElement: cond.IfElse(m.isMealNew, "Create Meal", "Edit Meal"),
 		Elements: []app.UI{
@@ -86,7 +85,7 @@ func (m *Meal) Render() app.UI {
 				compo.TextInput().ID("meal-page-image").Label("Image:").Value(&m.meal.Image),
 				compo.CheckboxChips().ID("meal-page-category").Label("Categories:").Value(&m.category).Options(osusu.AllCategories...),
 				compo.CheckboxChips().ID("meal-page-cuisine").Label("Cuisines:").Value(&m.cuisine).Options(m.cuisineOptions...).OnChange(m.CuisinesOnChange),
-				compo.CuisinesDialog("meal-page", m.CuisinesDialogOnSave),
+				&compo.CuisinesDialog{ID: "meal-page", Group: &m.group, Cuisine: m.cuisine},
 				&compo.ButtonRow{ID: "meal-page", Buttons: []app.UI{
 					&compo.Button{ID: "meal-page-delete", Class: "danger", Icon: "delete", Text: "Delete", OnClick: m.DeleteMeal, Hidden: m.isMealNew},
 					&compo.Button{ID: "meal-page-cancel", Class: "secondary", Icon: "cancel", Text: "Cancel", OnClick: compo.ReturnToReturnURL},
@@ -112,12 +111,12 @@ func (m *Meal) CuisinesOnChange(ctx app.Context, e app.Event, val string) {
 	}
 }
 
-func (m *Meal) CuisinesDialogOnSave(ctx app.Context, e app.Event) {
-	m.group = osusu.CurrentGroup(ctx)
-	if compo.NewCuisineCreated {
-		m.cuisine[compo.NewCuisine] = true
-	}
-	m.meal.RemoveInvalidCuisines(m.group.Cuisines)
+func (m *Meal) SetCuisineOptions() {
+	// need to copy to separate array from because append sometimes modifies the underlying array
+	m.cuisineOptions = make([]string, len(m.group.Cuisines))
+	copy(m.cuisineOptions, m.group.Cuisines)
+	m.cuisineOptions = append(m.cuisineOptions, osusu.BaseCuisines...)
+	m.cuisineOptions = append(m.cuisineOptions, "+")
 }
 
 func (m *Meal) OnSubmit(ctx app.Context, e app.Event) {

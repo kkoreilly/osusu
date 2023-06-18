@@ -84,7 +84,7 @@ func (h *History) Render() app.UI {
 			&compo.ButtonRow{ID: "history-page", Buttons: []app.UI{
 				&compo.Button{ID: "history-page-sort", Class: "primary", Icon: "sort", Text: "Sort", OnClick: h.ShowOptions},
 			}},
-			compo.QuickOptions().ID("history-page").Options(&h.options).Group(h.group).Meals(h.meals).OnSave(func(ctx app.Context, e app.Event) { h.SortEntries() }),
+			&compo.QuickOptions{ID: "history-page", Options: &h.options, Group: h.group, Meals: h.meals, OnSave: func(ctx app.Context, e app.Event) { h.SortEntries() }},
 			app.P().ID("history-page-no-entries-shown").Class("centered-text").Text(cond.IfElse(len(h.entries) == 0, "You have not created any entries yet. Please try adding a new entry by navigating to the Search page, selecting a meal, and pressing the New Entry button.", "No entries satisfy your filters. Please try changing them or adding a new entry by navigating to the Search page, selecting a meal, and pressing the New Entry button.")).Hidden(h.numEntriesShown != 0),
 			app.Div().ID("history-page-entries-container").Class("meal-images-container").Body(
 				app.Range(h.entries).Slice(func(i int) app.UI {
@@ -104,11 +104,11 @@ func (h *History) Render() app.UI {
 					if entry.Source != "" {
 						secondaryText += " • " + entry.Source
 					}
-					return compo.MealImage().ID("history-page-entry-" + si).Class("history-page-entry").Img(entryMeal.Image).MainText(entry.Date.Format("Monday, January 2, 2006")).SecondaryText(secondaryText).Score(score).OnClick(func(ctx app.Context, e app.Event) { h.EntryOnClick(ctx, e, entry) }).OnClickScope(entry.ID)
+					return &compo.MealImage{ID: "history-page-entry-" + si, Class: "history-page-entry", Image: entryMeal.Image, MainText: entry.Date.Format("Monday, January 2, 2006"), SecondaryText: secondaryText, Score: score, OnClick: func(ctx app.Context, e app.Event) { h.EntryOnClick(ctx, e, entry) }, OnClickScope: []any{entry.ID}}
 				}),
 			),
 			// recency is irrelevant for history
-			compo.Options().ID("history-page").Options(&h.options).Exclude("recency").OnSave(func(ctx app.Context, e app.Event) { h.SortEntries() }),
+			&compo.Options{ID: "history-page", Options: &h.options, Exclude: []string{"recency"}, OnSave: func(ctx app.Context, e app.Event) { h.SortEntries() }},
 		},
 	}
 }

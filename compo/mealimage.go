@@ -5,95 +5,34 @@ import (
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
 )
 
-// A MealImageCompo is a component for a meal, recipe, or entry with an image of the meal and information about it
-type MealImageCompo struct {
+// A MealImage is a component for a meal, recipe, or entry with an image of the meal and information about it
+type MealImage struct {
 	app.Compo
-	// everything can change so they need to be exported
-	IDValue            string
-	ClassValue         string
-	SelectedValue      bool
-	ImgValue           string
-	MainTextValue      string
-	SecondaryTextValue string
-	ScoreValue         osusu.Score
-	OnClickValue       app.EventHandler
-	OnClickScopeValue  []any
+	ID            string
+	Class         string
+	Selected      bool // whether the meal image is currently selected (ie: for a context menu)
+	Image         string
+	MainText      string
+	SecondaryText string
+	Score         osusu.Score
+	OnClick       app.EventHandler
+	OnClickScope  []any // the on click event scope value; use this to trigger updates to the meal image on click event when certain value(s) change
 }
 
-func (m *MealImageCompo) Render() app.UI {
-	return app.Div().ID(m.IDValue+"-meal-image-container").Class("meal-image-container", m.ClassValue).DataSet("no-image", m.ImgValue == "").DataSet("selected", m.SelectedValue).OnClick(m.OnClickValue, m.OnClickScopeValue...).Body(
-		app.Img().ID(m.IDValue+"-meal-image").Class("meal-image").Src(m.ImgValue),
-		app.Div().ID(m.IDValue+"-meal-image-info-container").Class("meal-image-info-container").Body(
-			app.Span().ID(m.IDValue+"-meal-image-main-text").Class("meal-image-main-text").Text(m.MainTextValue),
-			app.Span().ID(m.IDValue+"-meal-image-secondary-text").Class("meal-image-secondary-text").Text(m.SecondaryTextValue),
-			app.Div().ID(m.IDValue+"-meal-image-score-container").Class("meal-image-score-container").Body(
-				MealScore(m.IDValue+"-meal-image-total", "meal-image-score", m.ScoreValue.Total, "Total"),
-				MealScore(m.IDValue+"-meal-image-taste", "meal-image-score", m.ScoreValue.Taste, "Taste"),
-				MealScore(m.IDValue+"-meal-image-recency", "meal-image-score", m.ScoreValue.Recency, "New"),
-				MealScore(m.IDValue+"-meal-image-cost", "meal-image-score", m.ScoreValue.Cost, "Cost"),
-				MealScore(m.IDValue+"-meal-image-effort", "meal-image-score", m.ScoreValue.Effort, "Effort"),
-				MealScore(m.IDValue+"-meal-image-healthiness", "meal-image-score", m.ScoreValue.Healthiness, "Health"),
+func (m *MealImage) Render() app.UI {
+	return app.Div().ID(m.ID+"-meal-image-container").Class("meal-image-container", m.Class).DataSet("no-image", m.Image == "").DataSet("selected", m.Selected).OnClick(m.OnClick, m.OnClickScope...).Body(
+		app.Img().ID(m.ID+"-meal-image").Class("meal-image").Src(m.Image),
+		app.Div().ID(m.ID+"-meal-image-info-container").Class("meal-image-info-container").Body(
+			app.Span().ID(m.ID+"-meal-image-main-text").Class("meal-image-main-text").Text(m.MainText),
+			app.Span().ID(m.ID+"-meal-image-secondary-text").Class("meal-image-secondary-text").Text(m.SecondaryText),
+			app.Div().ID(m.ID+"-meal-image-score-container").Class("meal-image-score-container").Body(
+				&MealScore{ID: m.ID + "-meal-image-total", Class: "meal-image-score", Score: m.Score.Total, Label: "Total"},
+				&MealScore{ID: m.ID + "-meal-image-taste", Class: "meal-image-score", Score: m.Score.Taste, Label: "Taste"},
+				&MealScore{ID: m.ID + "-meal-image-recency", Class: "meal-image-score", Score: m.Score.Recency, Label: "New"},
+				&MealScore{ID: m.ID + "-meal-image-cost", Class: "meal-image-score", Score: m.Score.Cost, Label: "Cost"},
+				&MealScore{ID: m.ID + "-meal-image-effort", Class: "meal-image-score", Score: m.Score.Effort, Label: "Effort"},
+				&MealScore{ID: m.ID + "-meal-image-healthiness", Class: "meal-image-score", Score: m.Score.Healthiness, Label: "Health"},
 			),
 		),
 	)
-}
-
-// MealImage returns a new meal image component
-func MealImage() *MealImageCompo {
-	return &MealImageCompo{}
-}
-
-// ID sets the id of the meal image component
-func (m *MealImageCompo) ID(id string) *MealImageCompo {
-	m.IDValue = id
-	return m
-}
-
-// Class sets the class of the meal image component
-func (m *MealImageCompo) Class(class string) *MealImageCompo {
-	m.ClassValue = class
-	return m
-}
-
-// Selected sets whether the meal image component is currently selected
-func (m *MealImageCompo) Selected(selected bool) *MealImageCompo {
-	m.SelectedValue = selected
-	return m
-}
-
-// Img sets the image of the meal image component
-func (m *MealImageCompo) Img(img string) *MealImageCompo {
-	m.ImgValue = img
-	return m
-}
-
-// MainText sets the main text of the meal image component
-func (m *MealImageCompo) MainText(mainText string) *MealImageCompo {
-	m.MainTextValue = mainText
-	return m
-}
-
-// SecondaryText sets the secondary text of the meal image component
-func (m *MealImageCompo) SecondaryText(secondaryText string) *MealImageCompo {
-	m.SecondaryTextValue = secondaryText
-	return m
-}
-
-// Score sets the score of the meal image component
-func (m *MealImageCompo) Score(score osusu.Score) *MealImageCompo {
-	m.ScoreValue = score
-	return m
-}
-
-// OnClick sets the on click event for the meal image component
-func (m *MealImageCompo) OnClick(onClick app.EventHandler) *MealImageCompo {
-	m.OnClickValue = onClick
-	return m
-}
-
-// OnClickScopeValue sets the on click event scope value for the meal image component.
-// Use this to trigger updates to the meal image on click event when a given value changes (ex: a meal id)
-func (m *MealImageCompo) OnClickScope(scope ...any) *MealImageCompo {
-	m.OnClickScopeValue = scope
-	return m
 }

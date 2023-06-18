@@ -42,6 +42,12 @@ var ErrorPlot *eplot.Plot2D
 
 var vp *gi.Viewport2D
 
+var useSubset *bool
+
+var learningRate *float64
+
+var numHiddenLayers, numHiddenUnits *int
+
 func main() {
 	log.Println("Starting Classify")
 	gimain.Main(func() {
@@ -97,6 +103,12 @@ func mainrun() {
 
 // Classify loads, classifies, and saves the recipes
 func Classify() {
+	useSubset = flag.Bool("subset", false, "use a random 10 percent subset of the recipes for faster testing")
+	learningRate = flag.Float64("lr", 0.01, "learning rate of the neural network")
+	numHiddenLayers = flag.Int("layers", 1, "number of hidden layers")
+	numHiddenUnits = flag.Int("units", 500, "number of hidden units")
+	flag.Parse()
+
 	log.Println("Loading Recipes")
 	osusu.InitRecipeConstants()
 	var recipes osusu.Recipes
@@ -110,6 +122,22 @@ func Classify() {
 	}
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	rand.Seed(time.Now().UnixNano())
+
+	if *useSubset {
+		perm := rand.Perm(len(recipes))
+		newRecipes := []osusu.Recipe{}
+		for i, val := range perm {
+			// if we are higher than 10 percent, stop appending
+			if i > len(perm)/10 {
+				break
+			}
+			// othwerwise, append
+			newRecipes = append(newRecipes, recipes[val])
+		}
+		recipes = newRecipes
 	}
 
 	log.Println("Consolidating Categories and Cuisines")
@@ -174,16 +202,13 @@ func GetRecipeWords(recipes osusu.Recipes) ([]string, map[int][]string) {
 
 // Infer infers the categories and cuisines of all of the given recipes with them missing using the given recipe words using the SoftMax decoder.
 func Infer(recipes osusu.Recipes, words []string, recipeWordsMap map[int][]string) osusu.Recipes {
-	numHiddenLayers := flag.Int("layers", 2, "number of hidden layers")
-	numHiddenUnits := flag.Int("units", 500, "number of hidden units")
-	flag.Parse()
 	ca := gobp.NewNetwork(len(words), len(osusu.AllCategories), *numHiddenLayers, *numHiddenUnits) // category decoder
 	ca.OutputActivationFunc = gobp.SoftMax
-	ca.LearningRate = 0.05
+	ca.LearningRate = float32(*learningRate)
 
 	cu := gobp.NewNetwork(len(words), len(osusu.BaseCuisines), *numHiddenLayers, *numHiddenUnits) // cuisine decoder
 	cu.OutputActivationFunc = gobp.SoftMax
-	cu.LearningRate = 0.05
+	cu.LearningRate = float32(*learningRate)
 
 	wordMap := map[string]int{}
 	for i, word := range words {
@@ -223,23 +248,36 @@ func Infer(recipes osusu.Recipes, words []string, recipeWordsMap map[int][]strin
 		}
 	}
 
-	rand.Seed(time.Now().UnixNano())
-
 	caPerm := rand.Perm(len(caSet))
 	caTrain := map[int]bool{}
-	for i, val := range caPerm {
-		if i < 9*len(caPerm)/10 {
+	for _, val := range caPerm {
+		// if we have already added 90% of recipes with category set, break
+		if len(caTrain) > 9*len(caSet)/10 {
+			break
+		}
+		// if the category is set and we are less than 90%, add to train
+		if len(recipes[val].Category) != 0 {
 			caTrain[val] = true
 		}
 	}
 
-	cuPerm := rand.Perm(len(cuSet))
+	cuPerm := rand.Perm(len(recipes))
 	cuTrain := map[int]bool{}
-	for i, val := range cuPerm {
-		if i < 9*len(cuPerm)/10 {
+	for _, val := range cuPerm {
+		// if we have already added 90% of recipes with cuisine set, break
+		if len(cuTrain) > 9*len(cuSet)/10 {
+			break
+		}
+		// if the cuisine is set and we are less than 90%, add to train
+		if len(recipes[val].Cuisine) != 0 {
 			cuTrain[val] = true
 		}
 	}
+	// for i := 0; i < len(cuPerm); i++ {
+	// 	if !cuTrain[i] {
+	// 		fmt.Println(i)
+	// 	}
+	// }
 
 	log.Println(len(caSet), len(caUnset), len(cuSet), len(cuUnset))
 	log.Println(len(caPerm), len(caTrain), len(cuPerm), len(cuTrain))
@@ -383,7 +421,7 @@ func Infer(recipes osusu.Recipes, words []string, recipeWordsMap map[int][]strin
 		cuError := 1 - (float64(cuNumRight) / float64(cuNum))
 		caTrainError := 1 - (float64(caTrainNumRight) / float64(caTrainNum))
 		cuTrainError := 1 - (float64(cuTrainNumRight) / float64(cuTrainNum))
-		log.Println(e, caAverageSSE, cuAverageSSE, caError, cuError, caTrainError, cuTrainError)
+		log.Println(e, caError, cuError, caAverageSSE, cuAverageSSE, caTrainError, cuTrainError)
 		ErrorTable.SetCellFloat("epoch", e, float64(e))
 		ErrorTable.SetCellFloat("categoryTestError", e, caError)
 		ErrorTable.SetCellFloat("cuisineTestError", e, cuError)

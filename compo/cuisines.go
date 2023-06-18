@@ -6,21 +6,17 @@ import (
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
 )
 
-type CuisinesDialogCompo struct {
+// CuisinesDialog is a component that allows the creation of new cuisines
+type CuisinesDialog struct {
 	app.Compo
 	ID             string
+	Group          *osusu.Group
+	Cuisine        map[string]bool // the cuisine value that is being controlled on the page with the cuisines dialog; this will be used to set the newly created cuisine to true
 	OnSave         func(ctx app.Context, e app.Event)
-	group          osusu.Group
 	newCuisineName string
 }
 
-// NewCuisinecCreated is whether a new cuisine was created by the cuisines dialog
-var NewCuisineCreated bool
-
-// NewCuisine is the newly created cuisine (only applicable if NewCuisineCreated is true)
-var NewCuisine string
-
-func (c *CuisinesDialogCompo) Render() app.UI {
+func (c *CuisinesDialog) Render() app.UI {
 	return app.Div().ID(c.ID+"-cuisines-dialog-container").Class("cuisines-dialog-container").Body(
 		app.Dialog().ID(c.ID+"-cuisines-dialog").Class("cuisines-dialog", "modal").Body(
 			app.Form().ID(c.ID+"-cuisines-dialog-form").Class("form").OnSubmit(c.NewCuisine).Body(
@@ -41,19 +37,14 @@ func (c *CuisinesDialogCompo) Render() app.UI {
 		),
 	)
 }
-func CuisinesDialog(id string, onSave func(ctx app.Context, e app.Event)) *CuisinesDialogCompo {
-	return &CuisinesDialogCompo{ID: id, OnSave: onSave}
-}
 
-func (c *CuisinesDialogCompo) NewCuisine(ctx app.Context, e app.Event) {
+func (c *CuisinesDialog) NewCuisine(ctx app.Context, e app.Event) {
 	e.PreventDefault()
 
-	NewCuisineCreated = true
-	c.group = osusu.CurrentGroup(ctx)
 	input := app.Window().GetElementByID(c.ID + "-cuisines-dialog-name-input")
 	name := input.Get("value").String()
-	c.group.Cuisines = append(c.group.Cuisines, name)
-	NewCuisine = name
+	c.Group.Cuisines = append(c.Group.Cuisines, name)
+	c.Cuisine[name] = true
 	c.Save(ctx, e)
 	input.Call("blur")
 	ctx.Defer(func(ctx app.Context) {
@@ -61,31 +52,29 @@ func (c *CuisinesDialogCompo) NewCuisine(ctx app.Context, e app.Event) {
 	})
 }
 
-func (c *CuisinesDialogCompo) Save(ctx app.Context, e app.Event) {
-	_, err := api.UpdateGroupCuisines.Call(c.group)
+func (c *CuisinesDialog) Save(ctx app.Context, e app.Event) {
+	_, err := api.UpdateGroupCuisines.Call(*c.Group)
 	if err != nil {
 		CurrentPage.ShowErrorStatus(err)
 		return
 	}
-	osusu.SetCurrentGroup(c.group, ctx)
+	osusu.SetCurrentGroup(*c.Group, ctx)
 	app.Window().GetElementByID(c.ID + "-cuisines-dialog").Call("close")
-	c.OnSave(ctx, e)
+	if c.OnSave != nil {
+		c.OnSave(ctx, e)
+	}
 }
 
-func (c *CuisinesDialogCompo) Cancel(ctx app.Context, e app.Event) {
+func (c *CuisinesDialog) Cancel(ctx app.Context, e app.Event) {
 	app.Window().GetElementByID(c.ID + "-cuisines-dialog").Call("close")
 }
 
-func (c *CuisinesDialogCompo) InitialDelete(ctx app.Context, e app.Event) {
+func (c *CuisinesDialog) InitialDelete(ctx app.Context, e app.Event) {
 	app.Window().GetElementByID(c.ID + "-cuisines-dialog-confirm-delete").Call("showModal")
 }
 
-func (c *CuisinesDialogCompo) DeleteUnusedCuisines(ctx app.Context, e app.Event) {
-	NewCuisineCreated = false
-
-	c.group = osusu.CurrentGroup(ctx)
-
-	meals, err := api.GetMeals.Call(c.group.ID)
+func (c *CuisinesDialog) DeleteUnusedCuisines(ctx app.Context, e app.Event) {
+	meals, err := api.GetMeals.Call(c.Group.ID)
 	if err != nil {
 		CurrentPage.ShowErrorStatus(err)
 		return
@@ -102,11 +91,11 @@ func (c *CuisinesDialogCompo) DeleteUnusedCuisines(ctx app.Context, e app.Event)
 			newCuisines = append(newCuisines, cuisine)
 		}
 	}
-	c.group.Cuisines = newCuisines
+	c.Group.Cuisines = newCuisines
 	c.Save(ctx, e)
 	app.Window().GetElementByID(c.ID + "-cuisines-dialog-confirm-delete").Call("close")
 }
 
-func (c *CuisinesDialogCompo) CancelDelete(ctx app.Context, e app.Event) {
+func (c *CuisinesDialog) CancelDelete(ctx app.Context, e app.Event) {
 	app.Window().GetElementByID(c.ID + "-cuisines-dialog-confirm-delete").Call("close")
 }
