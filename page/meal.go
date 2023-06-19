@@ -79,12 +79,12 @@ func (m *Meal) Render() app.UI {
 		TitleElement: cond.IfElse(m.isMealNew, "Create Meal", "Edit Meal"),
 		Elements: []app.UI{
 			app.Form().ID("meal-page-form").Class("form").OnSubmit(m.OnSubmit).Body(
-				compo.TextInput().ID("meal-page-name").Label("Name:").Value(&m.meal.Name).AutoFocus(true),
-				compo.Textarea().ID("meal-page-description").Label("Description:").Value(&m.meal.Description),
-				compo.TextInput().ID("meal-page-source").Label("Source:").Value(&m.meal.Source).ButtonIcon(cond.If(m.mealSourceIsURL, "open_in_new")).ButtonOnClick(compo.NavigateEvent(m.mealSourceURL)).ButtonOnClickScope(m.mealSourceURL),
-				compo.TextInput().ID("meal-page-image").Label("Image:").Value(&m.meal.Image),
-				compo.CheckboxChips().ID("meal-page-category").Label("Categories:").Value(&m.category).Options(osusu.AllCategories...),
-				compo.CheckboxChips().ID("meal-page-cuisine").Label("Cuisines:").Value(&m.cuisine).Options(m.cuisineOptions...).OnChange(m.CuisinesOnChange),
+				compo.TextInput(&compo.Input[string]{ID: "meal-page-name", Label: "Name:", Value: &m.meal.Name, AutoFocus: true}),
+				compo.TextareaInput(&compo.Input[string]{ID: "meal-page-description", Label: "Description:", Value: &m.meal.Description}),
+				compo.TextInput(&compo.Input[string]{ID: "meal-page-source", Label: "Source:", Value: &m.meal.Source, ButtonIcon: cond.If(m.mealSourceIsURL, "open_in_new"), ButtonOnClick: compo.NavigateEvent(m.mealSourceURL), ButtonOnClickScope: []any{m.mealSourceURL}}),
+				compo.TextInput(&compo.Input[string]{ID: "meal-page-image", Label: "Image:", Value: &m.meal.Image}),
+				&compo.Chips[map[string]bool]{ID: "meal-page-category", Type: "checkbox", Label: "Categories:", Value: &m.category, Options: osusu.AllCategories},
+				&compo.Chips[map[string]bool]{ID: "meal-page-cuisine", Type: "checkbox", Label: "Cuisines:", Value: &m.cuisine, Options: m.cuisineOptions, OnChange: m.CuisinesOnChange},
 				&compo.CuisinesDialog{ID: "meal-page", Group: &m.group, Cuisine: m.cuisine},
 				&compo.ButtonRow{ID: "meal-page", Buttons: []app.UI{
 					&compo.Button{ID: "meal-page-delete", Class: "danger", Icon: "delete", Text: "Delete", OnClick: m.DeleteMeal, Hidden: m.isMealNew},

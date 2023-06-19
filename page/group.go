@@ -71,7 +71,7 @@ func (g *Group) Render() app.UI {
 		Elements: []app.UI{
 			app.Form().ID("group-page-form").Class("form").OnSubmit(g.OnSubmit).Body(
 				app.If(g.isOwner,
-					compo.TextInput().ID("group-page-name").Label("Name:").Value(&g.group.Name).AutoFocus(true),
+					compo.TextInput(&compo.Input[string]{ID: "group-page-name", Label: "Name:", Value: &g.group.Name, AutoFocus: true}),
 				).Else(
 					app.Span().ID("group-page-name").Text("Name: "+g.group.Name),
 				),

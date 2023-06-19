@@ -7,159 +7,107 @@ import (
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
 )
 
-// InputCompo is a component that includes an input field and an associated label
-type InputCompo[T any] struct {
+// Input is a component that includes an input field and an associated label
+type Input[T any] struct {
 	app.Compo
-	id                    string
-	class                 string
-	isTextarea            bool   // whether the input is a text area instead of an input
-	InputType             string // can sometimes change (with password field and show password) so needs to be exported
-	label                 string
-	placeholder           string
-	value                 *T
-	valueFunc             func(app.Value) T
-	displayFunc           func(T) any
-	autoFocus             bool
-	ButtonIconVal         string           // can sometimes change so needs to be exported
-	ButtonOnClickVal      app.EventHandler // can sometimes change so needs to be exported
-	ButtonOnClickScopeVal []any            // can sometimes change so needs to be exported
+	ID                 string
+	Class              string
+	IsTextarea         bool   // whether the input is a text area instead of an input
+	Type               string // the html type of the input (ex: text, password, range)
+	Label              string
+	Placeholder        string
+	Value              *T
+	ValueFunc          func(v app.Value) T // the (required) function used to convert the html value to the actual value
+	DisplayFunc        func(T) any         // the (optional) function used to convert the actual value to the html value displayed
+	AutoFocus          bool
+	ButtonIcon         string           // if set to something other than "", an icon button will be rendered in the input with the given icon
+	ButtonOnClick      app.EventHandler // the function called when the icon button created by ButtonIcon is clicked
+	ButtonOnClickScope []any            // this should be set to cause the ButtonOnClick function to update when the given value(s) change
+	showPassword       bool             // whether to show the password (only relevant for password inputs); used internally only -- do not set
 }
 
 // Render returns the UI of the input component, which includes a label and an input associated with it
-func (i *InputCompo[T]) Render() app.UI {
-	var value any = *i.value
-	if i.displayFunc != nil {
-		value = i.displayFunc(*i.value)
+func (i *Input[T]) Render() app.UI {
+	var value any = *i.Value
+	if i.DisplayFunc != nil {
+		value = i.DisplayFunc(*i.Value)
 	}
-	var input app.UI = app.Input().ID(i.id+"-input").Class("input", i.class).Type(i.InputType).Placeholder(i.placeholder).AutoFocus(i.autoFocus).Value(value).OnChange(func(ctx app.Context, e app.Event) {
-		*i.value = i.valueFunc(e.Get("target"))
+	inputType := i.Type
+	buttonIcon := i.ButtonIcon
+	// special case: if we are currently showing the password, we have to override the input type and the button icon to match
+	if i.showPassword {
+		inputType = "text"
+		buttonIcon = "visibility_off"
+	}
+	var input app.UI = app.Input().ID(i.ID+"-input").Class("input", i.Class).Type(inputType).Placeholder(i.Placeholder).AutoFocus(i.AutoFocus).Value(value).OnChange(func(ctx app.Context, e app.Event) {
+		*i.Value = i.ValueFunc(e.Get("target"))
 	})
-	if i.isTextarea {
-		input = app.Textarea().ID(i.id+"-input").Class("input", i.class).Placeholder(i.placeholder).AutoFocus(i.autoFocus).Text(value).OnChange(func(ctx app.Context, e app.Event) {
-			*i.value = i.valueFunc(e.Get("target"))
+	if i.IsTextarea {
+		input = app.Textarea().ID(i.ID+"-input").Class("input", i.Class).Placeholder(i.Placeholder).AutoFocus(i.AutoFocus).Text(value).OnChange(func(ctx app.Context, e app.Event) {
+			*i.Value = i.ValueFunc(e.Get("target"))
 		})
 	}
-
-	return app.Div().ID(i.id+"-input-container").Class("input-container").DataSet("has-button", i.ButtonIconVal != "").Body(
-		app.Label().ID(i.id+"-input-label").Class("input-label").For(i.id+"-input").Text(i.label),
+	return app.Div().ID(i.ID+"-input-container").Class("input-container").DataSet("has-button", i.ButtonIcon != "").Body(
+		app.Label().ID(i.ID+"-input-label").Class("input-label").For(i.ID+"-input").Text(i.Label),
 		input,
-		&Button{ID: i.id + "-input-button", Class: "input", Icon: i.ButtonIconVal, OnClick: i.ButtonOnClickVal, OnClickScope: i.ButtonOnClickScopeVal, Hidden: i.ButtonIconVal == ""},
+		&Button{ID: i.ID + "-input-button", Class: "input", Icon: buttonIcon, OnClick: i.ButtonOnClick, OnClickScope: i.ButtonOnClickScope, Hidden: i.ButtonIcon == ""},
 	)
 }
 
-// Input returns a new input component
-func Input[T any]() *InputCompo[T] {
-	return &InputCompo[T]{}
+// TextInput converts the given input component into a text input component
+func TextInput(input *Input[string]) *Input[string] {
+	input.Type = "text"
+	input.ValueFunc = ValueFuncString
+	return input
 }
 
-// TextInput returns a new string input component with type text and value func ValueFuncString
-func TextInput() *InputCompo[string] {
-	return Input[string]().Type("text").ValueFunc(ValueFuncString)
+// PasswordInput converts the given input component into a password input component
+func PasswordInput(input *Input[string]) *Input[string] {
+	input.Type = "password"
+	input.ValueFunc = ValueFuncString
+	input.ButtonIcon = "visibility"
+	input.ButtonOnClick = func(ctx app.Context, e app.Event) {
+		input.showPassword = !input.showPassword
+	}
+	return input
 }
 
-// RangeInput returns a new range input component with type range and value func ValueFuncInt
-func RangeInput() *InputCompo[int] {
-	return Input[int]().Class("input-range").Type("range").ValueFunc(ValueFuncInt)
+// RangeInput converts the given input component into a range input component
+func RangeInput(input *Input[int]) *Input[int] {
+	input.Class = "input-range"
+	input.Type = "range"
+	input.ValueFunc = ValueFuncInt
+	return input
 }
 
-// DateInput returns a new date input component
-func DateInput() *InputCompo[time.Time] {
-	return Input[time.Time]().Type("date").ValueFunc(ValueFuncDate).DisplayFunc(DisplayFuncDate)
+// DateInput converts the given input component into a date input component
+func DateInput(input *Input[time.Time]) *Input[time.Time] {
+	input.Type = "date"
+	input.ValueFunc = ValueFuncDate
+	input.DisplayFunc = DisplayFuncDate
+	return input
 }
 
-// Textarea returns a new textarea input component
-func Textarea() *InputCompo[string] {
-	return Input[string]().Class("input-textarea").IsTextarea(true).ValueFunc(ValueFuncString)
+// TextareaInput converts the given input component into a textarea input component
+func TextareaInput(input *Input[string]) *Input[string] {
+	input.Class = "input-textarea"
+	input.IsTextarea = true
+	input.ValueFunc = ValueFuncString
+	return input
 }
 
-// RangeInputUserMap returns a new range input component that has its values associated with the entry in the user map corresponding to the given user
-func RangeInputUserMap(value *osusu.UserMap, user osusu.User) *InputCompo[int] {
+// RangeInputUserMap converts the input component into a range input component that has its values associated with the entry in the user map corresponding to the given user
+func RangeInputUserMap(input *Input[int], value *osusu.UserMap, user osusu.User) *Input[int] {
 	val := (*value)[user.ID]
-	return Input[int]().Class("input-range").Type("range").Value(&val).ValueFunc(func(v app.Value) int {
+	input.Class = "input-range"
+	input.Type = "range"
+	input.Value = &val
+	input.ValueFunc = func(v app.Value) int {
 		res := v.Get("valueAsNumber").Int()
 		(*value)[user.ID] = res
 		return res
-	})
-}
-
-// ID sets the ID of the input component to the given value
-func (i *InputCompo[T]) ID(id string) *InputCompo[T] {
-	i.id = id
-	return i
-}
-
-// Class adds the given value to the class of the input component
-func (i *InputCompo[T]) Class(class string) *InputCompo[T] {
-	i.class += class + " "
-	return i
-}
-
-// IsTextarea sets whether the input component is a textarea. The default value if this function is not called is false.
-func (i *InputCompo[T]) IsTextarea(isTextarea bool) *InputCompo[T] {
-	i.isTextarea = isTextarea
-	return i
-}
-
-// Type sets the input type of the input (ex: text, password, range)
-func (i *InputCompo[T]) Type(typ string) *InputCompo[T] {
-	i.InputType = typ
-	return i
-}
-
-// Label sets the label of the input
-func (i *InputCompo[T]) Label(label string) *InputCompo[T] {
-	i.label = label
-	return i
-}
-
-// Placeholder sets the placeholder of the input
-func (i *InputCompo[T]) Placeholder(placeholder string) *InputCompo[T] {
-	i.placeholder = placeholder
-	return i
-}
-
-// Value sets the value of the input component to stay equal with the given pointer
-func (i *InputCompo[T]) Value(value *T) *InputCompo[T] {
-	i.value = value
-	return i
-}
-
-// ValueFunc sets the function used to convert the value of the input to a usable value
-func (i *InputCompo[T]) ValueFunc(valueFunc func(app.Value) T) *InputCompo[T] {
-	i.valueFunc = valueFunc
-	return i
-}
-
-// DisplayFunc sets the function used to convert the set value to the value actually displayed in the input
-func (i *InputCompo[T]) DisplayFunc(displayFunc func(T) any) *InputCompo[T] {
-	i.displayFunc = displayFunc
-	return i
-}
-
-// AutoFocus sets whether to automatically focus the input on page load
-func (i *InputCompo[T]) AutoFocus(autoFocus bool) *InputCompo[T] {
-	i.autoFocus = autoFocus
-	return i
-}
-
-// ButtonIcon, if called with a value other than "", causes an icon button to be rendered inside of the input with the given button icon.
-// ButtonOnClick should be called to set the function called when the icon button is clicked.
-func (i *InputCompo[T]) ButtonIcon(buttonIcon string) *InputCompo[T] {
-	i.ButtonIconVal = buttonIcon
-	return i
-}
-
-// ButtonOnClick sets the function that is called when the icon button specified with ButtonIcon is clicked on.
-func (i *InputCompo[T]) ButtonOnClick(buttonOnClick app.EventHandler) *InputCompo[T] {
-	i.ButtonOnClickVal = buttonOnClick
-	return i
-}
-
-// ButtonOnClickScope sets the on click event scope value for the button of the input component.
-// Use this to trigger updates to the input button on click event when certain value(s) change.
-func (i *InputCompo[T]) ButtonOnClickScope(scope ...any) *InputCompo[T] {
-	i.ButtonOnClickScopeVal = scope
-	return i
+	}
+	return input
 }
 
 // ValueFuncString is a basic value function for a string input

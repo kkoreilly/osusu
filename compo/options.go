@@ -22,11 +22,11 @@ func (o *Options) Render() app.UI {
 	return app.Dialog().ID(o.ID+"-options").Class("modal options", o.Class).OnClick(o.onClick).Body(
 		app.Div().ID(o.ID + "-options-container").Class("options-container").OnClick(o.containerOnClick).Body(
 			app.Form().ID(o.ID+"-options-form").Class("form options-form").OnSubmit(o.SaveOptions).Body(
-				app.If(!o.excludeMap["taste"], RangeInput().ID(o.ID+"-options-taste").Class("options-taste-input").Label("How important is taste?").Value(&o.Options.TasteWeight)),
-				app.If(!o.excludeMap["recency"], RangeInput().ID(o.ID+"-options-recency").Class("options-recency-input").Label("How important is recency?").Value(&o.Options.RecencyWeight)),
-				app.If(!o.excludeMap["cost"], RangeInput().ID(o.ID+"-options-cost").Class("options-cost-input").Label("How important is cost?").Value(&o.Options.CostWeight)),
-				app.If(!o.excludeMap["effort"], RangeInput().ID(o.ID+"-options-effort").Class("options-effort-input").Label("How important is effort?").Value(&o.Options.EffortWeight)),
-				app.If(!o.excludeMap["healthiness"], RangeInput().ID(o.ID+"-options-healthiness").Class("options-healthiness-input").Label("How important is healthiness?").Value(&o.Options.HealthinessWeight)),
+				app.If(!o.excludeMap["taste"], RangeInput(&Input[int]{ID: o.ID + "-options-taste", Class: "options-taste-input", Label: "How important is taste?", Value: &o.Options.TasteWeight})),
+				app.If(!o.excludeMap["recency"], RangeInput(&Input[int]{ID: o.ID + "-options-recency", Class: "options-recency-input", Label: "How important is recency?", Value: &o.Options.RecencyWeight})),
+				app.If(!o.excludeMap["cost"], RangeInput(&Input[int]{ID: o.ID + "-options-cost", Class: "options-cost-input", Label: "How important is cost?", Value: &o.Options.CostWeight})),
+				app.If(!o.excludeMap["effort"], RangeInput(&Input[int]{ID: o.ID + "-options-effort", Class: "options-effort-input", Label: "How important is effort?", Value: &o.Options.EffortWeight})),
+				app.If(!o.excludeMap["healthiness"], RangeInput(&Input[int]{ID: o.ID + "-options-healthiness", Class: "options-healthiness-input", Label: "How important is healthiness?", Value: &o.Options.HealthinessWeight})),
 			),
 		),
 	)
@@ -82,10 +82,10 @@ type QuickOptions struct {
 // Render returns the UI of the quick options component
 func (q *QuickOptions) Render() app.UI {
 	return &ButtonRow{ID: q.ID + "-quick-options", Buttons: []app.UI{
-		CheckboxSelect().ID(q.ID + "-quick-options-category").Label("Categories:").Default(map[string]bool{"Dinner": true}).Value(&q.Options.Category).Options(append(osusu.AllCategories, "Unset")...).OnChange(q.SaveOptions).Hidden(q.excludeMap["category"]),
-		CheckboxSelect().ID(q.ID + "-quick-options-users").Label("People:").Value(&q.usersOptions).Options(q.usersStrings...).OnChange(q.SaveOptions).Hidden(q.excludeMap["users"]),
-		CheckboxSelect().ID(q.ID + "-quick-options-source").Label("Sources:").Default(map[string]bool{"Cooking": true, "Dine-In": true, "Takeout": true}).Value(&q.Options.Source).Options(osusu.AllSources...).OnChange(q.SaveOptions).Hidden(q.excludeMap["source"]),
-		CheckboxSelect().ID(q.ID + "-quick-options-cuisine").Label("Cuisines:").Value(&q.Options.Cuisine).Options(q.cuisines...).OnChange(q.SaveOptions).Hidden(q.excludeMap["cuisine"]),
+		&Chips[map[string]bool]{ID: q.ID + "-quick-options-category", IsSelect: true, Type: "checkbox", Label: "Categories:", Default: map[string]bool{"Dinner": true}, Value: &q.Options.Category, Options: append(osusu.AllCategories, "Unset"), OnChange: q.SaveOptions, Hidden: q.excludeMap["category"]},
+		&Chips[map[string]bool]{ID: q.ID + "-quick-options-users", IsSelect: true, Type: "checkbox", Label: "People:", Value: &q.usersOptions, Options: q.usersStrings, OnChange: q.SaveOptions, Hidden: q.excludeMap["users"]},
+		&Chips[map[string]bool]{ID: q.ID + "-quick-options-source", IsSelect: true, Type: "checkbox", Label: "Sources:", Default: map[string]bool{"Cooking": true, "Dine-In": true, "Takeout": true}, Value: &q.Options.Source, Options: osusu.AllSources, OnChange: q.SaveOptions, Hidden: q.excludeMap["source"]},
+		&Chips[map[string]bool]{ID: q.ID + "-quick-options-cuisine", IsSelect: true, Type: "checkbox", Label: "Cuisines:", Value: &q.Options.Cuisine, Options: q.cuisines, OnChange: q.SaveOptions, Hidden: q.excludeMap["cuisine"]},
 	}}
 }
 

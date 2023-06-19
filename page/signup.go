@@ -11,15 +11,10 @@ import (
 
 type SignUp struct {
 	app.Compo
-	user         osusu.User
-	showPassword bool
+	user osusu.User
 }
 
 func (s *SignUp) Render() app.UI {
-	passwordInputType := "password"
-	if s.showPassword {
-		passwordInputType = "text"
-	}
 	return &compo.Page{
 		ID:                     "sign-up",
 		Title:                  "Sign Up",
@@ -28,12 +23,11 @@ func (s *SignUp) Render() app.UI {
 		TitleElement:           "Sign Up",
 		Elements: []app.UI{
 			app.Form().ID("sign-up-page-form").Class("form").OnSubmit(s.OnSubmit).Body(
-				compo.TextInput().ID("sign-up-page-username").Label("Username:").Value(&s.user.Username).AutoFocus(true),
-				compo.TextInput().ID("sign-up-page-password").Type(passwordInputType).Label("Password:").Value(&s.user.Password),
-				compo.TextInput().ID("sign-up-page-name").Label("Name:").Value(&s.user.Name),
+				compo.TextInput(&compo.Input[string]{ID: "sign-up-page-username", Label: "Username:", Value: &s.user.Username, AutoFocus: true}),
+				compo.PasswordInput(&compo.Input[string]{ID: "sign-up-page-password", Label: "Password:", Value: &s.user.Password}),
+				compo.TextInput(&compo.Input[string]{ID: "sign-up-page-name", Label: "Name:", Value: &s.user.Name}),
 				&compo.ButtonRow{ID: "sign-up-page-checkboxes", Buttons: []app.UI{
-					compo.CheckboxChip().ID("sign-up-page-show-password").Label("Show Password").Default(false).Value(&s.showPassword),
-					compo.CheckboxChip().ID("sign-up-page-remember-me").Label("Remember Me").Default(true).Value(&s.user.RememberMe),
+					&compo.CheckboxChip{ID: "sign-up-page-remember-me", Label: "Remember Me", Default: true, Value: &s.user.RememberMe},
 				}},
 				&compo.ButtonRow{ID: "sign-up-page", Buttons: []app.UI{
 					&compo.Button{ID: "sign-up-page-cancel", Class: "secondary", Icon: "cancel", Text: "Cancel", OnClick: compo.NavigateEvent("/")},

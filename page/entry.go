@@ -1,6 +1,8 @@
 package page
 
 import (
+	"time"
+
 	"github.com/kkoreilly/osusu/api"
 	"github.com/kkoreilly/osusu/compo"
 	"github.com/kkoreilly/osusu/osusu"
@@ -42,13 +44,13 @@ func (e *Entry) Render() app.UI {
 		TitleElement: titleText,
 		Elements: []app.UI{
 			app.Form().ID("entry-page-form").Class("form").OnSubmit(e.OnSubmit).Body(
-				compo.DateInput().ID("entry-page-date").Label("When did you eat this?").Value(&e.entry.Date),
-				compo.RadioChips().ID("entry-page-category").Label("What meal did you eat this for?").Default("Dinner").Value(&e.entry.Category).Options(e.meal.Category...),
-				compo.RadioChips().ID("entry-page-source").Label("How did you get this meal?").Default("Cooking").Value(&e.entry.Source).Options(osusu.AllSources...),
-				compo.RangeInputUserMap(&e.entry.Taste, e.user).ID("entry-page-taste").Label("How tasty think this was?"),
-				compo.RangeInputUserMap(&e.entry.Cost, e.user).ID("entry-page-cost").Label("How expensive was this?"),
-				compo.RangeInputUserMap(&e.entry.Effort, e.user).ID("entry-page-effort").Label("How much effort did this take?"),
-				compo.RangeInputUserMap(&e.entry.Healthiness, e.user).ID("entry-page-healthiness").Label("How healthy was this?"),
+				compo.DateInput(&compo.Input[time.Time]{ID: "entry-page-date", Label: "When did you eat this?", Value: &e.entry.Date}),
+				&compo.Chips[string]{ID: "entry-page-category", Type: "radio", Label: "What meal did you eat this for?", Default: "Dinner", Value: &e.entry.Category, Options: e.meal.Category},
+				&compo.Chips[string]{ID: "entry-page-source", Type: "radio", Label: "How did you get this meal?", Default: "Cooking", Value: &e.entry.Source, Options: osusu.AllSources},
+				compo.RangeInputUserMap(&compo.Input[int]{ID: "entry-page-taste", Label: "How tasty think this was?"}, &e.entry.Taste, e.user),
+				compo.RangeInputUserMap(&compo.Input[int]{ID: "entry-page-cost", Label: "How expensive was this?"}, &e.entry.Cost, e.user),
+				compo.RangeInputUserMap(&compo.Input[int]{ID: "entry-page-effort", Label: "How much effort did this take?"}, &e.entry.Effort, e.user),
+				compo.RangeInputUserMap(&compo.Input[int]{ID: "entry-page-healthiness", Label: "How healthy was this?"}, &e.entry.Healthiness, e.user),
 				&compo.ButtonRow{ID: "entry-page", Buttons: []app.UI{
 					&compo.Button{ID: "entry-page-delete", Class: "danger", Icon: "delete", Text: "Delete", OnClick: e.InitialDelete, Hidden: e.isEntryNew},
 					&compo.Button{ID: "entry-page-cancel", Class: "secondary", Icon: "cancel", Text: "Cancel", OnClick: compo.ReturnToReturnURL},

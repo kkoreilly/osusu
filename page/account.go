@@ -43,13 +43,13 @@ func (a *Account) Render() app.UI {
 			}},
 			app.H2().ID("account-page-user-info-subtitle").Text("Change User Information:"),
 			app.Form().ID("account-page-user-info-form").Class("form").OnSubmit(a.ChangeUserInfo).Body(
-				compo.TextInput().ID("account-page-username").Label("Username:").Value(&a.user.Username),
-				compo.TextInput().ID("account-page-name").Label("Name:").Value(&a.user.Name),
+				compo.TextInput(&compo.Input[string]{ID: "account-page-username", Label: "Username:", Value: &a.user.Username}),
+				compo.TextInput(&compo.Input[string]{ID: "account-page-name", Label: "Name:", Value: &a.user.Name}),
 				&compo.Button{ID: "account-page-user-info-save", Class: "primary", Type: "submit", Icon: "save", Text: "Save"},
 			),
 			app.H2().ID("account-page-password-subtitle").Text("Change Password:"),
 			app.Form().ID("account-page-password-form").Class("form").OnSubmit(a.ChangePassword).Body(
-				compo.TextInput().ID("account-page-password").Type("password").Label("Password:").Value(&a.user.Password),
+				compo.PasswordInput(&compo.Input[string]{ID: "account-page-password", Label: "Password:", Value: &a.user.Password}),
 				&compo.Button{ID: "account-page-password-save", Class: "tertiary", Type: "submit", Icon: "save", Text: "Save"},
 			),
 			app.Dialog().ID("account-page-confirm-sign-out").Class("modal").Body(

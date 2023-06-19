@@ -20,7 +20,7 @@ func (c *CuisinesDialog) Render() app.UI {
 	return app.Div().ID(c.ID+"-cuisines-dialog-container").Class("cuisines-dialog-container").Body(
 		app.Dialog().ID(c.ID+"-cuisines-dialog").Class("cuisines-dialog", "modal").Body(
 			app.Form().ID(c.ID+"-cuisines-dialog-form").Class("form").OnSubmit(c.NewCuisine).Body(
-				TextInput().ID(c.ID+"-cuisines-dialog-name").Label("Create New Cuisine:").Value(&c.newCuisineName),
+				TextInput(&Input[string]{ID: c.ID + "-cuisines-dialog-name", Label: "Create New Cuisine:", Value: &c.newCuisineName}),
 				&ButtonRow{ID: c.ID + "-cuisines-dialog-button-row", Buttons: []app.UI{
 					&Button{ID: c.ID + "-cuisines-dialog-delete", Class: "danger", Icon: "delete", Text: "Delete Unused Cuisines", OnClick: c.InitialDelete},
 					&Button{ID: c.ID + "-cuisines-dialog-cancel", Class: "secondary", Icon: "cancel", Text: "Cancel", OnClick: c.Cancel},
@@ -84,6 +84,10 @@ func (c *CuisinesDialog) DeleteUnusedCuisines(ctx app.Context, e app.Event) {
 		for _, cuisine := range meal.Cuisine {
 			usedCuisines[cuisine] = true
 		}
+	}
+	// base cuisines are not stored in user cuisines
+	for _, cuisine := range osusu.BaseCuisines {
+		usedCuisines[cuisine] = false
 	}
 	newCuisines := []string{}
 	for cuisine, val := range usedCuisines {
