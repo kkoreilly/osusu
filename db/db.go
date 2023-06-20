@@ -40,9 +40,9 @@ func Connect() error {
 
 // CreateUser creates a user in the database and returns the created user if successful and an error if not
 func CreateUser(user osusu.User) (osusu.User, error) {
-	statement := `INSERT INTO users (username, password, name)
-	VALUES ($1, $2, $3) RETURNING id`
-	row := db.QueryRow(statement, user.Username, user.Password, user.Name)
+	statement := `INSERT INTO users (username, password, name, dietary)
+	VALUES ($1, $2, $3, $4) RETURNING id`
+	row := db.QueryRow(statement, user.Username, user.Password, user.Name, pq.Array(user.Dietary))
 	err := row.Scan(&user.ID)
 	if err != nil {
 		return osusu.User{}, err
@@ -52,10 +52,10 @@ func CreateUser(user osusu.User) (osusu.User, error) {
 
 // SignIn checks whether a specific user can sign into the database and returns the user if they can and an error if they can't
 func SignIn(user osusu.User) (osusu.User, error) {
-	statement := `SELECT id, password, name FROM users WHERE username=$1`
+	statement := `SELECT id, password, name, dietary FROM users WHERE username=$1`
 	row := db.QueryRow(statement, user.Username)
 	var password string
-	err := row.Scan(&user.ID, &password, &user.Name)
+	err := row.Scan(&user.ID, &password, &user.Name, pq.Array(&user.Dietary))
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return osusu.User{}, errors.New("no user with the given username exists")
@@ -72,18 +72,6 @@ func SignIn(user osusu.User) (osusu.User, error) {
 	return user, nil
 }
 
-// GetGroupCuisines gets the cuisines value of the group with the given id from the database
-func GetGroupCuisines(groupID int64) ([]string, error) {
-	statement := `SELECT cuisines FROM groups WHERE id = $1`
-	row := db.QueryRow(statement, groupID)
-	var cuisines []string
-	err := row.Scan(pq.Array(&cuisines))
-	if err != nil {
-		return nil, err
-	}
-	return cuisines, nil
-}
-
 // UpdateGroupCuisines updates the cuisines value of the given group in the database to its cuisines value
 func UpdateGroupCuisines(group osusu.Group) error {
 	statement := `UPDATE groups
@@ -96,9 +84,9 @@ func UpdateGroupCuisines(group osusu.Group) error {
 // UpdateUserInfo updates the username and name of the given user in the database
 func UpdateUserInfo(user osusu.User) error {
 	statement := `UPDATE users
-	SET username = $1, name = $2
-	WHERE id = $3`
-	_, err := db.Exec(statement, user.Username, user.Name, user.ID)
+	SET username = $1, name = $2, dietary = $3
+	WHERE id = $4`
+	_, err := db.Exec(statement, user.Username, user.Name, pq.Array(user.Dietary), user.ID)
 	return err
 }
 
@@ -113,7 +101,7 @@ func UpdatePassword(user osusu.User) error {
 
 // GetUsers gets all of the users with user ids contained within the given array of user ids
 func GetUsers(userIDs []int64) (osusu.Users, error) {
-	statement := `SELECT id, username, name FROM users WHERE id = ANY($1)`
+	statement := `SELECT id, username, name, dietary FROM users WHERE id = ANY($1)`
 	rows, err := db.Query(statement, pq.Array(userIDs))
 	if err != nil {
 		return nil, err
@@ -121,7 +109,7 @@ func GetUsers(userIDs []int64) (osusu.Users, error) {
 	res := osusu.Users{}
 	for rows.Next() {
 		var user osusu.User
-		err := rows.Scan(&user.ID, &user.Username, &user.Name)
+		err := rows.Scan(&user.ID, &user.Username, &user.Name, pq.Array(&user.Dietary))
 		if err != nil {
 			return nil, err
 		}
@@ -171,6 +159,18 @@ func GetGroups(userID int64) (osusu.Groups, error) {
 		res = append(res, group)
 	}
 	return res, nil
+}
+
+// GetGroupCuisines gets the cuisines value of the group with the given id from the database
+func GetGroupCuisines(groupID int64) ([]string, error) {
+	statement := `SELECT cuisines FROM groups WHERE id = $1`
+	row := db.QueryRow(statement, groupID)
+	var cuisines []string
+	err := row.Scan(pq.Array(&cuisines))
+	if err != nil {
+		return nil, err
+	}
+	return cuisines, nil
 }
 
 // CreateGroup creates the given group in the database and returns the created group if successful and an error if not

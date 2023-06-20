@@ -12,8 +12,9 @@ import (
 
 type Account struct {
 	app.Compo
-	group osusu.Group
-	user  osusu.User
+	group   osusu.Group
+	user    osusu.User
+	dietary map[string]bool
 }
 
 func (a *Account) Render() app.UI {
@@ -32,6 +33,10 @@ func (a *Account) Render() app.UI {
 			compo.SetReturnURL("/account", ctx)
 			a.group = osusu.CurrentGroup(ctx)
 			a.user = osusu.CurrentUser(ctx)
+			a.dietary = map[string]bool{}
+			for _, restriction := range a.user.Dietary {
+				a.dietary[restriction] = true
+			}
 		},
 		TitleElement:    "Account",
 		SubtitleElement: "You are currently signed into " + a.user.Username + " with the name " + a.user.Name + " and the group " + a.group.Name + ".",
@@ -45,6 +50,7 @@ func (a *Account) Render() app.UI {
 			app.Form().ID("account-page-user-info-form").Class("form").OnSubmit(a.ChangeUserInfo).Body(
 				compo.TextInput(&compo.Input[string]{ID: "account-page-username", Label: "Username:", Value: &a.user.Username}),
 				compo.TextInput(&compo.Input[string]{ID: "account-page-name", Label: "Name:", Value: &a.user.Name}),
+				&compo.Chips[map[string]bool]{ID: "account-page-dietary", Type: "checkbox", Label: "Dietary Restrictions:", Value: &a.dietary, Options: osusu.AllDietaryRestrictions},
 				&compo.Button{ID: "account-page-user-info-save", Class: "primary", Type: "submit", Icon: "save", Text: "Save"},
 			),
 			app.H2().ID("account-page-password-subtitle").Text("Change Password:"),
@@ -93,6 +99,12 @@ func (a *Account) CancelSignOut(ctx app.Context, e app.Event) {
 
 func (a *Account) ChangeUserInfo(ctx app.Context, e app.Event) {
 	e.PreventDefault()
+	a.user.Dietary = []string{}
+	for restriction, val := range a.dietary {
+		if val {
+			a.user.Dietary = append(a.user.Dietary, restriction)
+		}
+	}
 	_, err := api.UpdateUserInfo.Call(a.user)
 	if err != nil {
 		compo.CurrentPage.ShowErrorStatus(err)

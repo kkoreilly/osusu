@@ -7,6 +7,7 @@ import (
 	"github.com/kkoreilly/osusu/api"
 	"github.com/kkoreilly/osusu/compo"
 	"github.com/kkoreilly/osusu/osusu"
+	"github.com/kkoreilly/osusu/server"
 	"github.com/kkoreilly/osusu/util/list"
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
 )
@@ -121,7 +122,7 @@ func (d *Discover) RecommendRecipes() {
 			usedSources[meal.Source] = true
 		}
 	}
-	recipes, err := api.RecommendRecipes.Call(osusu.RecommendRecipesData{WordScoreMap: wordScoreMap, Options: d.options, UsedSources: usedSources, N: 0})
+	recipes, err := api.RecommendRecipes.Call(server.RecommendRecipesData{WordScoreMap: wordScoreMap, Options: d.options, UsedSources: usedSources, N: 0})
 	if err != nil {
 		compo.CurrentPage.ShowErrorStatus(err)
 		return

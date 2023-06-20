@@ -125,6 +125,11 @@ func (p *Page) Render() app.UI {
 	)
 }
 
+// Loaded returns whether the given page has been loaded
+func (p *Page) Loaded() bool {
+	return p.loaded
+}
+
 // ShowMenu shows the menu on the page
 func (p *Page) ShowMenu(ctx app.Context, e app.Event) {
 	app.Window().GetElementByID(p.ID + "-page-menu").Call("show")
@@ -135,6 +140,7 @@ func (p *Page) ShowStatus(text string, statusType osusu.StatusType) {
 	p.statusText = text
 	p.statusType = statusType
 	app.Window().GetElementByID(p.ID + "-page-status").Call("show")
+	p.Update()
 }
 
 // ShowErrorStatus is a shorthand for ShowStatus(err.Error(), StatusTypeNegative)
@@ -190,9 +196,14 @@ func (p *Page) OnNav(ctx app.Context) {
 		p.OnNavFunc(ctx)
 	}
 
+	// need to defer so that things load first
 	ctx.Defer(func(ctx app.Context) {
 		app.Window().GetElementByID(p.ID+"-page-main").Get("style").Set("opacity", 1)
 		p.dialogElements = app.Window().Get("document").Call("querySelectorAll", ".select, .modal")
+		scrollPosition := ScrollPosition(p.ID, ctx)
+		if scrollPosition != 0 {
+			p.SetScrollPosition(scrollPosition)
+		}
 	})
 	p.loaded = true
 }
@@ -254,12 +265,36 @@ func SetReturnURL(returnURL string, ctx app.Context) {
 	ctx.SetState("returnURL", returnURL, app.Persist)
 }
 
+// ScrollPosition returns the current scroll position of the given page
+func (p *Page) ScrollPosition() float64 {
+	return app.Window().GetElementByID(p.ID + "-page-main").Get("scrollTop").Float()
+}
+
+// SetScrollPosition sets the scroll position of the given page to the given value
+func (p *Page) SetScrollPosition(scrollPosition float64) {
+	app.Window().GetElementByID(p.ID+"-page-main").Set("scrollTop", scrollPosition)
+}
+
+// ScrollPosition returns the last scroll position for the given page
+func ScrollPosition(page string, ctx app.Context) float64 {
+	var scrollPosition float64
+	ctx.GetState(page+"PageScrollPosition", &scrollPosition)
+	return scrollPosition
+}
+
+// SetScrollPosition sets the last scroll position state value for the given page in local storage
+func SetScrollPosition(page string, scrollPosition float64, ctx app.Context) {
+	ctx.SetState(page+"PageScrollPosition", scrollPosition, app.Persist)
+}
+
 // Navigate navigates to the given URL using the given context
 func Navigate(urlString string, ctx app.Context) {
 	// no need to navigate if we are already there (also prevents being stuck on 0 opacity)
 	if urlString == ctx.Page().URL().Path {
 		return
 	}
+	scrollPosition := CurrentPage.ScrollPosition()
+	SetScrollPosition(CurrentPage.ID, scrollPosition, ctx)
 	urlObject, err := url.Parse(urlString)
 	if err != nil {
 		CurrentPage.ShowErrorStatus(err)

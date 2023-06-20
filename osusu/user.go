@@ -10,8 +10,9 @@ type User struct {
 	Username   string
 	Password   string
 	Name       string
-	Session    string // session id, not part of user in user database, but stored locally
-	RememberMe bool   // also not part of user database, but used to transmit whether to save session
+	Dietary    []string // the dietary restrictions of the user
+	Session    string   // session id, not part of user in user database, but stored locally
+	RememberMe bool     // also not part of user database, but used to transmit whether to save session
 }
 
 // Users is a slice of users

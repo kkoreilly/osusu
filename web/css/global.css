@@ -9,6 +9,7 @@
     --color-one-text: black;
     --color-two: hsl(220, 80%, 50%);
     --color-two-dark: hsl(220, 80%, 30%);
+    --color-two-very-dark: hsl(220, 80%, 15%);
     --color-two-text: white;
     --color-three: hsl(55, 95%, 65%);
     --color-three-dark: hsl(55, 95%, 40%);

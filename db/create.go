@@ -45,6 +45,7 @@ func CreateUsersTable() error {
 		username text NOT NULL,
 		password text NOT NULL,
 		name text NOT NULL,
+		dietary text[] NOT NULL,
 		CONSTRAINT users_pkey PRIMARY KEY (id),
 		CONSTRAINT users_username_key UNIQUE (username)
 	)`

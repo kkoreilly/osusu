@@ -102,8 +102,8 @@ func (q *QuickOptions) SaveOptions(ctx app.Context, e app.Event, val string) {
 	}
 }
 
-// OnInit is called when the quick options component is loaded
-func (q *QuickOptions) OnInit() {
+// OnMount is called when the quick options component is loaded
+func (q *QuickOptions) OnMount(ctx app.Context) {
 	q.excludeMap = map[string]bool{}
 	if q.Exclude != nil {
 		for _, option := range q.Exclude {
@@ -159,4 +159,20 @@ func (q *QuickOptions) OnInit() {
 			}
 		}
 	}
+
+	if q.Options.ExcludedIngredients == nil {
+		q.Options.ExcludedIngredients = map[string]bool{}
+	}
+	for _, user := range q.users {
+		if !q.Options.Users[user.ID] {
+			continue
+		}
+		for _, restriction := range user.Dietary {
+			ingredients := osusu.DietaryRestrictionsIngredientsMap[restriction]
+			for _, ingredient := range ingredients {
+				q.Options.ExcludedIngredients[ingredient] = true
+			}
+		}
+	}
+	osusu.SetOptions(*q.Options, ctx)
 }

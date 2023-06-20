@@ -219,6 +219,16 @@ func (r Recipe) ComputeBaseScoreIndex() Score {
 	return score
 }
 
+// GetWords returns all of the words contained within the name, description, and ingredients of the recipe
+func (r Recipe) GetWords() []string {
+	words := GetWords(r.Name)
+	words = append(words, GetWords(r.Description)...)
+	for _, ingredient := range r.Ingredients {
+		words = append(words, GetWords(ingredient)...)
+	}
+	return words
+}
+
 // CountCategories returns how many of each category there are in the given recipes and how many recipes have any category
 func (r Recipes) CountCategories() (map[string]int, int) {
 	res := map[string]int{}
@@ -421,14 +431,6 @@ func GenerateWordMap(recipes Recipes) map[string]Recipes {
 		}
 	}
 	return res
-}
-
-// RecommendRecipesData is the data used in a recommend recipes call
-type RecommendRecipesData struct {
-	WordScoreMap map[string]Score
-	Options      Options
-	UsedSources  map[string]bool
-	N            int // the iteration that we are on (ie: n = 3 for the fourth time we are getting recipes for the same options), we return 100 new meals each time
 }
 
 // FormatDuration converts an ISO 8601 duration to a Go-formatted duration

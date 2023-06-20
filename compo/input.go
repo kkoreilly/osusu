@@ -1,6 +1,7 @@
 package compo
 
 import (
+	"strconv"
 	"time"
 
 	"github.com/kkoreilly/osusu/osusu"
@@ -12,6 +13,7 @@ type Input[T any] struct {
 	app.Compo
 	ID                 string
 	Class              string
+	Styles             map[string]string
 	IsTextarea         bool   // whether the input is a text area instead of an input
 	Type               string // the html type of the input (ex: text, password, range)
 	Label              string
@@ -39,7 +41,7 @@ func (i *Input[T]) Render() app.UI {
 		inputType = "text"
 		buttonIcon = "visibility_off"
 	}
-	var input app.UI = app.Input().ID(i.ID+"-input").Class("input", i.Class).Type(inputType).Placeholder(i.Placeholder).AutoFocus(i.AutoFocus).Value(value).OnChange(func(ctx app.Context, e app.Event) {
+	var input app.UI = app.Input().ID(i.ID+"-input").Class("input", i.Class).Styles(i.Styles).Type(inputType).Placeholder(i.Placeholder).AutoFocus(i.AutoFocus).Value(value).OnChange(func(ctx app.Context, e app.Event) {
 		*i.Value = i.ValueFunc(e.Get("target"))
 	})
 	if i.IsTextarea {
@@ -74,7 +76,12 @@ func PasswordInput(input *Input[string]) *Input[string] {
 
 // RangeInput converts the given input component into a range input component
 func RangeInput(input *Input[int]) *Input[int] {
-	input.Class = "input-range"
+	input.Class += " input-range"
+	if input.Styles == nil {
+		input.Styles = map[string]string{}
+	}
+	// input.Styles["--percent-value"] = strconv.Itoa(*input.Value) + "%"
+	input.Styles["--h-value"] = strconv.Itoa(12 * (*input.Value) / 10)
 	input.Type = "range"
 	input.ValueFunc = ValueFuncInt
 	return input
@@ -90,7 +97,7 @@ func DateInput(input *Input[time.Time]) *Input[time.Time] {
 
 // TextareaInput converts the given input component into a textarea input component
 func TextareaInput(input *Input[string]) *Input[string] {
-	input.Class = "input-textarea"
+	input.Class += " input-textarea"
 	input.IsTextarea = true
 	input.ValueFunc = ValueFuncString
 	return input
@@ -99,7 +106,11 @@ func TextareaInput(input *Input[string]) *Input[string] {
 // RangeInputUserMap converts the input component into a range input component that has its values associated with the entry in the user map corresponding to the given user
 func RangeInputUserMap(input *Input[int], value *osusu.UserMap, user osusu.User) *Input[int] {
 	val := (*value)[user.ID]
-	input.Class = "input-range"
+	input.Class += " input-range"
+	if input.Styles == nil {
+		input.Styles = map[string]string{}
+	}
+	input.Styles["--h-value"] = strconv.Itoa(12 * val / 10)
 	input.Type = "range"
 	input.Value = &val
 	input.ValueFunc = func(v app.Value) int {

@@ -265,6 +265,6 @@ var DeleteEntry = New(http.MethodDelete, "/api/deleteEntry", func(id int64) (str
 })
 
 // RecommendRecipes returns a list of recommended recipes based on the given word score map
-var RecommendRecipes = New(http.MethodGet, "/api/recommendRecipes", func(data osusu.RecommendRecipesData) (osusu.Recipes, error) {
+var RecommendRecipes = New(http.MethodGet, "/api/recommendRecipes", func(data server.RecommendRecipesData) (osusu.Recipes, error) {
 	return server.RecommendRecipes(data), nil
 })

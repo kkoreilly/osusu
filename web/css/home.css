@@ -66,7 +66,7 @@ form.options-form {
     padding: 1rem 0;
 }
 
-input.options-cost-input {
+/* input.options-cost-input {
     --thumb-color: orange;
     --progress-color: hsl(39, 100%, 70%);
 }
@@ -84,7 +84,7 @@ input.options-taste-input {
 input.options-recency-input {
     --thumb-color: red;
     --progress-color: hsl(0, 100%, 70%);
-}
+} */
 
 input.options-healthiness-input-container {
     padding-bottom: 1rem;

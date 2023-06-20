@@ -7,8 +7,16 @@ import (
 	"github.com/kkoreilly/osusu/util/mat"
 )
 
+// RecommendRecipesData is the data used in a recommend recipes call
+type RecommendRecipesData struct {
+	WordScoreMap map[string]osusu.Score
+	Options      osusu.Options
+	UsedSources  map[string]bool
+	N            int // the iteration that we are on (ie: n = 3 for the fourth time we are getting recipes for the same options), we return 100 new meals each time
+}
+
 // RecommendRecipes returns a list of recommended new recipes based on the given recommend recipes data
-func RecommendRecipes(data osusu.RecommendRecipesData) osusu.Recipes {
+func RecommendRecipes(data RecommendRecipesData) osusu.Recipes {
 	if len(AllRecipes) == 0 {
 		return osusu.Recipes{}
 	}
@@ -54,12 +62,25 @@ func RecommendRecipes(data osusu.RecommendRecipesData) osusu.Recipes {
 			numSkipped++
 			continue
 		}
+
+		words := recipe.GetWords()
+
+		hasExcludedIngredient := false
+		for _, word := range words {
+			if data.Options.ExcludedIngredients[word] {
+				hasExcludedIngredient = true
+				break
+			}
+		}
+		if hasExcludedIngredient {
+			numSkipped++
+			continue
+		}
 		// need to subtract num skipped so that i stays in line with the number of items in the indices slice
 		i -= numSkipped
 		// only append to indices and recipes if it matches conditions above
 		indices = append(indices, i)
 		recipes = append(recipes, recipe)
-		words := osusu.GetWords(recipe.Name)
 		recipeScores := []osusu.ScoreWeight{}
 		// use map to track unique matches and simple int to count total
 		matches := map[string]bool{}

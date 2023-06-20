@@ -6,6 +6,18 @@ var AllCategories = []string{"Breakfast", "Brunch", "Lunch", "Dinner", "Dessert"
 // AllSources are all of the possible meal sources
 var AllSources = []string{"Cooking", "Dine-In", "Takeout", "Delivery"}
 
+// AllDietaryRestrictions are all of the default possible dietary restrictions. Users can add specific ingredients that they can't have separately if needed.
+var AllDietaryRestrictions = []string{"Vegetarian", "Vegan", "Gluten-Free", "Lactose-Free", "Nut-Free", "Dairy-Free", "Kosher", "Halal"}
+
+// DietaryRestrictionsIngredientsMap are the ingredients disallowed for each dietary restriction in AllDietaryRestrictions
+var DietaryRestrictionsIngredientsMap = map[string][]string{
+	"Vegetarian": {
+		"meat", "pork", "beef", "veal", "lamb", "sausage", "sausages", "bacon", "goat", "venison", "rabbit", "pepperoni", "steak", "steaks", "ribs", "ham", "chuck", "dogs", "prosciutto", "brisket",
+		"poultry", "chicken", "turkey", "duck", "emu", "goose",
+		"fish", "prawns", "mussels", "oysters", "clams", "salmon", "tuna", "scallops", "halibut", "lobster", "crab", "flounder", "trout", "shrimp", "catfish", "crawfish", "octopus",
+	},
+}
+
 // CategoryToCategoryMap has a list of all categories and their aliases
 var CategoryToCategoryMap = map[string][]string{
 	"Dinner":     {"Dinner", "Entree", "Pasta"},
