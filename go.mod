@@ -3,10 +3,10 @@ module github.com/kkoreilly/osusu
 go 1.19
 
 require (
-	github.com/emer/etable v1.1.22
+	github.com/emer/etable v1.1.23
 	github.com/gocolly/colly/v2 v2.1.0
-	github.com/goki/gi v1.3.18
-	github.com/kkoreilly/gobp v0.0.0-20230615045839-013dcd92b836
+	github.com/goki/gi v1.3.19
+	github.com/kkoreilly/gobp v0.0.0-20230620042417-8f2b6f2b9366
 	github.com/lib/pq v1.10.9
 	github.com/maxence-charriere/go-app/v9 v9.6.7
 	golang.org/x/crypto v0.10.0
@@ -26,7 +26,7 @@ require (
 	github.com/alecthomas/chroma/v2 v2.7.0 // indirect
 	github.com/andybalholm/cascadia v1.3.2 // indirect
 	github.com/antchfx/htmlquery v1.3.0 // indirect
-	github.com/antchfx/xmlquery v1.3.16 // indirect
+	github.com/antchfx/xmlquery v1.3.17 // indirect
 	github.com/antchfx/xpath v1.2.4 // indirect
 	github.com/anthonynsimon/bild v0.13.0 // indirect
 	github.com/antonmedv/expr v1.12.5 // indirect
@@ -53,7 +53,7 @@ require (
 	github.com/goki/pi v1.0.27 // indirect
 	github.com/goki/prof v1.0.0 // indirect
 	github.com/goki/vci v1.0.1 // indirect
-	github.com/goki/vgpu v1.0.27 // indirect
+	github.com/goki/vgpu v1.0.31 // indirect
 	github.com/goki/vulkan v1.0.6 // indirect
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
