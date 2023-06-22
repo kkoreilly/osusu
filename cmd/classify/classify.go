@@ -104,7 +104,7 @@ func mainrun() {
 // Classify loads, classifies, and saves the recipes
 func Classify() {
 	useSubset = flag.Bool("subset", false, "use a random 10 percent subset of the recipes for faster testing")
-	learningRate = flag.Float64("lr", 0.01, "learning rate of the neural network")
+	learningRate = flag.Float64("lr", 0.001, "learning rate of the neural network")
 	numHiddenLayers = flag.Int("layers", 1, "number of hidden layers")
 	numHiddenUnits = flag.Int("units", 500, "number of hidden units")
 	flag.Parse()
@@ -202,13 +202,33 @@ func GetRecipeWords(recipes osusu.Recipes) ([]string, map[int][]string) {
 
 // Infer infers the categories and cuisines of all of the given recipes with them missing using the given recipe words using the SoftMax decoder.
 func Infer(recipes osusu.Recipes, words []string, recipeWordsMap map[int][]string) osusu.Recipes {
-	ca := gobp.NewNetwork(len(words), len(osusu.AllCategories), *numHiddenLayers, *numHiddenUnits) // category decoder
-	ca.OutputActivationFunc = gobp.SoftMax
-	ca.LearningRate = float32(*learningRate)
+	// category network
+	ca := &gobp.Network{
+		LearningRate: float32(*learningRate),
 
-	cu := gobp.NewNetwork(len(words), len(osusu.BaseCuisines), *numHiddenLayers, *numHiddenUnits) // cuisine decoder
-	cu.OutputActivationFunc = gobp.SoftMax
-	cu.LearningRate = float32(*learningRate)
+		NumInputs:       len(words),
+		NumOutputs:      len(osusu.AllCategories),
+		NumHiddenLayers: *numHiddenLayers,
+		NumHiddenUnits:  *numHiddenUnits,
+		// NumGoroutines:   1,
+
+		OutputActivationFunc: gobp.SoftMax,
+	}
+	ca.Init()
+
+	// cuisine network
+	cu := &gobp.Network{
+		LearningRate: float32(*learningRate),
+
+		NumInputs:       len(words),
+		NumOutputs:      len(osusu.BaseCuisines),
+		NumHiddenLayers: *numHiddenLayers,
+		NumHiddenUnits:  *numHiddenUnits,
+		// NumGoroutines:   1,
+
+		OutputActivationFunc: gobp.SoftMax,
+	}
+	cu.Init()
 
 	wordMap := map[string]int{}
 	for i, word := range words {
