@@ -2,7 +2,10 @@ module github.com/kkoreilly/osusu
 
 go 1.21.0
 
-require goki.dev/gi/v2 v2.0.0-dev0.0.10
+require (
+	goki.dev/gi/v2 v2.0.0-dev0.0.10
+	goki.dev/goosi v0.0.10
+)
 
 require (
 	github.com/BurntSushi/freetype-go v0.0.0-20160129220410-b763ddbfe298 // indirect
@@ -42,7 +45,6 @@ require (
 	goki.dev/enums v0.9.37 // indirect
 	goki.dev/girl v0.0.18 // indirect
 	goki.dev/glop v0.1.4 // indirect
-	goki.dev/goosi v0.0.10 // indirect
 	goki.dev/grog v0.0.12 // indirect
 	goki.dev/grows v0.3.14 // indirect
 	goki.dev/grr v0.0.5 // indirect

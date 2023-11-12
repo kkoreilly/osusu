@@ -9,6 +9,6 @@ func main() { gimain.Run(app) }
 
 func app() {
 	sc := gi.NewScene("osusu").SetTitle("Osusu")
-	gi.NewLabel(sc).SetType(gi.LabelHeadlineSmall).SetText("Osusu")
+	base(sc)
 	gi.NewWindow(sc).Run().Wait()
 }
