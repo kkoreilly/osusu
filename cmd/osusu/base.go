@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/kkoreilly/osusu/auth"
 	"goki.dev/gi/v2/gi"
 	"goki.dev/goosi/events"
 )
@@ -16,4 +17,5 @@ func base(sc *gi.Scene) {
 	gi.NewButton(brow).SetText("Sign up").OnClick(func(e events.Event) {
 		signUp(sc)
 	})
+	auth.GoogleButton(brow)
 }
