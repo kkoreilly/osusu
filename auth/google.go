@@ -6,12 +6,14 @@ package auth
 
 import (
 	"context"
+	"crypto/rand"
 	_ "embed"
 	"fmt"
 	"net/http"
 	"os"
 
 	"github.com/coreos/go-oidc/v3/oidc"
+	"goki.dev/goosi"
 	"golang.org/x/oauth2"
 )
 
@@ -102,6 +104,12 @@ func Google(ctx context.Context) (*oauth2.Token, error) {
 	})
 	// TODO(kai/auth): more graceful closing / error handling
 	go http.ListenAndServe(":5556", sm)
+
+	b := make([]byte, 16)
+	rand.Read(b)
+	state := string(b)
+
+	goosi.TheApp.OpenURL(config.AuthCodeURL(state))
 
 	cs := <-code
 
