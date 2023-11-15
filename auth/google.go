@@ -8,6 +8,7 @@ import (
 	"context"
 	"crypto/rand"
 	_ "embed"
+	"encoding/base64"
 	"fmt"
 	"net/http"
 	"os"
@@ -89,7 +90,7 @@ func Google(ctx context.Context) (*oauth2.Token, error) {
 
 	b := make([]byte, 16)
 	rand.Read(b)
-	state := string(b)
+	state := base64.RawURLEncoding.EncodeToString(b)
 
 	code := make(chan string)
 
