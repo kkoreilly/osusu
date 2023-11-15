@@ -6,33 +6,14 @@ package auth
 
 import (
 	"context"
-	"math/rand"
-	"net/http"
-	"strconv"
-
 	_ "embed"
+	"fmt"
+	"net/http"
+	"os"
 
-	"goki.dev/colors"
-	"goki.dev/gi/v2/gi"
-	"goki.dev/girl/styles"
-	"goki.dev/goosi"
-	"goki.dev/goosi/events"
-	"goki.dev/mat32/v2"
+	"github.com/coreos/go-oidc/v3/oidc"
 	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/google"
 )
-
-// Buttons adds a new vertical layout to the given parent with authentication
-// buttons for major platforms. It calls the given function with the resulting
-// authentication token when the user successfully authenticates.
-func Buttons(par gi.Widget, fun func(token *oauth2.Token)) *gi.Layout {
-	ly := gi.NewLayout(par)
-	ly.Style(func(s *styles.Style) {
-		s.MainAxis = mat32.Y
-	})
-	GoogleButton(ly, fun)
-	return ly
-}
 
 //go:embed google-secret.json
 var googleSecret []byte
@@ -44,24 +25,7 @@ var googleSecret []byte
 // 	icons.Icons = merged_fs.NewMergedFS(icons.Icons, googleIcon)
 // }
 
-// GoogleButton adds a new button for signing in with Google.
-// It calls the given function when the token is obtained.
-func GoogleButton(par gi.Widget, fun func(token *oauth2.Token)) *gi.Button {
-	bt := gi.NewButton(par, "sign-in-with-google").SetType(gi.ButtonOutlined).
-		SetText("Sign in with Google") //.SetIcon("google")
-	bt.Style(func(s *styles.Style) {
-		s.Color = colors.Scheme.OnSurface
-	})
-	bt.OnClick(func(e events.Event) {
-		token, err := Google()
-		if err != nil {
-			gi.NewDialog(par).Title("Error signing in with Google").Prompt(err.Error())
-		}
-		fun(token)
-	})
-	return bt
-}
-
+/*
 // Google authenticates the user with Google.
 func Google() (*oauth2.Token, error) {
 	ctx := context.TODO()
@@ -98,4 +62,57 @@ func Google() (*oauth2.Token, error) {
 		return nil, err
 	}
 	return token, nil
+}
+*/
+
+var (
+	clientID     = os.Getenv("GOOGLE_OAUTH2_CLIENT_ID")
+	clientSecret = os.Getenv("GOOGLE_OAUTH2_CLIENT_SECRET")
+)
+
+func Google(ctx context.Context) (*oauth2.Token, error) {
+	provider, err := oidc.NewProvider(ctx, "https://accounts.google.com")
+	if err != nil {
+		return nil, err
+	}
+
+	config := oauth2.Config{
+		ClientID:     clientID,
+		ClientSecret: clientSecret,
+		RedirectURL:  "http://127.0.0.1:5556/auth/google/callback",
+		Endpoint:     provider.Endpoint(),
+		Scopes:       []string{oidc.ScopeOpenID, "profile", "email"},
+	}
+
+	code := make(chan string)
+
+	sm := http.NewServeMux()
+	sm.HandleFunc("/auth/google/callback", func(w http.ResponseWriter, r *http.Request) {
+		state, err := r.Cookie("state")
+		if err != nil {
+			http.Error(w, "state not found", http.StatusBadRequest)
+			return
+		}
+		if r.URL.Query().Get("state") != state.Value {
+			http.Error(w, "state did not match", http.StatusBadRequest)
+			return
+		}
+		code <- r.URL.Query().Get("code")
+		w.Write([]byte("<h1>Signed in</h1><p>You can return to the app</p>"))
+	})
+	// TODO(kai/auth): more graceful closing / error handling
+	go http.ListenAndServe(":5556", sm)
+
+	cs := <-code
+
+	oauth2Token, err := config.Exchange(ctx, cs)
+	if err != nil {
+		return nil, fmt.Errorf("failed to exchange token: %w", err)
+	}
+	userInfo, err := provider.UserInfo(ctx, oauth2.StaticTokenSource(oauth2Token))
+	if err != nil {
+		return oauth2Token, fmt.Errorf("failed to get user info: %w", err)
+	}
+	fmt.Println(userInfo)
+	return oauth2Token, nil
 }
