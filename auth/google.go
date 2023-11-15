@@ -7,7 +7,6 @@ package auth
 import (
 	"context"
 	"crypto/rand"
-	_ "embed"
 	"encoding/base64"
 	"fmt"
 	"net/http"
@@ -18,65 +17,17 @@ import (
 	"golang.org/x/oauth2"
 )
 
-//go:embed google-secret.json
-var googleSecret []byte
-
-// //go:embed google-icon.svg
-// var googleIcon embed.FS
-
-// func init() {
-// 	icons.Icons = merged_fs.NewMergedFS(icons.Icons, googleIcon)
-// }
-
-/*
-// Google authenticates the user with Google.
-func Google() (*oauth2.Token, error) {
-	ctx := context.TODO()
-
-	config, err := google.ConfigFromJSON(googleSecret, "openid")
-	if err != nil {
-		return nil, err
-	}
-
-	// TODO(kai/auth): is this a good way to determine the port?
-	port := rand.Intn(10_000)
-	sport := ":" + strconv.Itoa(port)
-	config.RedirectURL += sport
-
-	code := make(chan string)
-	sm := http.NewServeMux()
-	sm.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		code <- r.URL.Query().Get("code")
-		w.Write([]byte("<h1>Signed in</h1><p>You can return to the app</p>"))
-	})
-	// TODO(kai/auth): more graceful closing / error handling
-	go http.ListenAndServe(sport, sm)
-
-	// use PKCE to protect against CSRF attacks
-	// https://www.ietf.org/archive/id/draft-ietf-oauth-security-topics-22.html#name-countermeasures-6
-	verifier := oauth2.GenerateVerifier()
-
-	url := config.AuthCodeURL("state", oauth2.AccessTypeOffline, oauth2.S256ChallengeOption(verifier))
-	goosi.TheApp.OpenURL(url)
-
-	cs := <-code
-	token, err := config.Exchange(ctx, cs, oauth2.VerifierOption(verifier))
-	if err != nil {
-		return nil, err
-	}
-	return token, nil
-}
-*/
-
 var (
 	clientID     = os.Getenv("GOOGLE_OAUTH2_CLIENT_ID")
 	clientSecret = os.Getenv("GOOGLE_OAUTH2_CLIENT_SECRET")
 )
 
-func Google(ctx context.Context) (*oauth2.Token, error) {
+// Google authenticates the user with Google and returns the oauth token
+// and user info.
+func Google(ctx context.Context) (*oauth2.Token, *oidc.UserInfo, error) {
 	provider, err := oidc.NewProvider(ctx, "https://accounts.google.com")
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	config := oauth2.Config{
@@ -112,12 +63,11 @@ func Google(ctx context.Context) (*oauth2.Token, error) {
 
 	oauth2Token, err := config.Exchange(ctx, cs)
 	if err != nil {
-		return nil, fmt.Errorf("failed to exchange token: %w", err)
+		return nil, nil, fmt.Errorf("failed to exchange token: %w", err)
 	}
 	userInfo, err := provider.UserInfo(ctx, oauth2.StaticTokenSource(oauth2Token))
 	if err != nil {
-		return oauth2Token, fmt.Errorf("failed to get user info: %w", err)
+		return oauth2Token, nil, fmt.Errorf("failed to get user info: %w", err)
 	}
-	fmt.Println(userInfo)
-	return oauth2Token, nil
+	return oauth2Token, userInfo, nil
 }
