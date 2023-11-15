@@ -6,10 +6,11 @@ package auth
 
 import (
 	"context"
-	"fmt"
 	"math/rand"
 	"net/http"
 	"strconv"
+
+	_ "embed"
 
 	"goki.dev/colors"
 	"goki.dev/gi/v2/gi"
@@ -31,28 +32,30 @@ var googleSecret []byte
 // }
 
 // GoogleButton adds a new button for signing in with Google.
-func GoogleButton(par gi.Widget) *gi.Button {
+// It calls the given function when the token is obtained.
+func GoogleButton(par gi.Widget, fun func(token *oauth2.Token)) *gi.Button {
 	bt := gi.NewButton(par, "sign-in-with-google").SetType(gi.ButtonOutlined).
-		SetText("Sign in with Google").SetIcon("google")
+		SetText("Sign in with Google") //.SetIcon("google")
 	bt.Style(func(s *styles.Style) {
 		s.Color = colors.Scheme.OnSurface
 	})
 	bt.OnClick(func(e events.Event) {
-		err := Google()
+		token, err := Google()
 		if err != nil {
 			gi.NewDialog(par).Title("Error signing in with Google").Prompt(err.Error())
 		}
+		fun(token)
 	})
 	return bt
 }
 
 // Google authenticates the user with Google.
-func Google() error {
+func Google() (*oauth2.Token, error) {
 	ctx := context.TODO()
 
 	config, err := google.ConfigFromJSON(googleSecret, "openid")
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// TODO(kai/auth): is this a good way to determine the port?
@@ -79,8 +82,7 @@ func Google() error {
 	cs := <-code
 	token, err := config.Exchange(ctx, cs, oauth2.VerifierOption(verifier))
 	if err != nil {
-		return err
+		return nil, err
 	}
-	fmt.Println("got token", token)
-	return nil
+	return token, nil
 }
