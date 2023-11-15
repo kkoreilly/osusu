@@ -17,9 +17,22 @@ import (
 	"goki.dev/girl/styles"
 	"goki.dev/goosi"
 	"goki.dev/goosi/events"
+	"goki.dev/mat32/v2"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 )
+
+// Buttons adds a new vertical layout to the given parent with authentication
+// buttons for major platforms. It calls the given function with the resulting
+// authentication token when the user successfully authenticates.
+func Buttons(par gi.Widget, fun func(token *oauth2.Token)) *gi.Layout {
+	ly := gi.NewLayout(par)
+	ly.Style(func(s *styles.Style) {
+		s.MainAxis = mat32.Y
+	})
+	GoogleButton(ly, fun)
+	return ly
+}
 
 //go:embed google-secret.json
 var googleSecret []byte
