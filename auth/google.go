@@ -85,17 +85,17 @@ func Google(ctx context.Context) (*oauth2.Token, error) {
 		Endpoint:     provider.Endpoint(),
 		Scopes:       []string{oidc.ScopeOpenID, "profile", "email"},
 	}
+	fmt.Println(config)
+
+	b := make([]byte, 16)
+	rand.Read(b)
+	state := string(b)
 
 	code := make(chan string)
 
 	sm := http.NewServeMux()
 	sm.HandleFunc("/auth/google/callback", func(w http.ResponseWriter, r *http.Request) {
-		state, err := r.Cookie("state")
-		if err != nil {
-			http.Error(w, "state not found", http.StatusBadRequest)
-			return
-		}
-		if r.URL.Query().Get("state") != state.Value {
+		if r.URL.Query().Get("state") != state {
 			http.Error(w, "state did not match", http.StatusBadRequest)
 			return
 		}
@@ -103,11 +103,7 @@ func Google(ctx context.Context) (*oauth2.Token, error) {
 		w.Write([]byte("<h1>Signed in</h1><p>You can return to the app</p>"))
 	})
 	// TODO(kai/auth): more graceful closing / error handling
-	go http.ListenAndServe(":5556", sm)
-
-	b := make([]byte, 16)
-	rand.Read(b)
-	state := string(b)
+	go http.ListenAndServe("127.0.0.1:5556", sm)
 
 	goosi.TheApp.OpenURL(config.AuthCodeURL(state))
 
