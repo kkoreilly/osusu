@@ -1,9 +1,8 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/kkoreilly/osusu/auth"
+	"github.com/kkoreilly/osusu/osusu"
 	"goki.dev/gi/v2/gi"
 	"golang.org/x/oauth2"
 )
@@ -14,6 +13,11 @@ func base(sc *gi.Scene) {
 
 	brow := gi.NewLayout(sc)
 	auth.Buttons(brow, func(token *oauth2.Token) {
-		fmt.Println("got token", token)
+		user := &osusu.User{
+			Username:     "username",
+			AccessToken:  token.RefreshToken,
+			RefreshToken: token.RefreshToken,
+		}
+		osusu.DB.Create(user)
 	})
 }
