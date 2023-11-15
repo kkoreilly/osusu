@@ -6,13 +6,14 @@ package auth
 
 import (
 	"context"
-	"embed"
 	"fmt"
 	"math/rand"
 	"net/http"
 	"strconv"
 
+	"goki.dev/colors"
 	"goki.dev/gi/v2/gi"
+	"goki.dev/girl/styles"
 	"goki.dev/goosi"
 	"goki.dev/goosi/events"
 	"golang.org/x/oauth2"
@@ -20,11 +21,22 @@ import (
 )
 
 //go:embed google-secret.json
-var googleSecret embed.FS
+var googleSecret []byte
+
+// //go:embed google-icon.svg
+// var googleIcon embed.FS
+
+// func init() {
+// 	icons.Icons = merged_fs.NewMergedFS(icons.Icons, googleIcon)
+// }
 
 // GoogleButton adds a new button for signing in with Google.
 func GoogleButton(par gi.Widget) *gi.Button {
-	bt := gi.NewButton(par, "sign-in-with-google").SetType(gi.ButtonOutlined).SetText("Sign in with Google")
+	bt := gi.NewButton(par, "sign-in-with-google").SetType(gi.ButtonOutlined).
+		SetText("Sign in with Google").SetIcon("google")
+	bt.Style(func(s *styles.Style) {
+		s.Color = colors.Scheme.OnSurface
+	})
 	bt.OnClick(func(e events.Event) {
 		err := Google()
 		if err != nil {
@@ -38,11 +50,7 @@ func GoogleButton(par gi.Widget) *gi.Button {
 func Google() error {
 	ctx := context.TODO()
 
-	b, err := googleSecret.ReadFile("google-secret.json")
-	if err != nil {
-		return err
-	}
-	config, err := google.ConfigFromJSON(b, "openid")
+	config, err := google.ConfigFromJSON(googleSecret, "openid")
 	if err != nil {
 		return err
 	}
@@ -56,7 +64,7 @@ func Google() error {
 	sm := http.NewServeMux()
 	sm.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		code <- r.URL.Query().Get("code")
-		w.Write([]byte("<h1>Authentication Successful</h1><p>You can close this browser tab and return to the app</p>"))
+		w.Write([]byte("<h1>Signed in</h1><p>You can return to the app</p>"))
 	})
 	// TODO(kai/auth): more graceful closing / error handling
 	go http.ListenAndServe(sport, sm)
