@@ -32,7 +32,7 @@ func Buttons(par gi.Widget, fun func(token *oauth2.Token, userInfo *oidc.UserInf
 // It calls the given function when the token and user info are obtained.
 func GoogleButton(par gi.Widget, fun func(token *oauth2.Token, userInfo *oidc.UserInfo)) *gi.Button {
 	bt := gi.NewButton(par, "sign-in-with-google").SetType(gi.ButtonOutlined).
-		SetText("Sign in with Google") //.SetIcon("google")
+		SetText("Sign in with Google").SetIcon("google")
 	bt.Style(func(s *styles.Style) {
 		s.Color = colors.Scheme.OnSurface
 	})

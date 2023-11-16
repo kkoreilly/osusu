@@ -120,6 +120,8 @@ github.com/stretchr/testify v1.8.4 h1:CcVxjf3Q8PM0mHUKJCdn+eZZtm5yQwehR5yeSVQQcU
 github.com/stretchr/testify v1.8.4/go.mod h1:sz/lmYIOXD/1dqDmKjjqLyZ2RngseejIcXlSw2iwfAo=
 github.com/ugorji/go/codec v0.0.0-20181204163529-d75b2dcb6bc8/go.mod h1:VFNgLljTbGfSG7qAOspJ7OScBnGdDN/yBr0sguwnwf0=
 github.com/xordataexchange/crypt v0.0.3-0.20170626215501-b2862e3d0a77/go.mod h1:aYKd//L2LvnjZzWKhF00oedf4jCCReLcmhLdhm1A27Q=
+github.com/yalue/merged_fs v1.2.3 h1:lJ32O+ZiVF4h+4SD8e7IfG8+V2Em4LPcT3Z7h2n2TrY=
+github.com/yalue/merged_fs v1.2.3/go.mod h1:WqqchfVYQyclV2tnR7wtRhBddzBvLVR83Cjw9BKQw0M=
 github.com/yuin/goldmark v1.4.13/go.mod h1:6yULJ656Px+3vBD8DxQVa3kxgyrAnzto9xy5taEt/CY=
 goki.dev/cam v0.9.34 h1:0CDh/Z6BjZ90KvWOae/oyKeXz5MHyslWtDjyW4DM9rk=
 goki.dev/cam v0.9.34/go.mod h1:vo4v8EjeNktXjj8xEcaZ4Qhk4tcAwBcXY+qa29tae3s=

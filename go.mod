@@ -4,10 +4,12 @@ go 1.21.0
 
 require (
 	github.com/coreos/go-oidc/v3 v3.7.0
+	github.com/yalue/merged_fs v1.2.3
 	goki.dev/colors v0.8.28
 	goki.dev/gi/v2 v2.0.0-dev0.0.10
 	goki.dev/girl v0.0.18
 	goki.dev/goosi v0.0.10
+	goki.dev/icons v0.0.8
 	goki.dev/mat32/v2 v2.0.0-dev0.0.12
 	goki.dev/rqlite v0.0.0-20231114052146-c10124932c4d
 	golang.org/x/oauth2 v0.14.0
@@ -59,7 +61,6 @@ require (
 	goki.dev/grows v0.3.14 // indirect
 	goki.dev/grr v0.0.5 // indirect
 	goki.dev/gti v0.1.15 // indirect
-	goki.dev/icons v0.0.8 // indirect
 	goki.dev/ki/v2 v2.0.0-dev0.0.18 // indirect
 	goki.dev/laser v0.1.17 // indirect
 	goki.dev/ordmap v0.5.6 // indirect
