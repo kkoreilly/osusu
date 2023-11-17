@@ -3,6 +3,9 @@ package main
 import (
 	"github.com/kkoreilly/osusu/osusu"
 	"goki.dev/gi/v2/gi"
+	"goki.dev/gi/v2/giv"
+	"goki.dev/goosi/events"
+	"goki.dev/icons"
 )
 
 var curUser *osusu.User
@@ -18,10 +21,25 @@ func home() {
 	// 	gi.NewImage(sc).SetImage(img, 0, 0)
 	// }
 
+	gi.DefaultTopAppBar = func(tb *gi.TopAppBar) {
+		gi.DefaultTopAppBarStd(tb)
+		gi.NewButton(tb).SetIcon(icons.Add).SetText("New meal").OnClick(func(e events.Event) {
+			d := gi.NewDialog(tb).Title("New meal").FullWindow(true)
+			meal := &osusu.Meal{}
+			giv.NewStructView(d).SetStruct(meal)
+			d.OnAccept(func(e events.Event) {
+				err := osusu.DB.Create(meal).Error
+				if err != nil {
+					gi.NewDialog(d).Title("Error creating meal").Prompt(err.Error())
+				}
+			}).Cancel().Ok().Run()
+		})
+	}
+
 	tabs := gi.NewTabs(sc)
 
 	search := tabs.NewTab("Search")
-	gi.NewLabel(search).SetType(gi.LabelHeadlineLarge).SetText("Search")
+
 	mf := gi.NewFrame(search)
 
 	var meals []*osusu.Meal
