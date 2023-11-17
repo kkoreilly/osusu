@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/kkoreilly/osusu/osusu"
@@ -28,7 +27,8 @@ func base(sc *gi.Scene) {
 		err = osusu.DB.First(&oldUser, "email = ?", user.Email).Error
 		// if we already have a user with the same email, we don't need to make a new account
 		if err == nil {
-			signedIn(&oldUser)
+			curUser = &oldUser
+			home()
 			return
 		}
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
@@ -39,10 +39,7 @@ func base(sc *gi.Scene) {
 		if err != nil {
 			gi.NewDialog(brow).Title("Error creating new user").Prompt(err.Error()).Run()
 		}
-		signedIn(user)
+		curUser = user
+		home()
 	})
-}
-
-func signedIn(user *osusu.User) {
-	fmt.Println("signed in", user)
 }
