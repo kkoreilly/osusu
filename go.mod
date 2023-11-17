@@ -4,10 +4,14 @@ go 1.21.0
 
 require (
 	github.com/coreos/go-oidc/v3 v3.7.0
+	goki.dev/colors v0.8.29
+	goki.dev/enums v0.9.38
 	goki.dev/gi/v2 v2.0.0-dev0.0.13
+	goki.dev/girl v0.0.21
 	goki.dev/goosi v0.0.11
 	goki.dev/icons v0.0.9
 	goki.dev/kid v0.0.0-20231117011147-b91cf97890ac
+	goki.dev/mat32/v2 v2.0.0-dev0.0.13
 	goki.dev/rqlite v0.0.0-20231114052146-c10124932c4d
 	golang.org/x/oauth2 v0.14.0
 	gorm.io/gorm v1.25.5
@@ -52,10 +56,7 @@ require (
 	github.com/srwiley/scanx v0.0.0-20190309010443-e94503791388 // indirect
 	github.com/yalue/merged_fs v1.2.3 // indirect
 	goki.dev/cam v0.9.35 // indirect
-	goki.dev/colors v0.8.29 // indirect
 	goki.dev/cursors v0.0.17 // indirect
-	goki.dev/enums v0.9.38 // indirect
-	goki.dev/girl v0.0.21 // indirect
 	goki.dev/glop v0.1.4 // indirect
 	goki.dev/grog v0.0.13 // indirect
 	goki.dev/grows v0.3.15 // indirect
@@ -63,7 +64,6 @@ require (
 	goki.dev/gti v0.1.16 // indirect
 	goki.dev/ki/v2 v2.0.0-dev0.0.19 // indirect
 	goki.dev/laser v0.1.18 // indirect
-	goki.dev/mat32/v2 v2.0.0-dev0.0.13 // indirect
 	goki.dev/ordmap v0.5.7 // indirect
 	goki.dev/pi/v2 v2.0.0-dev0.0.12 // indirect
 	goki.dev/prof/v2 v2.0.0-dev0.0.4 // indirect

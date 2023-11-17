@@ -6,6 +6,8 @@ import "gorm.io/gorm"
 
 type Meal struct {
 	gorm.Model  `view:"-"`
+	GroupID     uint  `view:"-"`
+	Group       Group `view:"-"`
 	Name        string
 	Description string
 	Source      string

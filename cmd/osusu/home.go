@@ -9,9 +9,11 @@ import (
 	"goki.dev/girl/units"
 	"goki.dev/goosi/events"
 	"goki.dev/icons"
+	"goki.dev/mat32/v2"
 )
 
 var curUser *osusu.User
+var curGroup *osusu.Group
 
 func home() {
 	sc := gi.NewScene("home")
@@ -29,6 +31,7 @@ func home() {
 	search := tabs.NewTab("Search")
 
 	mf := gi.NewFrame(search)
+
 	configMeals(mf)
 
 	gi.DefaultTopAppBar = func(tb *gi.TopAppBar) {
@@ -48,6 +51,11 @@ func home() {
 	}
 
 	gi.NewWindow(sc).SetSharedWin().Run()
+
+	err := osusu.DB.Find(curGroup, curUser.GroupID).Error
+	if err != nil {
+		groups(sc)
+	}
 }
 
 func configMeals(mf *gi.Frame) {
@@ -68,8 +76,12 @@ func configMeals(mf *gi.Frame) {
 			s.Padding.Set(units.Dp(8))
 			s.Min.Set(units.Em(10))
 			s.SetGrow(0)
+			s.MainAxis = mat32.Y
 		})
 		gi.NewLabel(mc).SetType(gi.LabelHeadlineSmall).SetText(meal.Name)
+		gi.NewLabel(mc).SetText(meal.Description).Style(func(s *styles.Style) {
+			s.Color = colors.Scheme.OnSurfaceVariant
+		})
 	}
 	mf.Update()
 	mf.UpdateEndLayout(updt)
