@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/coreos/go-oidc/v3/oidc"
@@ -8,6 +9,7 @@ import (
 	"goki.dev/gi/v2/gi"
 	"goki.dev/kid"
 	"golang.org/x/oauth2"
+	"gorm.io/gorm"
 )
 
 func base(sc *gi.Scene) {
@@ -22,7 +24,25 @@ func base(sc *gi.Scene) {
 			gi.NewDialog(brow).Title("Error getting user info").Prompt(err.Error()).Run()
 			return
 		}
-		fmt.Println(user)
-		osusu.DB.Create(user)
+		var oldUser osusu.User
+		err = osusu.DB.First(&oldUser, "email = ?", user.Email).Error
+		// if we already have a user with the same email, we don't need to make a new account
+		if err == nil {
+			signedIn(&oldUser)
+			return
+		}
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			gi.NewDialog(brow).Title("Error checking for existing user").Prompt(err.Error()).Run()
+			return
+		}
+		err = osusu.DB.Create(user).Error
+		if err != nil {
+			gi.NewDialog(brow).Title("Error creating new user").Prompt(err.Error()).Run()
+		}
+		signedIn(user)
 	})
+}
+
+func signedIn(user *osusu.User) {
+	fmt.Println("signed in", user)
 }
