@@ -40,7 +40,7 @@ func home() {
 			d.OnAccept(func(e events.Event) {
 				err := osusu.DB.Create(meal).Error
 				if err != nil {
-					gi.NewDialog(d).Title("Error creating meal").Prompt(err.Error())
+					gi.NewDialog(d).Title("Error creating meal").Prompt(err.Error()).Run()
 				}
 				configMeals(mf)
 			}).Cancel().Ok().Run()

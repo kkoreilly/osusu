@@ -9,4 +9,5 @@ type User struct {
 	Name       string
 	Locale     string
 	Picture    string
+	GroupID    uint
 }
