@@ -2,8 +2,11 @@ package main
 
 import (
 	"github.com/kkoreilly/osusu/osusu"
+	"goki.dev/colors"
 	"goki.dev/gi/v2/gi"
 	"goki.dev/gi/v2/giv"
+	"goki.dev/girl/styles"
+	"goki.dev/girl/units"
 	"goki.dev/goosi/events"
 	"goki.dev/icons"
 )
@@ -21,6 +24,13 @@ func home() {
 	// 	gi.NewImage(sc).SetImage(img, 0, 0)
 	// }
 
+	tabs := gi.NewTabs(sc)
+
+	search := tabs.NewTab("Search")
+
+	mf := gi.NewFrame(search)
+	configMeals(mf)
+
 	gi.DefaultTopAppBar = func(tb *gi.TopAppBar) {
 		gi.DefaultTopAppBarStd(tb)
 		gi.NewButton(tb).SetIcon(icons.Add).SetText("New meal").OnClick(func(e events.Event) {
@@ -32,15 +42,19 @@ func home() {
 				if err != nil {
 					gi.NewDialog(d).Title("Error creating meal").Prompt(err.Error())
 				}
+				configMeals(mf)
 			}).Cancel().Ok().Run()
 		})
 	}
 
-	tabs := gi.NewTabs(sc)
+	gi.NewWindow(sc).SetSharedWin().Run()
+}
 
-	search := tabs.NewTab("Search")
-
-	mf := gi.NewFrame(search)
+func configMeals(mf *gi.Frame) {
+	if mf.HasChildren() {
+		mf.DeleteChildren(true)
+	}
+	updt := mf.UpdateStart()
 
 	var meals []*osusu.Meal
 	err := osusu.DB.Find(&meals).Error
@@ -48,11 +62,17 @@ func home() {
 		gi.NewDialog(mf).Title("Error finding meals").Prompt(err.Error()).Run()
 	}
 	for _, meal := range meals {
-		mc := gi.NewFrame(mf)
-		gi.NewLabel(mc).SetText(meal.Name)
+		mc := gi.NewFrame(mf).Style(func(s *styles.Style) {
+			s.Border.Radius = styles.BorderRadiusLarge
+			s.BackgroundColor.SetSolid(colors.Scheme.SurfaceContainerLow)
+			s.Padding.Set(units.Dp(8))
+			s.Min.Set(units.Em(10))
+			s.SetGrow(0)
+		})
+		gi.NewLabel(mc).SetType(gi.LabelHeadlineSmall).SetText(meal.Name)
 	}
-
-	gi.NewWindow(sc).SetSharedWin().Run()
+	mf.Update()
+	mf.UpdateEndLayout(updt)
 }
 
 // func getPicture() image.Image {

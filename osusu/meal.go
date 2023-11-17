@@ -3,7 +3,7 @@ package osusu
 import "gorm.io/gorm"
 
 type Meal struct {
-	gorm.Model
+	gorm.Model  `view:"-"`
 	Name        string
 	Description string
 	Source      string
