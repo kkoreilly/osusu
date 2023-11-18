@@ -201,7 +201,7 @@ func cardStyles(card *gi.Frame) {
 		s.Border.Radius = styles.BorderRadiusLarge
 		s.BackgroundColor.SetSolid(colors.Scheme.SurfaceContainerLow)
 		s.Padding.Set(units.Dp(8))
-		s.Min.Set(units.Em(10))
+		s.Min.Set(units.Em(20))
 		s.SetGrow(0)
 		s.MainAxis = mat32.Y
 	})
