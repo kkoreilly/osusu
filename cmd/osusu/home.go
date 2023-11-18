@@ -20,8 +20,11 @@ import (
 	"gorm.io/gorm"
 )
 
-var curUser *osusu.User
-var curGroup *osusu.Group
+var (
+	curUser    *osusu.User
+	curGroup   *osusu.Group
+	curOptions = osusu.DefaultOptions()
+)
 
 func home() {
 	sc := gi.NewScene("home")
@@ -51,6 +54,13 @@ func home() {
 				}
 				configSearch(mf)
 			}).Cancel().Ok("Create").Run()
+		})
+		gi.NewButton(tb).SetIcon(icons.Sort).SetText("Sort").OnClick(func(e events.Event) {
+			d := gi.NewDialog(tb).Title("Sort").FullWindow(true)
+			giv.NewStructView(d).SetStruct(curOptions)
+			d.OnAccept(func(e events.Event) {
+				configSearch(mf)
+			}).Run()
 		})
 	}
 
@@ -103,7 +113,7 @@ func configSearch(mf *gi.Frame) {
 		}
 
 		score := meal.Score(entries)
-		score.ComputeTotal()
+		score.ComputeTotal(curOptions)
 		scoreGrid(mc, score, true)
 
 		mc.OnClick(func(e events.Event) {
@@ -170,7 +180,7 @@ func viewEntries(meal *osusu.Meal, entries []osusu.Entry, mc *gi.Frame) {
 		})
 
 		score := entry.Score()
-		score.ComputeTotal()
+		score.ComputeTotal(curOptions)
 		scoreGrid(ec, score, false)
 
 		ec.OnClick(func(e events.Event) {
@@ -231,7 +241,7 @@ func configHistory(ef *gi.Frame) {
 		})
 
 		score := entry.Score()
-		score.ComputeTotal()
+		score.ComputeTotal(curOptions)
 		scoreGrid(ec, score, false)
 
 		ec.OnClick(func(e events.Event) {

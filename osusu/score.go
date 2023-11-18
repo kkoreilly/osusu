@@ -13,9 +13,15 @@ type Score struct {
 	Total       int
 }
 
-func (s *Score) ComputeTotal() {
-	s.Total = s.Taste + s.Recency + s.Cost + s.Effort + s.Healthiness
-	s.Total /= 5
+func (s *Score) ComputeTotal(opts *Options) {
+	s.Total = (s.Taste * opts.TasteImportance) + (s.Recency * opts.RecencyImportance) +
+		(s.Cost * opts.CostImportance) + (s.Effort * opts.EffortImportance) +
+		(s.Healthiness * opts.HealthinessImportance)
+
+	totImp := opts.TasteImportance + opts.RecencyImportance + opts.CostImportance + opts.EffortImportance + opts.HealthinessImportance
+	if totImp != 0 {
+		s.Total /= totImp
+	}
 }
 
 func (e *Entry) Score() *Score {
