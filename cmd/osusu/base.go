@@ -26,7 +26,7 @@ func base(sc *gi.Scene) {
 		user := &osusu.User{}
 		err := userInfo.Claims(&user)
 		if err != nil {
-			gi.NewDialog(brow).Title("Error getting user info").Prompt(err.Error()).Ok().Run()
+			gi.ErrorDialog(brow, err).Run()
 			return
 		}
 		var oldUser osusu.User
@@ -39,12 +39,12 @@ func base(sc *gi.Scene) {
 			return
 		}
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
-			gi.NewDialog(brow).Title("Error checking for existing user").Prompt(err.Error()).Ok().Run()
+			gi.ErrorDialog(brow, err).Run()
 			return
 		}
 		err = osusu.DB.Create(user).Error
 		if err != nil {
-			gi.NewDialog(brow).Title("Error creating new user").Prompt(err.Error()).Ok().Run()
+			gi.ErrorDialog(brow, err).Run()
 		}
 		curUser = user
 		saveSession(sc)
@@ -63,14 +63,14 @@ func loadSession(sc *gi.Scene) {
 		return
 	}
 	if err != nil {
-		gi.NewDialog(sc).Title("Error getting current session").Prompt(err.Error()).Ok().Run()
+		gi.ErrorDialog(sc, err).Run()
 		return
 	}
 	// sessions expire after 2 weeks
 	if time.Since(session.CreatedAt) > 2*7*24*time.Hour {
 		err := osusu.DB.Delete(session).Error
 		if err != nil {
-			gi.NewDialog(sc).Title("Error deleting expired session").Prompt(err.Error()).Ok().Run()
+			gi.ErrorDialog(sc, err).Run()
 		}
 		return
 	}
@@ -88,11 +88,11 @@ func saveSession(sc *gi.Scene) {
 	}
 	err := osusu.DB.Create(session).Error
 	if err != nil {
-		gi.NewDialog(sc).Title("Error creating session").Prompt(err.Error()).Ok().Run()
+		gi.ErrorDialog(sc, err).Run()
 		return
 	}
 	err = os.WriteFile(filepath.Join(goosi.TheApp.AppPrefsDir(), "sessionToken.json"), []byte(token), 0666)
 	if err != nil {
-		gi.NewDialog(sc).Title("Error saving session token").Prompt(err.Error()).Ok().Run()
+		gi.ErrorDialog(sc, err).Run()
 	}
 }

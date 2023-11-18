@@ -46,7 +46,7 @@ func home() {
 			d.OnAccept(func(e events.Event) {
 				err := osusu.DB.Create(meal).Error
 				if err != nil {
-					gi.NewDialog(tb).Title("Error creating meal").Prompt(err.Error()).Ok().Run()
+					gi.ErrorDialog(tb, err).Run()
 					return
 				}
 				configSearch(mf)
@@ -62,7 +62,7 @@ func home() {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			groups(sc)
 		} else {
-			gi.NewDialog(sc).Title("Error getting current group").Prompt(err.Error()).Run()
+			gi.ErrorDialog(sc, err).Run()
 		}
 	}
 }
@@ -76,7 +76,7 @@ func configSearch(mf *gi.Frame) {
 	var meals []*osusu.Meal
 	err := osusu.DB.Find(&meals).Error
 	if err != nil {
-		gi.NewDialog(mf).Title("Error finding meals").Prompt(err.Error()).Ok().Run()
+		gi.ErrorDialog(mf, err).Run()
 	}
 	for _, meal := range meals {
 		meal := meal
@@ -91,7 +91,7 @@ func configSearch(mf *gi.Frame) {
 		entries := []osusu.Entry{}
 		err := osusu.DB.Find(&entries, "meal_id = ? AND user_id = ?", meal.ID, curUser.ID).Error
 		if err != nil {
-			gi.NewDialog(mc).Title("Error finding entries for meal").Prompt(err.Error()).Ok().Run()
+			gi.ErrorDialog(mc, err).Run()
 		}
 
 		score := meal.Score(entries)
@@ -132,7 +132,7 @@ func newEntry(meal *osusu.Meal, mc *gi.Frame) {
 	d.OnAccept(func(e events.Event) {
 		err := osusu.DB.Create(entry).Error
 		if err != nil {
-			gi.NewDialog(d).Title("Error creating entry").Prompt(err.Error()).Ok().Run()
+			gi.ErrorDialog(d, err).Run()
 		}
 	}).Cancel().Ok("Create").Run()
 }
@@ -166,7 +166,7 @@ func editEntry(entry *osusu.Entry, ec *gi.Frame) {
 	d.OnAccept(func(e events.Event) {
 		err := osusu.DB.Save(entry).Error
 		if err != nil {
-			gi.NewDialog(d).Title("Error saving entry").Prompt(err.Error()).Ok().Run()
+			gi.ErrorDialog(d, err).Run()
 		}
 	}).Cancel().Ok("Save").Run()
 }
@@ -177,7 +177,7 @@ func editMeal(mf *gi.Frame, meal *osusu.Meal, mc *gi.Frame) {
 	d.OnAccept(func(e events.Event) {
 		err := osusu.DB.Save(meal).Error
 		if err != nil {
-			gi.NewDialog(d).Title("Error saving meal").Prompt(err.Error()).Ok().Run()
+			gi.ErrorDialog(d, err).Run()
 		}
 		configSearch(mf)
 	}).Cancel().Ok("Save").Run()
@@ -187,7 +187,7 @@ func configHistory(ef *gi.Frame) {
 	entries := []osusu.Entry{}
 	err := osusu.DB.Preload("Meal").Find(&entries, "user_id = ?", curUser.ID).Error
 	if err != nil {
-		gi.NewDialog(ef).Title("Error finding entries").Prompt(err.Error()).Ok().Run()
+		gi.ErrorDialog(ef, err).Run()
 	}
 	for _, entry := range entries {
 		entry := &entry

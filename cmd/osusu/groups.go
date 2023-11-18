@@ -19,14 +19,14 @@ func groups(bsc *gi.Scene) {
 	gi.NewButton(d).SetText("Create group").OnClick(func(e events.Event) {
 		err := osusu.DB.Create(newGroup).Error
 		if err != nil {
-			gi.NewDialog(d).Title("Error creating new group").Prompt(err.Error()).Ok().Run()
+			gi.ErrorDialog(d, err).Run()
 			return
 		}
 		curGroup = newGroup
 		curUser.GroupID = newGroup.ID
 		err = osusu.DB.Save(curUser).Error
 		if err != nil {
-			gi.NewDialog(d).Title("Error updating user").Prompt(err.Error()).Ok().Run()
+			gi.ErrorDialog(d, err).Run()
 		}
 		d.AcceptDialog()
 	})
