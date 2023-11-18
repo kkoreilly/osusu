@@ -1,5 +1,7 @@
 package osusu
 
+import "goki.dev/enums"
+
 type Options struct {
 	Categories            Categories
 	Sources               Sources
@@ -12,11 +14,21 @@ type Options struct {
 }
 
 func DefaultOptions() *Options {
-	return &Options{
+	opts := &Options{
 		TasteImportance:       50,
 		RecencyImportance:     50,
 		CostImportance:        50,
 		EffortImportance:      50,
 		HealthinessImportance: 50,
 	}
+	for _, v := range opts.Categories.Values() {
+		opts.Categories.SetFlag(true, v.(enums.BitFlag))
+	}
+	for _, v := range opts.Sources.Values() {
+		opts.Sources.SetFlag(true, v.(enums.BitFlag))
+	}
+	for _, v := range opts.Cuisines.Values() {
+		opts.Cuisines.SetFlag(true, v.(enums.BitFlag))
+	}
+	return opts
 }
