@@ -43,14 +43,15 @@ func home() {
 			d.OnAccept(func(e events.Event) {
 				err := osusu.DB.Create(meal).Error
 				if err != nil {
-					gi.NewDialog(d).Title("Error creating meal").Prompt(err.Error()).Run()
+					gi.NewDialog(tb).Title("Error creating meal").Prompt(err.Error()).Run()
+					return
 				}
 				configMeals(mf)
 			}).Cancel().Ok().Run()
 		})
 	}
 
-	gi.NewWindow(sc).SetSharedWin().Run()
+	gi.NewWindow(sc).SetNewWindow(false).Run()
 
 	err := osusu.DB.Find(curGroup, curUser.GroupID).Error
 	if err != nil {

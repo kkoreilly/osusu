@@ -8,7 +8,7 @@ import (
 )
 
 func groups(bsc *gi.Scene) {
-	d := gi.NewDialog(bsc, "groups")
+	d := gi.NewDialog(bsc, "groups").FullWindow(true)
 	gi.NewLabel(d).SetType(gi.LabelHeadlineMedium).SetText("Join group")
 	groupCode := ""
 	giv.NewValue(d, &groupCode)

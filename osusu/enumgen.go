@@ -4,7 +4,6 @@ package osusu
 
 import (
 	"database/sql/driver"
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -132,8 +131,10 @@ func (i *Categories) SetStringOr(s string) error {
 			i.SetFlag(true, &val)
 		} else if val, ok := _CategoriesNameToValueMap[strings.ToLower(flg)]; ok {
 			i.SetFlag(true, &val)
+		} else if flg == "" {
+			continue
 		} else {
-			return errors.New(flg + " is not a valid value for type Categories")
+			return fmt.Errorf("%q is not a valid value for type Categories", flg)
 		}
 	}
 	return nil
@@ -393,8 +394,10 @@ func (i *Cuisines) SetStringOr(s string) error {
 			i.SetFlag(true, &val)
 		} else if val, ok := _CuisinesNameToValueMap[strings.ToLower(flg)]; ok {
 			i.SetFlag(true, &val)
+		} else if flg == "" {
+			continue
 		} else {
-			return errors.New(flg + " is not a valid value for type Cuisines")
+			return fmt.Errorf("%q is not a valid value for type Cuisines", flg)
 		}
 	}
 	return nil
