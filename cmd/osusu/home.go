@@ -25,13 +25,6 @@ var curGroup *osusu.Group
 func home() {
 	sc := gi.NewScene("home")
 	gi.NewLabel(sc).SetType(gi.LabelHeadlineLarge).SetText("Welcome, " + curUser.Name)
-	// gi.NewLabel(sc).SetText("Email address: " + curUser.Email)
-	// gi.NewLabel(sc).SetText("Locale: " + curUser.Locale)
-
-	// img := getPicture()
-	// if img != nil {
-	// 	gi.NewImage(sc).SetImage(img, 0, 0)
-	// }
 
 	tabs := gi.NewTabs(sc).SetDeleteTabButtons(false)
 
@@ -252,19 +245,3 @@ func friendlyBitFlagString(bf enums.BitFlag) string {
 	}
 	return res
 }
-
-// func getPicture() image.Image {
-// 	if curUser.Picture == "" {
-// 		return nil
-// 	}
-// 	resp, err := http.Get(curUser.Picture)
-// 	if grr.Log0(err) != nil {
-// 		return nil
-// 	}
-// 	defer resp.Body.Close()
-// 	img, _, err := images.Read(resp.Body)
-// 	if grr.Log0(err) != nil {
-// 		return nil
-// 	}
-// 	return img
-// }
