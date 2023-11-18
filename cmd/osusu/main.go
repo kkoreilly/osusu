@@ -9,6 +9,7 @@ import (
 func main() { gimain.Run(app) }
 
 func app() {
+	gi.SetAppName("osusu")
 	sc := gi.NewScene("osusu").SetTitle("Osusu")
 	base(sc)
 	w := gi.NewWindow(sc).Run()
@@ -16,5 +17,6 @@ func app() {
 	if err != nil {
 		gi.NewDialog(sc).Title("Error opening database").Prompt(err.Error()).Run()
 	}
+	loadSession(sc)
 	w.Wait()
 }
