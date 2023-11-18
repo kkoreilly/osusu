@@ -96,7 +96,6 @@ func configSearch(mf *gi.Frame) {
 
 		score := meal.Score(entries)
 		score.ComputeTotal()
-
 		scoreGrid(mc, score, true)
 
 		mc.OnClick(func(e events.Event) {
@@ -153,6 +152,11 @@ func viewEntries(meal *osusu.Meal, entries []osusu.Entry, mc *gi.Frame) {
 		gi.NewLabel(ec).SetText(friendlyBitFlagString(entry.Category) + " • " + friendlyBitFlagString(entry.Source)).Style(func(s *styles.Style) {
 			s.Color = colors.Scheme.OnSurfaceVariant
 		})
+
+		score := entry.Score()
+		score.ComputeTotal()
+		scoreGrid(ec, score, false)
+
 		ec.OnClick(func(e events.Event) {
 			editEntry(entry, ec)
 		})
@@ -197,6 +201,11 @@ func configHistory(ef *gi.Frame) {
 		gi.NewLabel(ec).SetText(entry.Meal.Name + " • " + friendlyBitFlagString(entry.Category) + " • " + friendlyBitFlagString(entry.Source)).Style(func(s *styles.Style) {
 			s.Color = colors.Scheme.OnSurfaceVariant
 		})
+
+		score := entry.Score()
+		score.ComputeTotal()
+		scoreGrid(ec, score, false)
+
 		ec.OnClick(func(e events.Event) {
 			editEntry(entry, ec)
 		})
