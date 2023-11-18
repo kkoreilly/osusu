@@ -7,11 +7,11 @@ import (
 )
 
 type Entry struct {
-	gorm.Model
-	MealID      uint
-	Meal        Meal
-	UserID      uint
-	User        User
+	gorm.Model  `view:"-"`
+	MealID      uint `view:"-"`
+	Meal        Meal `view:"-"`
+	UserID      uint `view:"-"`
+	User        User `view:"-"`
 	Time        time.Time
 	Category    Categories
 	Source      Sources

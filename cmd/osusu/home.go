@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"time"
 
 	"github.com/kkoreilly/osusu/osusu"
 	"goki.dev/colors"
@@ -42,7 +43,7 @@ func home() {
 	gi.DefaultTopAppBar = func(tb *gi.TopAppBar) {
 		gi.DefaultTopAppBarStd(tb)
 		gi.NewButton(tb).SetIcon(icons.Add).SetText("New meal").OnClick(func(e events.Event) {
-			d := gi.NewDialog(tb).Title("New meal").FullWindow(true)
+			d := gi.NewDialog(tb).Title("Create meal").FullWindow(true)
 			meal := &osusu.Meal{}
 			giv.NewStructView(d).SetStruct(meal)
 			d.OnAccept(func(e events.Event) {
@@ -52,7 +53,7 @@ func home() {
 					return
 				}
 				configMeals(mf)
-			}).Cancel().Ok("Create meal").Run()
+			}).Cancel().Ok("Create").Run()
 		})
 	}
 
@@ -99,7 +100,9 @@ func configMeals(mf *gi.Frame) {
 		})
 		mc.OnClick(func(e events.Event) {
 			gi.NewMenu(func(m *gi.Scene) {
-				gi.NewButton(m).SetIcon(icons.Add).SetText("New entry")
+				gi.NewButton(m).SetIcon(icons.Add).SetText("New entry").OnClick(func(e events.Event) {
+					newEntry(meal, mc)
+				})
 				gi.NewButton(m).SetIcon(icons.Visibility).SetText("View entries")
 				gi.NewButton(m).SetIcon(icons.Edit).SetText("Edit meal").OnClick(func(e events.Event) {
 					editMeal(mf, meal, mc)
@@ -121,6 +124,26 @@ func editMeal(mf *gi.Frame, meal *osusu.Meal, mc *gi.Frame) {
 		}
 		configMeals(mf)
 	}).Cancel().Ok("Save").Run()
+}
+
+func newEntry(meal *osusu.Meal, mc *gi.Frame) {
+	d := gi.NewDialog(mc).Title("Create entry").FullWindow(true)
+	entry := &osusu.Entry{
+		MealID:      meal.ID,
+		UserID:      curUser.ID,
+		Time:        time.Now(),
+		Cost:        50,
+		Effort:      50,
+		Healthiness: 50,
+		Taste:       50,
+	}
+	giv.NewStructView(d).SetStruct(entry)
+	d.OnAccept(func(e events.Event) {
+		err := osusu.DB.Create(entry).Error
+		if err != nil {
+			gi.NewDialog(d).Title("Error creating entry").Prompt(err.Error()).Ok().Run()
+		}
+	}).Cancel().Ok("Create").Run()
 }
 
 // func getPicture() image.Image {
