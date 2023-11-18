@@ -56,7 +56,7 @@ func home() {
 			}).Cancel().Ok("Create").Run()
 		})
 		gi.NewButton(tb).SetIcon(icons.Sort).SetText("Sort").OnClick(func(e events.Event) {
-			d := gi.NewDialog(tb).Title("Sort").FullWindow(true)
+			d := gi.NewDialog(tb).Title("Sort and filter").FullWindow(true)
 			giv.NewStructView(d).SetStruct(curOptions)
 			d.OnAccept(func(e events.Event) {
 				configSearch(mf)
@@ -90,6 +90,16 @@ func configSearch(mf *gi.Frame) {
 	}
 	for _, meal := range meals {
 		meal := meal
+
+		if !bitFlagsOverlap(meal.Category, curOptions.Categories) {
+			continue
+		}
+		if !bitFlagsOverlap(meal.Source, curOptions.Sources) {
+			continue
+		}
+		if !bitFlagsOverlap(meal.Cuisine, curOptions.Cuisines) {
+			continue
+		}
 
 		mc := gi.NewFrame(mf)
 		cardStyles(mc)
@@ -310,14 +320,27 @@ func scoreGrid(card *gi.Frame, score *osusu.Score, showRecency bool) *gi.Layout 
 	return grid
 }
 
+// bitFlagsOverlap returns whether there is any overlap between the two bit flags.
+// They should be of the same type.
+func bitFlagsOverlap(a, b enums.BitFlag) bool {
+	vals := a.Values()
+	for _, v := range vals {
+		vb := v.(enums.BitFlag)
+		if a.HasFlag(vb) && b.HasFlag(vb) {
+			return true
+		}
+	}
+	return false
+}
+
 func friendlyBitFlagString(bf enums.BitFlag) string {
 	matches := []string{}
 	vals := bf.Values()
-	for _, e := range vals {
-		eb := e.(enums.BitFlag)
-		if bf.HasFlag(eb) {
-			ebs := eb.BitIndexString()
-			matches = append(matches, ebs)
+	for _, v := range vals {
+		vb := v.(enums.BitFlag)
+		if bf.HasFlag(vb) {
+			vbs := vb.BitIndexString()
+			matches = append(matches, vbs)
 		}
 	}
 	switch len(matches) {

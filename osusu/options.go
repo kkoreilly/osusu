@@ -1,6 +1,9 @@
 package osusu
 
 type Options struct {
+	Categories            Categories
+	Sources               Sources
+	Cuisines              Cuisines
 	TasteImportance       int `view:"slider" min:"0" def:"50" max:"100"`
 	RecencyImportance     int `view:"slider" min:"0" def:"50" max:"100"`
 	CostImportance        int `view:"slider" min:"0" def:"50" max:"100"`
