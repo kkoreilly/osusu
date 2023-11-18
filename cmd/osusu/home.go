@@ -84,18 +84,9 @@ func configMeals(mf *gi.Frame) {
 	for _, meal := range meals {
 		meal := meal
 		mc := gi.NewFrame(mf)
-		mc.Style(func(s *styles.Style) {
-			s.SetAbilities(true, abilities.Hoverable, abilities.Pressable)
-			s.Cursor = cursors.Pointer
-			s.Border.Radius = styles.BorderRadiusLarge
-			s.BackgroundColor.SetSolid(colors.Scheme.SurfaceContainerLow)
-			s.Padding.Set(units.Dp(8))
-			s.Min.Set(units.Em(10))
-			s.SetGrow(0)
-			s.MainAxis = mat32.Y
-		})
+		cardStyles(mc)
 		gi.NewLabel(mc).SetType(gi.LabelHeadlineSmall).SetText(meal.Name)
-		gi.NewLabel(mc).SetText(meal.Description).Style(func(s *styles.Style) {
+		gi.NewLabel(mc).SetText(meal.Category.String() + " • " + meal.Cuisine.String()).Style(func(s *styles.Style) {
 			s.Color = colors.Scheme.OnSurfaceVariant
 		})
 		mc.OnClick(func(e events.Event) {
@@ -103,7 +94,9 @@ func configMeals(mf *gi.Frame) {
 				gi.NewButton(m).SetIcon(icons.Add).SetText("New entry").OnClick(func(e events.Event) {
 					newEntry(meal, mc)
 				})
-				gi.NewButton(m).SetIcon(icons.Visibility).SetText("View entries")
+				gi.NewButton(m).SetIcon(icons.Visibility).SetText("View entries").OnClick(func(e events.Event) {
+					viewEntries(meal, mc)
+				})
 				gi.NewButton(m).SetIcon(icons.Edit).SetText("Edit meal").OnClick(func(e events.Event) {
 					editMeal(mf, meal, mc)
 				})
@@ -112,18 +105,6 @@ func configMeals(mf *gi.Frame) {
 	}
 	mf.Update()
 	mf.UpdateEndLayout(updt)
-}
-
-func editMeal(mf *gi.Frame, meal *osusu.Meal, mc *gi.Frame) {
-	d := gi.NewDialog(mc).Title("Edit meal").FullWindow(true)
-	giv.NewStructView(d).SetStruct(meal)
-	d.OnAccept(func(e events.Event) {
-		err := osusu.DB.Save(meal).Error
-		if err != nil {
-			gi.NewDialog(d).Title("Error saving meal").Prompt(err.Error()).Ok().Run()
-		}
-		configMeals(mf)
-	}).Cancel().Ok("Save").Run()
 }
 
 func newEntry(meal *osusu.Meal, mc *gi.Frame) {
@@ -144,6 +125,50 @@ func newEntry(meal *osusu.Meal, mc *gi.Frame) {
 			gi.NewDialog(d).Title("Error creating entry").Prompt(err.Error()).Ok().Run()
 		}
 	}).Cancel().Ok("Create").Run()
+}
+
+func viewEntries(meal *osusu.Meal, mc *gi.Frame) {
+	d := gi.NewDialog(mc).Title("Entries for " + meal.Name).FullWindow(true)
+	entries := []osusu.Entry{}
+	err := osusu.DB.Find(&entries, "meal_id = ?", meal.ID).Error
+	if err != nil {
+		gi.NewDialog(d).Title("Error finding entries for meal").Prompt(err.Error()).Ok().Run()
+	}
+	for _, entry := range entries {
+		entry := entry
+		ec := gi.NewFrame(d)
+		cardStyles(ec)
+		gi.NewLabel(ec).SetType(gi.LabelHeadlineSmall).SetText(entry.Time.Format("Monday, January 2, 2006"))
+		gi.NewLabel(ec).SetText(entry.Category.String() + " • " + entry.Source.String()).Style(func(s *styles.Style) {
+			s.Color = colors.Scheme.OnSurfaceVariant
+		})
+	}
+	d.Run()
+}
+
+func editMeal(mf *gi.Frame, meal *osusu.Meal, mc *gi.Frame) {
+	d := gi.NewDialog(mc).Title("Edit meal").FullWindow(true)
+	giv.NewStructView(d).SetStruct(meal)
+	d.OnAccept(func(e events.Event) {
+		err := osusu.DB.Save(meal).Error
+		if err != nil {
+			gi.NewDialog(d).Title("Error saving meal").Prompt(err.Error()).Ok().Run()
+		}
+		configMeals(mf)
+	}).Cancel().Ok("Save").Run()
+}
+
+func cardStyles(card *gi.Frame) {
+	card.Style(func(s *styles.Style) {
+		s.SetAbilities(true, abilities.Hoverable, abilities.Pressable)
+		s.Cursor = cursors.Pointer
+		s.Border.Radius = styles.BorderRadiusLarge
+		s.BackgroundColor.SetSolid(colors.Scheme.SurfaceContainerLow)
+		s.Padding.Set(units.Dp(8))
+		s.Min.Set(units.Em(10))
+		s.SetGrow(0)
+		s.MainAxis = mat32.Y
+	})
 }
 
 // func getPicture() image.Image {
