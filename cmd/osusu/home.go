@@ -36,10 +36,12 @@ func home() {
 	tabs := gi.NewTabs(sc).SetDeleteTabButtons(false)
 
 	search := tabs.NewTab("Search")
-
 	mf := gi.NewFrame(search)
+	configSearch(mf)
 
-	configMeals(mf)
+	history := tabs.NewTab("History")
+	ef := gi.NewFrame(history)
+	configHistory(ef)
 
 	gi.DefaultTopAppBar = func(tb *gi.TopAppBar) {
 		gi.DefaultTopAppBarStd(tb)
@@ -53,7 +55,7 @@ func home() {
 					gi.NewDialog(tb).Title("Error creating meal").Prompt(err.Error()).Ok().Run()
 					return
 				}
-				configMeals(mf)
+				configSearch(mf)
 			}).Cancel().Ok("Create").Run()
 		})
 	}
@@ -71,7 +73,7 @@ func home() {
 	}
 }
 
-func configMeals(mf *gi.Frame) {
+func configSearch(mf *gi.Frame) {
 	if mf.HasChildren() {
 		mf.DeleteChildren(true)
 	}
@@ -137,7 +139,7 @@ func viewEntries(meal *osusu.Meal, mc *gi.Frame) {
 		})
 	}
 	entries := []osusu.Entry{}
-	err := osusu.DB.Find(&entries, "meal_id = ?", meal.ID).Error
+	err := osusu.DB.Find(&entries, "meal_id = ? AND user_id = ?", meal.ID, curUser.ID).Error
 	if err != nil {
 		gi.NewDialog(d).Title("Error finding entries for meal").Prompt(err.Error()).Ok().Run()
 	}
@@ -175,8 +177,28 @@ func editMeal(mf *gi.Frame, meal *osusu.Meal, mc *gi.Frame) {
 		if err != nil {
 			gi.NewDialog(d).Title("Error saving meal").Prompt(err.Error()).Ok().Run()
 		}
-		configMeals(mf)
+		configSearch(mf)
 	}).Cancel().Ok("Save").Run()
+}
+
+func configHistory(ef *gi.Frame) {
+	entries := []osusu.Entry{}
+	err := osusu.DB.Preload("Meal").Find(&entries, "user_id = ?", curUser.ID).Error
+	if err != nil {
+		gi.NewDialog(ef).Title("Error finding entries").Prompt(err.Error()).Ok().Run()
+	}
+	for _, entry := range entries {
+		entry := &entry
+		ec := gi.NewFrame(ef)
+		cardStyles(ec)
+		gi.NewLabel(ec).SetType(gi.LabelHeadlineSmall).SetText(entry.Time.Format("Monday, January 2, 2006"))
+		gi.NewLabel(ec).SetText(entry.Meal.Name + " • " + friendlyBitFlagString(entry.Category) + " • " + friendlyBitFlagString(entry.Source)).Style(func(s *styles.Style) {
+			s.Color = colors.Scheme.OnSurfaceVariant
+		})
+		ec.OnClick(func(e events.Event) {
+			editEntry(entry, ec)
+		})
+	}
 }
 
 func cardStyles(card *gi.Frame) {
