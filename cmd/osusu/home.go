@@ -98,7 +98,13 @@ func configMeals(mf *gi.Frame) {
 			s.Color = colors.Scheme.OnSurfaceVariant
 		})
 		mc.OnClick(func(e events.Event) {
-			editMeal(mf, meal, mc)
+			gi.NewMenu(func(m *gi.Scene) {
+				gi.NewButton(m).SetIcon(icons.Add).SetText("New entry")
+				gi.NewButton(m).SetIcon(icons.Visibility).SetText("View entries")
+				gi.NewButton(m).SetIcon(icons.Edit).SetText("Edit meal").OnClick(func(e events.Event) {
+					editMeal(mf, meal, mc)
+				})
+			}, mc, mc.ContextMenuPos(e)).Run()
 		})
 	}
 	mf.Update()
