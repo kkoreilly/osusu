@@ -84,7 +84,15 @@ func configSearch(mf *gi.Frame) {
 		mc := gi.NewFrame(mf)
 		cardStyles(mc)
 		gi.NewLabel(mc).SetType(gi.LabelHeadlineSmall).SetText(meal.Name)
-		gi.NewLabel(mc).SetText(friendlyBitFlagString(meal.Category) + " • " + friendlyBitFlagString(meal.Cuisine)).Style(func(s *styles.Style) {
+
+		castr := friendlyBitFlagString(meal.Category)
+		custr := friendlyBitFlagString(meal.Cuisine)
+		text := castr
+		if castr != "" && custr != "" {
+			text += " • "
+		}
+		text += custr
+		gi.NewLabel(mc).SetText(text).Style(func(s *styles.Style) {
 			s.Color = colors.Scheme.OnSurfaceVariant
 		})
 
@@ -149,7 +157,15 @@ func viewEntries(meal *osusu.Meal, entries []osusu.Entry, mc *gi.Frame) {
 		ec := gi.NewFrame(d)
 		cardStyles(ec)
 		gi.NewLabel(ec).SetType(gi.LabelHeadlineSmall).SetText(entry.Time.Format("Monday, January 2, 2006"))
-		gi.NewLabel(ec).SetText(friendlyBitFlagString(entry.Category) + " • " + friendlyBitFlagString(entry.Source)).Style(func(s *styles.Style) {
+
+		castr := friendlyBitFlagString(entry.Category)
+		sostr := friendlyBitFlagString(entry.Source)
+		text := castr
+		if castr != "" && sostr != "" {
+			text += " • "
+		}
+		text += sostr
+		gi.NewLabel(ec).SetText(text).Style(func(s *styles.Style) {
 			s.Color = colors.Scheme.OnSurfaceVariant
 		})
 
@@ -198,7 +214,19 @@ func configHistory(ef *gi.Frame) {
 		ec := gi.NewFrame(ef)
 		cardStyles(ec)
 		gi.NewLabel(ec).SetType(gi.LabelHeadlineSmall).SetText(entry.Time.Format("Monday, January 2, 2006"))
-		gi.NewLabel(ec).SetText(entry.Meal.Name + " • " + friendlyBitFlagString(entry.Category) + " • " + friendlyBitFlagString(entry.Source)).Style(func(s *styles.Style) {
+
+		castr := friendlyBitFlagString(entry.Category)
+		sostr := friendlyBitFlagString(entry.Source)
+		text := entry.Meal.Name
+		if entry.Meal.Name != "" && castr != "" {
+			text += " • "
+		}
+		text += castr
+		if castr != "" && sostr != "" {
+			text += " • "
+		}
+		text += sostr
+		gi.NewLabel(ec).SetText(text).Style(func(s *styles.Style) {
 			s.Color = colors.Scheme.OnSurfaceVariant
 		})
 
