@@ -12,6 +12,204 @@ import (
 	"goki.dev/enums"
 )
 
+var _SourcesValues = []Sources{0, 1, 2, 3}
+
+// SourcesN is the highest valid value
+// for type Sources, plus one.
+const SourcesN Sources = 4
+
+// An "invalid array index" compiler error signifies that the constant values have changed.
+// Re-run the enumgen command to generate them again.
+func _SourcesNoOp() {
+	var x [1]struct{}
+	_ = x[Cooking-(0)]
+	_ = x[DineIn-(1)]
+	_ = x[Takeout-(2)]
+	_ = x[Delivery-(3)]
+}
+
+var _SourcesNameToValueMap = map[string]Sources{
+	`Cooking`:  0,
+	`cooking`:  0,
+	`DineIn`:   1,
+	`dinein`:   1,
+	`Takeout`:  2,
+	`takeout`:  2,
+	`Delivery`: 3,
+	`delivery`: 3,
+}
+
+var _SourcesDescMap = map[Sources]string{
+	0: ``,
+	1: ``,
+	2: ``,
+	3: ``,
+}
+
+var _SourcesMap = map[Sources]string{
+	0: `Cooking`,
+	1: `DineIn`,
+	2: `Takeout`,
+	3: `Delivery`,
+}
+
+// String returns the string representation
+// of this Sources value.
+func (i Sources) String() string {
+	str := ""
+	for _, ie := range _SourcesValues {
+		if i.HasFlag(ie) {
+			ies := ie.BitIndexString()
+			if str == "" {
+				str = ies
+			} else {
+				str += "|" + ies
+			}
+		}
+	}
+	return str
+}
+
+// BitIndexString returns the string
+// representation of this Sources value
+// if it is a bit index value
+// (typically an enum constant), and
+// not an actual bit flag value.
+func (i Sources) BitIndexString() string {
+	if str, ok := _SourcesMap[i]; ok {
+		return str
+	}
+	return strconv.FormatInt(int64(i), 10)
+}
+
+// SetString sets the Sources value from its
+// string representation, and returns an
+// error if the string is invalid.
+func (i *Sources) SetString(s string) error {
+	*i = 0
+	return i.SetStringOr(s)
+}
+
+// SetStringOr sets the Sources value from its
+// string representation while preserving any
+// bit flags already set, and returns an
+// error if the string is invalid.
+func (i *Sources) SetStringOr(s string) error {
+	flgs := strings.Split(s, "|")
+	for _, flg := range flgs {
+		if val, ok := _SourcesNameToValueMap[flg]; ok {
+			i.SetFlag(true, &val)
+		} else if val, ok := _SourcesNameToValueMap[strings.ToLower(flg)]; ok {
+			i.SetFlag(true, &val)
+		} else if flg == "" {
+			continue
+		} else {
+			return fmt.Errorf("%q is not a valid value for type Sources", flg)
+		}
+	}
+	return nil
+}
+
+// Int64 returns the Sources value as an int64.
+func (i Sources) Int64() int64 {
+	return int64(i)
+}
+
+// SetInt64 sets the Sources value from an int64.
+func (i *Sources) SetInt64(in int64) {
+	*i = Sources(in)
+}
+
+// Desc returns the description of the Sources value.
+func (i Sources) Desc() string {
+	if str, ok := _SourcesDescMap[i]; ok {
+		return str
+	}
+	return i.String()
+}
+
+// SourcesValues returns all possible values
+// for the type Sources.
+func SourcesValues() []Sources {
+	return _SourcesValues
+}
+
+// Values returns all possible values
+// for the type Sources.
+func (i Sources) Values() []enums.Enum {
+	res := make([]enums.Enum, len(_SourcesValues))
+	for i, d := range _SourcesValues {
+		res[i] = d
+	}
+	return res
+}
+
+// IsValid returns whether the value is a
+// valid option for type Sources.
+func (i Sources) IsValid() bool {
+	_, ok := _SourcesMap[i]
+	return ok
+}
+
+// HasFlag returns whether these
+// bit flags have the given bit flag set.
+func (i Sources) HasFlag(f enums.BitFlag) bool {
+	return atomic.LoadInt64((*int64)(&i))&(1<<uint32(f.Int64())) != 0
+}
+
+// SetFlag sets the value of the given
+// flags in these flags to the given value.
+func (i *Sources) SetFlag(on bool, f ...enums.BitFlag) {
+	var mask int64
+	for _, v := range f {
+		mask |= 1 << v.Int64()
+	}
+	in := int64(*i)
+	if on {
+		in |= mask
+		atomic.StoreInt64((*int64)(i), in)
+	} else {
+		in &^= mask
+		atomic.StoreInt64((*int64)(i), in)
+	}
+}
+
+// MarshalText implements the [encoding.TextMarshaler] interface.
+func (i Sources) MarshalText() ([]byte, error) {
+	return []byte(i.String()), nil
+}
+
+// UnmarshalText implements the [encoding.TextUnmarshaler] interface.
+func (i *Sources) UnmarshalText(text []byte) error {
+	return i.SetString(string(text))
+}
+
+// Scan implements the [driver.Valuer] interface.
+func (i Sources) Value() (driver.Value, error) {
+	return i.String(), nil
+}
+
+// Value implements the [sql.Scanner] interface.
+func (i *Sources) Scan(value any) error {
+	if value == nil {
+		return nil
+	}
+
+	var str string
+	switch v := value.(type) {
+	case []byte:
+		str = string(v)
+	case string:
+		str = v
+	case fmt.Stringer:
+		str = v.String()
+	default:
+		return fmt.Errorf("invalid value for type Sources: %[1]T(%[1]v)", value)
+	}
+
+	return i.SetString(str)
+}
+
 var _CategoriesValues = []Categories{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
 
 // CategoriesN is the highest valid value
