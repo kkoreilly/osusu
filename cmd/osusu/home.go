@@ -130,6 +130,12 @@ func newEntry(meal *osusu.Meal, mc *gi.Frame) {
 
 func viewEntries(meal *osusu.Meal, mc *gi.Frame) {
 	d := gi.NewDialog(mc).Title("Entries for " + meal.Name).FullWindow(true)
+	d.TopAppBar = func(tb *gi.TopAppBar) {
+		gi.DefaultTopAppBarStd(tb)
+		gi.NewButton(tb).SetIcon(icons.Add).SetText("New entry").OnClick(func(e events.Event) {
+			newEntry(meal, mc)
+		})
+	}
 	entries := []osusu.Entry{}
 	err := osusu.DB.Find(&entries, "meal_id = ?", meal.ID).Error
 	if err != nil {
