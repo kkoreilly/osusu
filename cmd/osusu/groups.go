@@ -23,6 +23,11 @@ func groups(bsc *gi.Scene) {
 			return
 		}
 		curGroup = newGroup
+		curUser.GroupID = newGroup.ID
+		err = osusu.DB.Save(curUser).Error
+		if err != nil {
+			gi.NewDialog(d).Title("Error updating user").Prompt(err.Error()).Run()
+		}
 		d.AcceptDialog()
 	})
 	d.Run()

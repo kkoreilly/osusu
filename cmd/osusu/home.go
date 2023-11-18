@@ -1,6 +1,8 @@
 package main
 
 import (
+	"errors"
+
 	"github.com/kkoreilly/osusu/osusu"
 	"goki.dev/colors"
 	"goki.dev/gi/v2/gi"
@@ -10,6 +12,7 @@ import (
 	"goki.dev/goosi/events"
 	"goki.dev/icons"
 	"goki.dev/mat32/v2"
+	"gorm.io/gorm"
 )
 
 var curUser *osusu.User
@@ -53,9 +56,14 @@ func home() {
 
 	gi.NewWindow(sc).SetNewWindow(false).Run()
 
-	err := osusu.DB.Find(curGroup, curUser.GroupID).Error
+	curGroup = &osusu.Group{}
+	err := osusu.DB.First(curGroup, curUser.GroupID).Error
 	if err != nil {
-		groups(sc)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			groups(sc)
+		} else {
+			gi.NewDialog(sc).Title("Error getting current group").Prompt(err.Error()).Run()
+		}
 	}
 }
 
