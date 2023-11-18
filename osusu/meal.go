@@ -10,11 +10,20 @@ type Meal struct {
 	Group       Group `view:"-"`
 	Name        string
 	Description string
-	Source      string
 	Image       string
+	Source      Sources
 	Category    Categories
 	Cuisine     Cuisines
 }
+
+type Sources int64 //enums:bitflag
+
+const (
+	Cooking Sources = iota
+	DineIn
+	Takeout
+	Delivery
+)
 
 type Categories int64 //enums:bitflag
 

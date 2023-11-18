@@ -15,5 +15,5 @@ func OpenDB() error {
 		return err
 	}
 	DB = db
-	return db.AutoMigrate(&User{}, &Session{}, &Meal{})
+	return db.AutoMigrate(&User{}, &Session{}, &Meal{}, &Entry{})
 }
