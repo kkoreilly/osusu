@@ -6,15 +6,15 @@ import (
 
 type Score struct {
 	Taste       int
+	Recency     int
 	Cost        int
 	Effort      int
 	Healthiness int
-	Recency     int
 	Total       int
 }
 
 func (s *Score) ComputeTotal() {
-	s.Total = s.Taste + s.Cost + s.Effort + s.Healthiness + s.Recency
+	s.Total = s.Taste + s.Recency + s.Cost + s.Effort + s.Healthiness
 	s.Total /= 5
 }
 

@@ -97,7 +97,7 @@ func configSearch(mf *gi.Frame) {
 		score := meal.Score(entries)
 		score.ComputeTotal()
 
-		gi.NewLabel(mc).SetText("Score: " + strconv.Itoa(score.Total))
+		scoreGrid(mc, score, true)
 
 		mc.OnClick(func(e events.Event) {
 			gi.NewMenu(func(m *gi.Scene) {
@@ -221,6 +221,46 @@ func cardStyles(card *gi.Frame) {
 			})
 		}
 	})
+}
+
+func scoreGrid(card *gi.Frame, score *osusu.Score, showRecency bool) *gi.Layout {
+	grid := gi.NewLayout(card)
+	grid.Style(func(s *styles.Style) {
+		s.Display = styles.DisplayGrid
+		if showRecency {
+			s.Columns = 6
+		} else {
+			s.Columns = 5
+		}
+		s.Align.X = styles.AlignCenter
+	})
+
+	label := func(text string) {
+		gi.NewLabel(grid).SetType(gi.LabelLabelLarge).SetText(text)
+	}
+
+	label("Total")
+	label("Taste")
+	if showRecency {
+		label("New")
+	}
+	label("Cost")
+	label("Effort")
+	label("Health")
+
+	value := func(value int) {
+		gi.NewLabel(grid).SetText(strconv.Itoa(value))
+	}
+
+	value(score.Total)
+	value(score.Taste)
+	if showRecency {
+		value(score.Recency)
+	}
+	value(score.Cost)
+	value(score.Effort)
+	value(score.Healthiness)
+	return grid
 }
 
 func friendlyBitFlagString(bf enums.BitFlag) string {
