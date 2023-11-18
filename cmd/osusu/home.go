@@ -190,6 +190,13 @@ func cardStyles(card *gi.Frame) {
 		s.SetGrow(0)
 		s.MainAxis = mat32.Y
 	})
+	card.OnWidgetAdded(func(w gi.Widget) {
+		if _, ok := w.(*gi.Label); ok {
+			w.Style(func(s *styles.Style) {
+				s.SetNonSelectable()
+			})
+		}
+	})
 }
 
 func friendlyBitFlagString(bf enums.BitFlag) string {
