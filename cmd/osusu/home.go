@@ -7,6 +7,7 @@ import (
 	"github.com/kkoreilly/osusu/osusu"
 	"goki.dev/colors"
 	"goki.dev/cursors"
+	"goki.dev/enums"
 	"goki.dev/gi/v2/gi"
 	"goki.dev/gi/v2/giv"
 	"goki.dev/girl/abilities"
@@ -86,7 +87,7 @@ func configMeals(mf *gi.Frame) {
 		mc := gi.NewFrame(mf)
 		cardStyles(mc)
 		gi.NewLabel(mc).SetType(gi.LabelHeadlineSmall).SetText(meal.Name)
-		gi.NewLabel(mc).SetText(meal.Category.String() + " • " + meal.Cuisine.String()).Style(func(s *styles.Style) {
+		gi.NewLabel(mc).SetText(friendlyBitFlagString(meal.Category) + " • " + friendlyBitFlagString(meal.Cuisine)).Style(func(s *styles.Style) {
 			s.Color = colors.Scheme.OnSurfaceVariant
 		})
 		mc.OnClick(func(e events.Event) {
@@ -139,7 +140,7 @@ func viewEntries(meal *osusu.Meal, mc *gi.Frame) {
 		ec := gi.NewFrame(d)
 		cardStyles(ec)
 		gi.NewLabel(ec).SetType(gi.LabelHeadlineSmall).SetText(entry.Time.Format("Monday, January 2, 2006"))
-		gi.NewLabel(ec).SetText(entry.Category.String() + " • " + entry.Source.String()).Style(func(s *styles.Style) {
+		gi.NewLabel(ec).SetText(friendlyBitFlagString(entry.Category) + " • " + friendlyBitFlagString(entry.Source)).Style(func(s *styles.Style) {
 			s.Color = colors.Scheme.OnSurfaceVariant
 		})
 	}
@@ -169,6 +170,38 @@ func cardStyles(card *gi.Frame) {
 		s.SetGrow(0)
 		s.MainAxis = mat32.Y
 	})
+}
+
+func friendlyBitFlagString(bf enums.BitFlag) string {
+	matches := []string{}
+	vals := bf.Values()
+	for _, e := range vals {
+		eb := e.(enums.BitFlag)
+		if bf.HasFlag(eb) {
+			ebs := eb.BitIndexString()
+			matches = append(matches, ebs)
+		}
+	}
+	switch len(matches) {
+	case 0:
+		return ""
+	case 1:
+		return matches[0]
+	case 2:
+		return matches[0] + " and " + matches[1]
+	}
+	res := ""
+	for i, match := range matches {
+		res += match
+		if i == len(matches)-1 {
+			// last one, so do nothing
+		} else if i == len(matches)-2 {
+			res += ", and "
+		} else {
+			res += ", "
+		}
+	}
+	return res
 }
 
 // func getPicture() image.Image {
