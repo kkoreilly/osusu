@@ -142,15 +142,29 @@ func viewEntries(meal *osusu.Meal, mc *gi.Frame) {
 		gi.NewDialog(d).Title("Error finding entries for meal").Prompt(err.Error()).Ok().Run()
 	}
 	for _, entry := range entries {
-		entry := entry
+		entry := &entry
 		ec := gi.NewFrame(d)
 		cardStyles(ec)
 		gi.NewLabel(ec).SetType(gi.LabelHeadlineSmall).SetText(entry.Time.Format("Monday, January 2, 2006"))
 		gi.NewLabel(ec).SetText(friendlyBitFlagString(entry.Category) + " • " + friendlyBitFlagString(entry.Source)).Style(func(s *styles.Style) {
 			s.Color = colors.Scheme.OnSurfaceVariant
 		})
+		ec.OnClick(func(e events.Event) {
+			editEntry(entry, ec)
+		})
 	}
 	d.Run()
+}
+
+func editEntry(entry *osusu.Entry, ec *gi.Frame) {
+	d := gi.NewDialog(ec).Title("Edit entry").FullWindow(true)
+	giv.NewStructView(d).SetStruct(entry)
+	d.OnAccept(func(e events.Event) {
+		err := osusu.DB.Save(entry).Error
+		if err != nil {
+			gi.NewDialog(d).Title("Error saving entry").Prompt(err.Error()).Ok().Run()
+		}
+	}).Cancel().Ok("Save").Run()
 }
 
 func editMeal(mf *gi.Frame, meal *osusu.Meal, mc *gi.Frame) {
