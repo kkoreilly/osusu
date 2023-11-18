@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"strconv"
 	"time"
 
 	"github.com/kkoreilly/osusu/osusu"
@@ -79,19 +80,32 @@ func configSearch(mf *gi.Frame) {
 	}
 	for _, meal := range meals {
 		meal := meal
+
 		mc := gi.NewFrame(mf)
 		cardStyles(mc)
 		gi.NewLabel(mc).SetType(gi.LabelHeadlineSmall).SetText(meal.Name)
 		gi.NewLabel(mc).SetText(friendlyBitFlagString(meal.Category) + " • " + friendlyBitFlagString(meal.Cuisine)).Style(func(s *styles.Style) {
 			s.Color = colors.Scheme.OnSurfaceVariant
 		})
+
+		entries := []osusu.Entry{}
+		err := osusu.DB.Find(&entries, "meal_id = ? AND user_id = ?", meal.ID, curUser.ID).Error
+		if err != nil {
+			gi.NewDialog(mc).Title("Error finding entries for meal").Prompt(err.Error()).Ok().Run()
+		}
+
+		score := meal.Score(entries)
+		score.ComputeTotal()
+
+		gi.NewLabel(mc).SetText("Score: " + strconv.Itoa(score.Total))
+
 		mc.OnClick(func(e events.Event) {
 			gi.NewMenu(func(m *gi.Scene) {
 				gi.NewButton(m).SetIcon(icons.Add).SetText("New entry").OnClick(func(e events.Event) {
 					newEntry(meal, mc)
 				})
 				gi.NewButton(m).SetIcon(icons.Visibility).SetText("View entries").OnClick(func(e events.Event) {
-					viewEntries(meal, mc)
+					viewEntries(meal, entries, mc)
 				})
 				gi.NewButton(m).SetIcon(icons.Edit).SetText("Edit meal").OnClick(func(e events.Event) {
 					editMeal(mf, meal, mc)
@@ -123,18 +137,13 @@ func newEntry(meal *osusu.Meal, mc *gi.Frame) {
 	}).Cancel().Ok("Create").Run()
 }
 
-func viewEntries(meal *osusu.Meal, mc *gi.Frame) {
+func viewEntries(meal *osusu.Meal, entries []osusu.Entry, mc *gi.Frame) {
 	d := gi.NewDialog(mc).Title("Entries for " + meal.Name).FullWindow(true)
 	d.TopAppBar = func(tb *gi.TopAppBar) {
 		gi.DefaultTopAppBarStd(tb)
 		gi.NewButton(tb).SetIcon(icons.Add).SetText("New entry").OnClick(func(e events.Event) {
 			newEntry(meal, mc)
 		})
-	}
-	entries := []osusu.Entry{}
-	err := osusu.DB.Find(&entries, "meal_id = ? AND user_id = ?", meal.ID, curUser.ID).Error
-	if err != nil {
-		gi.NewDialog(d).Title("Error finding entries for meal").Prompt(err.Error()).Ok().Run()
 	}
 	for _, entry := range entries {
 		entry := &entry
