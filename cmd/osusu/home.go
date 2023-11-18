@@ -5,8 +5,10 @@ import (
 
 	"github.com/kkoreilly/osusu/osusu"
 	"goki.dev/colors"
+	"goki.dev/cursors"
 	"goki.dev/gi/v2/gi"
 	"goki.dev/gi/v2/giv"
+	"goki.dev/girl/abilities"
 	"goki.dev/girl/styles"
 	"goki.dev/girl/units"
 	"goki.dev/goosi/events"
@@ -29,7 +31,7 @@ func home() {
 	// 	gi.NewImage(sc).SetImage(img, 0, 0)
 	// }
 
-	tabs := gi.NewTabs(sc)
+	tabs := gi.NewTabs(sc).SetDeleteTabButtons(false)
 
 	search := tabs.NewTab("Search")
 
@@ -46,11 +48,11 @@ func home() {
 			d.OnAccept(func(e events.Event) {
 				err := osusu.DB.Create(meal).Error
 				if err != nil {
-					gi.NewDialog(tb).Title("Error creating meal").Prompt(err.Error()).Run()
+					gi.NewDialog(tb).Title("Error creating meal").Prompt(err.Error()).Ok().Run()
 					return
 				}
 				configMeals(mf)
-			}).Cancel().Ok().Run()
+			}).Cancel().Ok("Create meal").Run()
 		})
 	}
 
@@ -76,10 +78,14 @@ func configMeals(mf *gi.Frame) {
 	var meals []*osusu.Meal
 	err := osusu.DB.Find(&meals).Error
 	if err != nil {
-		gi.NewDialog(mf).Title("Error finding meals").Prompt(err.Error()).Run()
+		gi.NewDialog(mf).Title("Error finding meals").Prompt(err.Error()).Ok().Run()
 	}
 	for _, meal := range meals {
-		mc := gi.NewFrame(mf).Style(func(s *styles.Style) {
+		meal := meal
+		mc := gi.NewFrame(mf)
+		mc.Style(func(s *styles.Style) {
+			s.SetAbilities(true, abilities.Hoverable, abilities.Pressable)
+			s.Cursor = cursors.Pointer
 			s.Border.Radius = styles.BorderRadiusLarge
 			s.BackgroundColor.SetSolid(colors.Scheme.SurfaceContainerLow)
 			s.Padding.Set(units.Dp(8))
@@ -91,9 +97,24 @@ func configMeals(mf *gi.Frame) {
 		gi.NewLabel(mc).SetText(meal.Description).Style(func(s *styles.Style) {
 			s.Color = colors.Scheme.OnSurfaceVariant
 		})
+		mc.OnClick(func(e events.Event) {
+			editMeal(mf, meal, mc)
+		})
 	}
 	mf.Update()
 	mf.UpdateEndLayout(updt)
+}
+
+func editMeal(mf *gi.Frame, meal *osusu.Meal, mc *gi.Frame) {
+	d := gi.NewDialog(mc).Title("Edit meal").FullWindow(true)
+	giv.NewStructView(d).SetStruct(meal)
+	d.OnAccept(func(e events.Event) {
+		err := osusu.DB.Save(meal).Error
+		if err != nil {
+			gi.NewDialog(d).Title("Error saving meal").Prompt(err.Error()).Ok().Run()
+		}
+		configMeals(mf)
+	}).Cancel().Ok("Save").Run()
 }
 
 // func getPicture() image.Image {
