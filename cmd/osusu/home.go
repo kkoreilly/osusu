@@ -32,7 +32,6 @@ var (
 
 func home() {
 	sc := gi.NewScene("home")
-	gi.NewLabel(sc).SetType(gi.LabelHeadlineLarge).SetText("Welcome, " + curUser.Name)
 
 	tabs := gi.NewTabs(sc).SetDeleteTabButtons(false)
 
@@ -87,6 +86,10 @@ func configSearch(mf *gi.Frame) {
 		mf.DeleteChildren(true)
 	}
 	updt := mf.UpdateStart()
+
+	mf.Style(func(s *styles.Style) {
+		s.Wrap = true
+	})
 
 	var meals []*osusu.Meal
 	err := osusu.DB.Find(&meals).Error

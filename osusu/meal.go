@@ -13,7 +13,7 @@ type Meal struct {
 	GroupID     uint  `view:"-"`
 	Group       Group `view:"-"`
 	Name        string
-	Description string `view:"text-editor"`
+	Description string
 	Image       string
 	Source      Sources
 	Category    Categories
