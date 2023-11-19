@@ -38,6 +38,10 @@ func home() {
 	mf := gi.NewFrame(search)
 	configSearch(mf)
 
+	discover := tabs.NewTab("Discover")
+	rf := gi.NewFrame(discover)
+	configDiscover(rf)
+
 	history := tabs.NewTab("History")
 	ef := gi.NewFrame(history)
 	configHistory(ef)
