@@ -11,8 +11,10 @@ type Recipe struct {
 	Author            string
 	DatePublished     time.Time
 	DateModified      time.Time
-	Category          []string
-	Cuisine           []string
+	Category          []string   `view:"-"`
+	CategoryFlag      Categories `json:"-" label:"Category"`
+	Cuisine           []string   `view:"-"`
+	CuisineFlag       Cuisines   `json:"-" label:"Cuisine"`
 	Ingredients       []string
 	TotalTime         string        `view:"-"`
 	PrepTime          string        `view:"-"`

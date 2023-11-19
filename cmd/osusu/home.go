@@ -40,7 +40,7 @@ func home() {
 
 	discover := tabs.NewTab("Discover")
 	rf := gi.NewFrame(discover)
-	configDiscover(rf)
+	configDiscover(rf, mf)
 
 	history := tabs.NewTab("History")
 	ef := gi.NewFrame(history)
@@ -49,17 +49,7 @@ func home() {
 	gi.DefaultTopAppBar = func(tb *gi.TopAppBar) {
 		gi.DefaultTopAppBarStd(tb)
 		gi.NewButton(tb).SetIcon(icons.Add).SetText("New meal").OnClick(func(e events.Event) {
-			d := gi.NewDialog(tb).Title("Create meal").FullWindow(true)
-			meal := &osusu.Meal{}
-			giv.NewStructView(d).SetStruct(meal)
-			d.OnAccept(func(e events.Event) {
-				err := osusu.DB.Create(meal).Error
-				if err != nil {
-					gi.ErrorDialog(tb, err).Run()
-					return
-				}
-				configSearch(mf)
-			}).Cancel().Ok("Create").Run()
+			newMeal(tb, mf, &osusu.Meal{})
 		})
 		gi.NewButton(tb).SetIcon(icons.Sort).SetText("Sort").OnClick(func(e events.Event) {
 			d := gi.NewDialog(tb).Title("Sort and filter").FullWindow(true)
@@ -67,7 +57,7 @@ func home() {
 			d.OnAccept(func(e events.Event) {
 				configSearch(mf)
 				configHistory(ef)
-				configDiscover(rf)
+				configDiscover(mf, rf)
 			}).Run()
 		})
 	}
@@ -83,6 +73,19 @@ func home() {
 			gi.ErrorDialog(sc, err).Run()
 		}
 	}
+}
+
+func newMeal(ctx gi.Widget, mf *gi.Frame, meal *osusu.Meal) {
+	d := gi.NewDialog(ctx).Title("Create meal").FullWindow(true)
+	giv.NewStructView(d).SetStruct(meal)
+	d.OnAccept(func(e events.Event) {
+		err := osusu.DB.Create(meal).Error
+		if err != nil {
+			gi.ErrorDialog(d, err).Run()
+			return
+		}
+		configSearch(mf)
+	}).Cancel().Ok("Create").Run()
 }
 
 func cardStyles(card *gi.Frame) {

@@ -7,7 +7,9 @@ import (
 	"github.com/kkoreilly/osusu/osusu"
 	"goki.dev/colors"
 	"goki.dev/gi/v2/gi"
+	"goki.dev/gi/v2/giv"
 	"goki.dev/girl/styles"
+	"goki.dev/goosi/events"
 	"goki.dev/grows/jsons"
 	"goki.dev/grr"
 )
@@ -17,7 +19,7 @@ var recipesFS embed.FS
 
 var recipes []osusu.Recipe
 
-func configDiscover(rf *gi.Frame) {
+func configDiscover(rf *gi.Frame, mf *gi.Frame) {
 	if rf.HasChildren() {
 		rf.DeleteChildren(true)
 	}
@@ -36,18 +38,17 @@ func configDiscover(rf *gi.Frame) {
 	}
 
 	for i, recipe := range recipes {
+		recipe := recipe
+
 		if i > 20 {
 			break
 		}
 
-		var categories osusu.Categories
-		grr.Log0(categories.SetString(strings.Join(recipe.Category, "|")))
+		grr.Log0(recipe.CategoryFlag.SetString(strings.Join(recipe.Category, "|")))
+		grr.Log0(recipe.CuisineFlag.SetString(strings.Join(recipe.Cuisine, "|")))
 
-		var cuisines osusu.Cuisines
-		grr.Log0(cuisines.SetString(strings.Join(recipe.Cuisine, "|")))
-
-		if !bitFlagsOverlap(categories, curOptions.Categories) ||
-			!bitFlagsOverlap(cuisines, curOptions.Cuisines) {
+		if !bitFlagsOverlap(recipe.CategoryFlag, curOptions.Categories) ||
+			!bitFlagsOverlap(recipe.CuisineFlag, curOptions.Cuisines) {
 			continue
 		}
 
@@ -61,8 +62,8 @@ func configDiscover(rf *gi.Frame) {
 
 		gi.NewLabel(rc).SetType(gi.LabelHeadlineSmall).SetText(recipe.Name)
 
-		castr := friendlyBitFlagString(categories)
-		custr := friendlyBitFlagString(cuisines)
+		castr := friendlyBitFlagString(recipe.CategoryFlag)
+		custr := friendlyBitFlagString(recipe.CuisineFlag)
 		text := castr
 		if castr != "" && custr != "" {
 			text += " • "
@@ -74,8 +75,29 @@ func configDiscover(rf *gi.Frame) {
 
 		recipe.Score.ComputeTotal(curOptions)
 		scoreGrid(rc, &recipe.Score, true)
+
+		rc.OnClick(func(e events.Event) {
+			addRecipe(rf, &recipe, rc, mf)
+		})
 	}
 
 	rf.Update()
 	rf.UpdateEndLayout(updt)
+}
+
+func addRecipe(rf *gi.Frame, recipe *osusu.Recipe, rc *gi.Frame, mf *gi.Frame) {
+	d := gi.NewDialog(rc).Title("Add recipe").FullWindow(true)
+	giv.NewStructView(d).SetStruct(recipe).SetReadOnly(true)
+	d.OnAccept(func(e events.Event) {
+		d.Close()
+		meal := &osusu.Meal{
+			Name:        recipe.Name,
+			Description: recipe.Description,
+			Image:       recipe.Image,
+			Category:    recipe.CategoryFlag,
+			Cuisine:     recipe.CuisineFlag,
+		}
+		meal.Source.SetFlag(true, osusu.Cooking)
+		newMeal(rf, mf, meal)
+	}).Cancel().Ok("Add").Run()
 }
