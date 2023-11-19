@@ -2,6 +2,8 @@ package main
 
 import (
 	"errors"
+	"image"
+	"net/http"
 	"strconv"
 	"time"
 
@@ -15,6 +17,8 @@ import (
 	"goki.dev/girl/styles"
 	"goki.dev/girl/units"
 	"goki.dev/goosi/events"
+	"goki.dev/grows/images"
+	"goki.dev/grr"
 	"goki.dev/icons"
 	"goki.dev/mat32/v2"
 	"gorm.io/gorm"
@@ -100,6 +104,12 @@ func configSearch(mf *gi.Frame) {
 
 		mc := gi.NewFrame(mf)
 		cardStyles(mc)
+
+		img := getImageFromURL(meal.Image)
+		if img != nil {
+			gi.NewImage(mc).SetImage(img, 0, 0)
+		}
+
 		gi.NewLabel(mc).SetType(gi.LabelHeadlineSmall).SetText(meal.Name)
 
 		castr := friendlyBitFlagString(meal.Category)
@@ -292,9 +302,16 @@ func cardStyles(card *gi.Frame) {
 		s.MainAxis = mat32.Y
 	})
 	card.OnWidgetAdded(func(w gi.Widget) {
-		if _, ok := w.(*gi.Label); ok {
+		switch w := w.(type) {
+		case *gi.Label:
 			w.Style(func(s *styles.Style) {
 				s.SetNonSelectable()
+				s.Align.Set(styles.AlignCenter)
+				s.Text.Align = styles.AlignCenter
+			})
+		case *gi.Image:
+			w.Style(func(s *styles.Style) {
+				s.Max.Set(units.Em(20))
 			})
 		}
 	})
@@ -338,6 +355,22 @@ func scoreGrid(card *gi.Frame, score *osusu.Score, showRecency bool) *gi.Layout 
 	value(score.Effort)
 	value(score.Healthiness)
 	return grid
+}
+
+func getImageFromURL(url string) image.Image {
+	if url == "" {
+		return nil
+	}
+	resp, err := http.Get(url)
+	if grr.Log0(err) != nil {
+		return nil
+	}
+	defer resp.Body.Close()
+	img, _, err := images.Read(resp.Body)
+	if grr.Log0(err) != nil {
+		return nil
+	}
+	return img
 }
 
 // bitFlagsOverlap returns whether there is any overlap between the two bit flags.
