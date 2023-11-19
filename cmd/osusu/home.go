@@ -67,6 +67,7 @@ func home() {
 			d.OnAccept(func(e events.Event) {
 				configSearch(mf)
 				configHistory(ef)
+				configDiscover(rf)
 			}).Run()
 		})
 	}

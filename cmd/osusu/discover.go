@@ -15,20 +15,40 @@ import (
 //go:embed recipes.json
 var recipesFS embed.FS
 
+var recipes []osusu.Recipe
+
 func configDiscover(rf *gi.Frame) {
+	if rf.HasChildren() {
+		rf.DeleteChildren(true)
+	}
+	updt := rf.UpdateStart()
+
 	rf.Style(func(s *styles.Style) {
 		s.Wrap = true
 	})
 
-	recipes := []osusu.Recipe{}
-	err := jsons.OpenFS(&recipes, recipesFS, "recipes.json")
-	if err != nil {
-		gi.ErrorDialog(rf, err)
-		return
+	if recipes == nil {
+		err := jsons.OpenFS(&recipes, recipesFS, "recipes.json")
+		if err != nil {
+			gi.ErrorDialog(rf, err)
+			return
+		}
 	}
+
 	for i, recipe := range recipes {
 		if i > 20 {
 			break
+		}
+
+		var categories osusu.Categories
+		grr.Log0(categories.SetString(strings.Join(recipe.Category, "|")))
+
+		var cuisines osusu.Cuisines
+		grr.Log0(cuisines.SetString(strings.Join(recipe.Cuisine, "|")))
+
+		if !bitFlagsOverlap(categories, curOptions.Categories) ||
+			!bitFlagsOverlap(cuisines, curOptions.Cuisines) {
+			continue
 		}
 
 		rc := gi.NewFrame(rf)
@@ -41,13 +61,8 @@ func configDiscover(rf *gi.Frame) {
 
 		gi.NewLabel(rc).SetType(gi.LabelHeadlineSmall).SetText(recipe.Name)
 
-		var ca osusu.Categories
-		grr.Log0(ca.SetString(strings.Join(recipe.Category, "|")))
-		castr := friendlyBitFlagString(ca)
-
-		var cu osusu.Cuisines
-		grr.Log0(cu.SetString(strings.Join(recipe.Cuisine, "|")))
-		custr := friendlyBitFlagString(cu)
+		castr := friendlyBitFlagString(categories)
+		custr := friendlyBitFlagString(cuisines)
 		text := castr
 		if castr != "" && custr != "" {
 			text += " • "
@@ -60,4 +75,7 @@ func configDiscover(rf *gi.Frame) {
 		recipe.Score.ComputeTotal(curOptions)
 		scoreGrid(rc, &recipe.Score, true)
 	}
+
+	rf.Update()
+	rf.UpdateEndLayout(updt)
 }
