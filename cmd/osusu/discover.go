@@ -2,11 +2,14 @@ package main
 
 import (
 	"embed"
+	"strings"
 
 	"github.com/kkoreilly/osusu/osusu"
+	"goki.dev/colors"
 	"goki.dev/gi/v2/gi"
 	"goki.dev/girl/styles"
 	"goki.dev/grows/jsons"
+	"goki.dev/grr"
 )
 
 //go:embed recipes.json
@@ -23,9 +26,38 @@ func configDiscover(rf *gi.Frame) {
 		gi.ErrorDialog(rf, err)
 		return
 	}
-	for _, recipe := range recipes {
+	for i, recipe := range recipes {
+		if i > 20 {
+			break
+		}
+
 		rc := gi.NewFrame(rf)
 		cardStyles(rc)
-		gi.NewLabel(rc).SetText(recipe.Name)
+
+		img := getImageFromURL(recipe.Image)
+		if img != nil {
+			gi.NewImage(rc).SetImage(img, 0, 0)
+		}
+
+		gi.NewLabel(rc).SetType(gi.LabelHeadlineSmall).SetText(recipe.Name)
+
+		var ca osusu.Categories
+		grr.Log0(ca.SetString(strings.Join(recipe.Category, "|")))
+		castr := friendlyBitFlagString(ca)
+
+		var cu osusu.Cuisines
+		grr.Log0(cu.SetString(strings.Join(recipe.Cuisine, "|")))
+		custr := friendlyBitFlagString(cu)
+		text := castr
+		if castr != "" && custr != "" {
+			text += " • "
+		}
+		text += custr
+		gi.NewLabel(rc).SetText(text).Style(func(s *styles.Style) {
+			s.Color = colors.Scheme.OnSurfaceVariant
+		})
+
+		recipe.Score.ComputeTotal(curOptions)
+		scoreGrid(rc, &recipe.Score, true)
 	}
 }
