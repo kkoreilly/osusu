@@ -60,6 +60,7 @@ func home() {
 			giv.NewStructView(d).SetStruct(curOptions)
 			d.OnAccept(func(e events.Event) {
 				configSearch(mf)
+				configHistory(ef)
 			}).Run()
 		})
 	}
@@ -91,13 +92,9 @@ func configSearch(mf *gi.Frame) {
 	for _, meal := range meals {
 		meal := meal
 
-		if !bitFlagsOverlap(meal.Category, curOptions.Categories) {
-			continue
-		}
-		if !bitFlagsOverlap(meal.Source, curOptions.Sources) {
-			continue
-		}
-		if !bitFlagsOverlap(meal.Cuisine, curOptions.Cuisines) {
+		if !bitFlagsOverlap(meal.Category, curOptions.Categories) ||
+			!bitFlagsOverlap(meal.Source, curOptions.Sources) ||
+			!bitFlagsOverlap(meal.Cuisine, curOptions.Cuisines) {
 			continue
 		}
 
@@ -194,21 +191,17 @@ func viewEntries(meal *osusu.Meal, entries []osusu.Entry, mc *gi.Frame) {
 		scoreGrid(ec, score, false)
 
 		ec.OnClick(func(e events.Event) {
-			editEntry(entry, ec)
+			d := gi.NewDialog(ec).Title("Edit entry").FullWindow(true)
+			giv.NewStructView(d).SetStruct(entry)
+			d.OnAccept(func(e events.Event) {
+				err := osusu.DB.Save(entry).Error
+				if err != nil {
+					gi.ErrorDialog(d, err).Run()
+				}
+			}).Cancel().Ok("Save").Run()
 		})
 	}
 	d.Run()
-}
-
-func editEntry(entry *osusu.Entry, ec *gi.Frame) {
-	d := gi.NewDialog(ec).Title("Edit entry").FullWindow(true)
-	giv.NewStructView(d).SetStruct(entry)
-	d.OnAccept(func(e events.Event) {
-		err := osusu.DB.Save(entry).Error
-		if err != nil {
-			gi.ErrorDialog(d, err).Run()
-		}
-	}).Cancel().Ok("Save").Run()
 }
 
 func editMeal(mf *gi.Frame, meal *osusu.Meal, mc *gi.Frame) {
@@ -224,13 +217,25 @@ func editMeal(mf *gi.Frame, meal *osusu.Meal, mc *gi.Frame) {
 }
 
 func configHistory(ef *gi.Frame) {
+	if ef.HasChildren() {
+		ef.DeleteChildren(true)
+	}
+	updt := ef.UpdateStart()
+
 	entries := []osusu.Entry{}
 	err := osusu.DB.Preload("Meal").Find(&entries, "user_id = ?", curUser.ID).Error
 	if err != nil {
 		gi.ErrorDialog(ef, err).Run()
 	}
 	for _, entry := range entries {
-		entry := &entry
+		entry := entry
+
+		if !bitFlagsOverlap(entry.Category, curOptions.Categories) ||
+			!bitFlagsOverlap(entry.Source, curOptions.Sources) ||
+			!bitFlagsOverlap(entry.Meal.Cuisine, curOptions.Cuisines) {
+			continue
+		}
+
 		ec := gi.NewFrame(ef)
 		cardStyles(ec)
 		gi.NewLabel(ec).SetType(gi.LabelHeadlineSmall).SetText(entry.Time.Format("Monday, January 2, 2006"))
@@ -255,9 +260,24 @@ func configHistory(ef *gi.Frame) {
 		scoreGrid(ec, score, false)
 
 		ec.OnClick(func(e events.Event) {
-			editEntry(entry, ec)
+			editEntry(ef, &entry, ec)
 		})
 	}
+
+	ef.Update()
+	ef.UpdateEndLayout(updt)
+}
+
+func editEntry(ef *gi.Frame, entry *osusu.Entry, ec *gi.Frame) {
+	d := gi.NewDialog(ec).Title("Edit entry").FullWindow(true)
+	giv.NewStructView(d).SetStruct(entry)
+	d.OnAccept(func(e events.Event) {
+		err := osusu.DB.Save(entry).Error
+		if err != nil {
+			gi.ErrorDialog(d, err).Run()
+		}
+		configHistory(ef)
+	}).Cancel().Ok("Save").Run()
 }
 
 func cardStyles(card *gi.Frame) {
