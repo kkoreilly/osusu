@@ -86,7 +86,7 @@ func configSearch(mf *gi.Frame) {
 }
 
 func newEntry(meal *osusu.Meal, mc *gi.Frame) {
-	d := gi.NewDialog(mc).Title("Create entry").FullWindow(true)
+	d := gi.NewBody().AddTitle("Create entry")
 	entry := &osusu.Entry{
 		MealID:      meal.ID,
 		UserID:      curUser.ID,
@@ -97,22 +97,25 @@ func newEntry(meal *osusu.Meal, mc *gi.Frame) {
 		Taste:       50,
 	}
 	giv.NewStructView(d).SetStruct(entry)
-	d.OnAccept(func(e events.Event) {
-		err := osusu.DB.Create(entry).Error
-		if err != nil {
-			gi.ErrorDialog(d, err).Run()
-		}
-	}).Cancel().Ok("Create").Run()
+	d.AddBottomBar(func(pw gi.Widget) {
+		d.AddCancel(pw)
+		d.AddOk(pw).SetText("Create").OnClick(func(e events.Event) {
+			err := osusu.DB.Create(entry).Error
+			if err != nil {
+				gi.ErrorDialog(d, err).Run()
+			}
+		})
+	})
 }
 
 func viewEntries(meal *osusu.Meal, entries []osusu.Entry, mc *gi.Frame) {
-	d := gi.NewDialog(mc).Title("Entries for " + meal.Name).FullWindow(true)
-	d.TopAppBar = func(tb *gi.TopAppBar) {
-		gi.DefaultTopAppBarStd(tb)
+	d := gi.NewBody().AddTitle("Entries for " + meal.Name)
+	d.AddTopBar(func(pw gi.Widget) {
+		tb := d.DefaultTopAppBar(pw)
 		gi.NewButton(tb).SetIcon(icons.Add).SetText("New entry").OnClick(func(e events.Event) {
 			newEntry(meal, mc)
 		})
-	}
+	})
 	for _, entry := range entries {
 		entry := &entry
 		ec := gi.NewFrame(d)
@@ -135,27 +138,35 @@ func viewEntries(meal *osusu.Meal, entries []osusu.Entry, mc *gi.Frame) {
 		scoreGrid(ec, score, false)
 
 		ec.OnClick(func(e events.Event) {
-			d := gi.NewDialog(ec).Title("Edit entry").FullWindow(true)
+			d := gi.NewBody().AddTitle("Edit entry")
 			giv.NewStructView(d).SetStruct(entry)
-			d.OnAccept(func(e events.Event) {
-				err := osusu.DB.Save(entry).Error
-				if err != nil {
-					gi.ErrorDialog(d, err).Run()
-				}
-			}).Cancel().Ok("Save").Run()
+			d.AddBottomBar(func(pw gi.Widget) {
+				d.AddCancel(pw)
+				d.AddOk(pw).SetText("Save").OnClick(func(e events.Event) {
+					err := osusu.DB.Save(entry).Error
+					if err != nil {
+						gi.ErrorDialog(d, err).Run()
+					}
+				})
+			})
+			d.NewFullDialog(ec).Run()
 		})
 	}
-	d.Run()
+	d.NewFullDialog(mc).Run()
 }
 
 func editMeal(mf *gi.Frame, meal *osusu.Meal, mc *gi.Frame) {
-	d := gi.NewDialog(mc).Title("Edit meal").FullWindow(true)
+	d := gi.NewBody().AddTitle("Edit meal")
 	giv.NewStructView(d).SetStruct(meal)
-	d.OnAccept(func(e events.Event) {
-		err := osusu.DB.Save(meal).Error
-		if err != nil {
-			gi.ErrorDialog(d, err).Run()
-		}
-		configSearch(mf)
-	}).Cancel().Ok("Save").Run()
+	d.AddBottomBar(func(pw gi.Widget) {
+		d.AddCancel(pw)
+		d.AddOk(pw).SetText("Save").OnClick(func(e events.Event) {
+			err := osusu.DB.Save(meal).Error
+			if err != nil {
+				gi.ErrorDialog(d, err).Run()
+			}
+			configSearch(mf)
+		})
+	})
+	d.NewFullDialog(mc).Run()
 }

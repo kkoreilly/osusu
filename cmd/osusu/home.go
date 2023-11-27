@@ -89,6 +89,7 @@ func newMeal(ctx gi.Widget, mf *gi.Frame, meal *osusu.Meal) {
 			configSearch(mf)
 		})
 	})
+	d.NewFullDialog(ctx).Run()
 }
 
 func cardStyles(card *gi.Frame) {
