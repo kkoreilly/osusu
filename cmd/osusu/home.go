@@ -19,7 +19,6 @@ import (
 	"goki.dev/grows/images"
 	"goki.dev/grr"
 	"goki.dev/icons"
-	"goki.dev/mat32/v2"
 	"gorm.io/gorm"
 )
 
@@ -30,9 +29,9 @@ var (
 )
 
 func home() {
-	sc := gi.NewScene("home")
+	b := gi.NewBody("home")
 
-	tabs := gi.NewTabs(sc).SetDeleteTabButtons(false)
+	tabs := gi.NewTabs(b).SetDeleteTabButtons(false)
 
 	search := tabs.NewTab("Search")
 	mf := gi.NewFrame(search)
@@ -46,46 +45,50 @@ func home() {
 	ef := gi.NewFrame(history)
 	configHistory(ef)
 
-	gi.DefaultTopAppBar = func(tb *gi.TopAppBar) {
-		gi.DefaultTopAppBarStd(tb)
+	b.AddTopBar(func(pw gi.Widget) {
+		tb := b.DefaultTopAppBar(pw)
 		gi.NewButton(tb).SetIcon(icons.Add).SetText("New meal").OnClick(func(e events.Event) {
 			newMeal(tb, mf, &osusu.Meal{})
 		})
 		gi.NewButton(tb).SetIcon(icons.Sort).SetText("Sort").OnClick(func(e events.Event) {
-			d := gi.NewDialog(tb).Title("Sort and filter").FullWindow(true)
+			d := gi.NewBody().AddTitle("Sort and filter")
 			giv.NewStructView(d).SetStruct(curOptions)
-			d.OnAccept(func(e events.Event) {
+			d.OnClose(func(e events.Event) {
 				configSearch(mf)
 				configHistory(ef)
 				configDiscover(mf, rf)
-			}).Run()
+			})
+			d.NewFullDialog(tb).Run()
 		})
-	}
+	})
 
-	gi.NewWindow(sc).SetNewWindow(false).Run()
+	b.NewWindow().Run()
 
 	curGroup = &osusu.Group{}
 	err := osusu.DB.First(curGroup, curUser.GroupID).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			groups(sc)
+			groups(b)
 		} else {
-			gi.ErrorDialog(sc, err).Run()
+			gi.ErrorDialog(b, err).Run()
 		}
 	}
 }
 
 func newMeal(ctx gi.Widget, mf *gi.Frame, meal *osusu.Meal) {
-	d := gi.NewDialog(ctx).Title("Create meal").FullWindow(true)
+	d := gi.NewBody().AddTitle("Create meal")
 	giv.NewStructView(d).SetStruct(meal)
-	d.OnAccept(func(e events.Event) {
-		err := osusu.DB.Create(meal).Error
-		if err != nil {
-			gi.ErrorDialog(d, err).Run()
-			return
-		}
-		configSearch(mf)
-	}).Cancel().Ok("Create").Run()
+	d.AddBottomBar(func(pw gi.Widget) {
+		d.AddCancel(pw)
+		d.AddOk(pw).SetText("Create").OnClick(func(e events.Event) {
+			err := osusu.DB.Create(meal).Error
+			if err != nil {
+				gi.ErrorDialog(d, err).Run()
+				return
+			}
+			configSearch(mf)
+		})
+	})
 }
 
 func cardStyles(card *gi.Frame) {
@@ -96,16 +99,17 @@ func cardStyles(card *gi.Frame) {
 		s.BackgroundColor.SetSolid(colors.Scheme.SurfaceContainerLow)
 		s.Padding.Set(units.Dp(8))
 		s.Min.Set(units.Em(20))
-		s.SetGrow(0)
-		s.MainAxis = mat32.Y
+		s.Grow.Set(0, 0)
+		s.Direction = styles.Column
+		s.Align.Content = styles.Center
+		s.Align.Items = styles.Center
 	})
 	card.OnWidgetAdded(func(w gi.Widget) {
 		switch w := w.(type) {
 		case *gi.Label:
 			w.Style(func(s *styles.Style) {
 				s.SetNonSelectable()
-				s.Align.Set(styles.AlignCenter)
-				s.Text.Align = styles.AlignCenter
+				s.Text.Align = styles.Center
 			})
 		case *gi.Image:
 			w.Style(func(s *styles.Style) {
@@ -118,13 +122,14 @@ func cardStyles(card *gi.Frame) {
 func scoreGrid(card *gi.Frame, score *osusu.Score, showRecency bool) *gi.Layout {
 	grid := gi.NewLayout(card)
 	grid.Style(func(s *styles.Style) {
-		s.Display = styles.DisplayGrid
+		s.Display = styles.Grid
 		if showRecency {
 			s.Columns = 6
 		} else {
 			s.Columns = 5
 		}
-		s.Align.X = styles.AlignCenter
+		s.Justify.Content = styles.Center
+		s.Justify.Items = styles.Center
 	})
 
 	label := func(text string) {
