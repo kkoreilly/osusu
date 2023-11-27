@@ -7,8 +7,8 @@ import (
 	"goki.dev/goosi/events"
 )
 
-func groups(bsc *gi.Scene) {
-	d := gi.NewDialog(bsc, "groups").FullWindow(true)
+func groups(b *gi.Body) {
+	d := gi.NewBody("groups")
 	gi.NewLabel(d).SetType(gi.LabelHeadlineMedium).SetText("Join group")
 	groupCode := ""
 	giv.NewValue(d, &groupCode)
@@ -28,7 +28,7 @@ func groups(bsc *gi.Scene) {
 		if err != nil {
 			gi.ErrorDialog(d, err).Run()
 		}
-		d.AcceptDialog()
+		d.Close()
 	})
-	d.Run()
+	d.NewFullDialog(b).Run()
 }

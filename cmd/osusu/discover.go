@@ -44,8 +44,8 @@ func configDiscover(rf *gi.Frame, mf *gi.Frame) {
 			break
 		}
 
-		grr.Log0(recipe.CategoryFlag.SetString(strings.Join(recipe.Category, "|")))
-		grr.Log0(recipe.CuisineFlag.SetString(strings.Join(recipe.Cuisine, "|")))
+		grr.Log(recipe.CategoryFlag.SetString(strings.Join(recipe.Category, "|")))
+		grr.Log(recipe.CuisineFlag.SetString(strings.Join(recipe.Cuisine, "|")))
 
 		if !bitFlagsOverlap(recipe.CategoryFlag, curOptions.Categories) ||
 			!bitFlagsOverlap(recipe.CuisineFlag, curOptions.Cuisines) {
@@ -86,18 +86,21 @@ func configDiscover(rf *gi.Frame, mf *gi.Frame) {
 }
 
 func addRecipe(rf *gi.Frame, recipe *osusu.Recipe, rc *gi.Frame, mf *gi.Frame) {
-	d := gi.NewDialog(rc).Title("Add recipe").FullWindow(true)
+	d := gi.NewBody().AddTitle("Add recipe")
 	giv.NewStructView(d).SetStruct(recipe).SetReadOnly(true)
-	d.OnAccept(func(e events.Event) {
-		d.Close()
-		meal := &osusu.Meal{
-			Name:        recipe.Name,
-			Description: recipe.Description,
-			Image:       recipe.Image,
-			Category:    recipe.CategoryFlag,
-			Cuisine:     recipe.CuisineFlag,
-		}
-		meal.Source.SetFlag(true, osusu.Cooking)
-		newMeal(rf, mf, meal)
-	}).Cancel().Ok("Add").Run()
+	d.AddBottomBar(func(pw gi.Widget) {
+		d.AddCancel(pw)
+		d.AddOk(pw).SetText("Add").OnClick(func(e events.Event) {
+			meal := &osusu.Meal{
+				Name:        recipe.Name,
+				Description: recipe.Description,
+				Image:       recipe.Image,
+				Category:    recipe.CategoryFlag,
+				Cuisine:     recipe.CuisineFlag,
+			}
+			meal.Source.SetFlag(true, osusu.Cooking)
+			newMeal(rf, mf, meal)
+		})
+	})
+	d.NewFullDialog(rc).Run()
 }

@@ -68,13 +68,17 @@ func configHistory(ef *gi.Frame) {
 }
 
 func editEntry(ef *gi.Frame, entry *osusu.Entry, ec *gi.Frame) {
-	d := gi.NewDialog(ec).Title("Edit entry").FullWindow(true)
+	d := gi.NewBody().AddTitle("Edit entry")
 	giv.NewStructView(d).SetStruct(entry)
-	d.OnAccept(func(e events.Event) {
-		err := osusu.DB.Save(entry).Error
-		if err != nil {
-			gi.ErrorDialog(d, err).Run()
-		}
-		configHistory(ef)
-	}).Cancel().Ok("Save").Run()
+	d.AddBottomBar(func(pw gi.Widget) {
+		d.AddCancel(pw)
+		d.AddOk(pw).SetText("Save").OnClick(func(e events.Event) {
+			err := osusu.DB.Save(entry).Error
+			if err != nil {
+				gi.ErrorDialog(d, err).Run()
+			}
+			configHistory(ef)
+		})
+	})
+	d.NewFullDialog(ec).Run()
 }

@@ -10,13 +10,13 @@ func main() { gimain.Run(app) }
 
 func app() {
 	gi.SetAppName("osusu")
-	sc := gi.NewScene("osusu").SetTitle("Osusu")
-	base(sc)
-	w := gi.NewWindow(sc).Run()
+	b := gi.NewBody().SetTitle("Osusu")
+	base(b)
+	w := b.NewWindow().Run()
 	err := osusu.OpenDB()
 	if err != nil {
-		gi.ErrorDialog(sc, err).Run()
+		gi.ErrorDialog(b, err).Run()
 	}
-	loadSession(sc)
+	loadSession(b)
 	w.Wait()
 }

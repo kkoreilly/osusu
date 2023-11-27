@@ -160,12 +160,12 @@ func getImageFromURL(url string) image.Image {
 		return nil
 	}
 	resp, err := http.Get(url)
-	if grr.Log0(err) != nil {
+	if grr.Log(err) != nil {
 		return nil
 	}
 	defer resp.Body.Close()
 	img, _, err := images.Read(resp.Body)
-	if grr.Log0(err) != nil {
+	if grr.Log(err) != nil {
 		return nil
 	}
 	return img
