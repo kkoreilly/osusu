@@ -17,6 +17,6 @@ func app() {
 	if err != nil {
 		gi.ErrorDialog(b, err).Run()
 	}
-	loadSession(b)
+	// loadSession(b)
 	w.Wait()
 }

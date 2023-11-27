@@ -11,12 +11,14 @@ type User struct {
 	Picture    string
 }
 
+/*
 type Session struct {
 	gorm.Model
 	UserID uint
 	User   User
 	Token  string
 }
+*/
 
 type Group struct {
 	gorm.Model `view:"-"`

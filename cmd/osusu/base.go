@@ -1,17 +1,12 @@
 package main
 
 import (
-	"crypto/rand"
-	"encoding/hex"
 	"errors"
-	"os"
 	"path/filepath"
-	"time"
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/kkoreilly/osusu/osusu"
 	"goki.dev/gi/v2/gi"
-	"goki.dev/goosi"
 	"goki.dev/kid"
 	"golang.org/x/oauth2"
 	"gorm.io/gorm"
@@ -34,7 +29,6 @@ func base(b *gi.Body) {
 		// if we already have a user with the same email, we don't need to make a new account
 		if err == nil {
 			curUser = &oldUser
-			saveSession(b)
 			home()
 			return
 		}
@@ -47,7 +41,6 @@ func base(b *gi.Body) {
 			gi.ErrorDialog(brow, err).Run()
 		}
 		curUser = user
-		saveSession(b)
 		home()
 	}
 	kid.Buttons(brow, &kid.ButtonsConfig{
@@ -58,6 +51,7 @@ func base(b *gi.Body) {
 	})
 }
 
+/*
 func loadSession(b *gi.Body) {
 	token, err := os.ReadFile(filepath.Join(goosi.TheApp.AppPrefsDir(), "sessionToken.json"))
 	if err != nil {
@@ -102,3 +96,4 @@ func saveSession(b *gi.Body) {
 		gi.ErrorDialog(b, err).Run()
 	}
 }
+*/
