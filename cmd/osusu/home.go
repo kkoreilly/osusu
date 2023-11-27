@@ -114,7 +114,7 @@ func cardStyles(card *gi.Frame) {
 			})
 		case *gi.Image:
 			w.Style(func(s *styles.Style) {
-				s.Max.Set(units.Em(20))
+				s.Min.Set(units.Em(20))
 				s.ObjectFit = styles.FitCover
 			})
 		}
