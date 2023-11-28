@@ -57,7 +57,7 @@ func configDiscover(rf *gi.Frame, mf *gi.Frame) {
 
 		img := getImageFromURL(recipe.Image)
 		if img != nil {
-			gi.NewImage(rc).SetImage(img, 0, 0)
+			gi.NewImage(rc).SetImage(img)
 		}
 
 		gi.NewLabel(rc).SetType(gi.LabelHeadlineSmall).SetText(recipe.Name)

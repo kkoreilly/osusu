@@ -34,7 +34,7 @@ func configHistory(ef *gi.Frame) {
 
 		img := getImageFromURL(entry.Meal.Image)
 		if img != nil {
-			gi.NewImage(ec).SetImage(img, 0, 0)
+			gi.NewImage(ec).SetImage(img)
 		}
 
 		gi.NewLabel(ec).SetType(gi.LabelHeadlineSmall).SetText(entry.Time.Format("Monday, January 2, 2006"))

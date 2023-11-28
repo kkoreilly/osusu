@@ -41,7 +41,7 @@ func configSearch(mf *gi.Frame) {
 
 		img := getImageFromURL(meal.Image)
 		if img != nil {
-			gi.NewImage(mc).SetImage(img, 0, 0)
+			gi.NewImage(mc).SetImage(img)
 		}
 
 		gi.NewLabel(mc).SetType(gi.LabelHeadlineSmall).SetText(meal.Name)
