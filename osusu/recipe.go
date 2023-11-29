@@ -39,8 +39,8 @@ type Recipe struct {
 	BaseScoreIndex     Score            `json:"-"` // index score values for base information about a recipe (using info like calories, time, ingredients, etc)
 	BaseScore          Score            // percentile values of BaseScoreIndex
 	TextEncodingScores map[uint]float32 `json:"-"` // keyed by meal ID
-	EncodingScore      Score            `view:"-" json:"-"`
-	Score              Score            `view:"-" json:"-"`
+	EncodingScore      Score            `json:"-"`
+	Score              Score            `json:"-"`
 }
 
 // Nutrition represents the nutritional information of a recipe

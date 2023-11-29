@@ -109,6 +109,7 @@ func newEntry(meal *osusu.Meal, mc *gi.Frame) {
 			}
 		})
 	})
+	d.NewFullDialog(mc).Run()
 }
 
 func viewEntries(meal *osusu.Meal, entries []osusu.Entry, mc *gi.Frame) {

@@ -122,8 +122,14 @@ func configDiscover(rf *gi.Frame, mf *gi.Frame) {
 	// now we can compute the base scores
 	osusu.ComputeBaseScores(recipes)
 
+	// and then the total scores
+	for _, recipe := range recipes {
+		recipe.BaseScore.ComputeTotal(curOptions)
+		recipe.Score = *osusu.AverageScore([]*osusu.Score{&recipe.BaseScore, &recipe.EncodingScore})
+	}
+
 	slices.SortFunc(recipes, func(a, b *osusu.Recipe) int {
-		return cmp.Compare(b.EncodingScore.Total, a.EncodingScore.Total)
+		return cmp.Compare(b.Score.Total, a.Score.Total)
 	})
 
 	for i, recipe := range recipes {
@@ -165,7 +171,7 @@ func configDiscover(rf *gi.Frame, mf *gi.Frame) {
 			s.Color = colors.Scheme.OnSurfaceVariant
 		})
 
-		scoreGrid(rc, &recipe.EncodingScore, true)
+		scoreGrid(rc, &recipe.Score, true)
 
 		rc.OnClick(func(e events.Event) {
 			addRecipe(rf, recipe, rc, mf)
