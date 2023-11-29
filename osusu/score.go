@@ -72,3 +72,26 @@ func MulScore[T num.Number](s *Score, scalar T) {
 	s.Healthiness = int(T(s.Healthiness) * scalar)
 	s.Total = int(T(s.Total) * scalar)
 }
+
+func AverageScore(scores []*Score) *Score {
+	ls := len(scores)
+	if ls == 0 {
+		return &Score{}
+	}
+	res := &Score{}
+	for _, score := range scores {
+		res.Cost += score.Cost
+		res.Effort += score.Effort
+		res.Healthiness += score.Healthiness
+		res.Taste += score.Taste
+		res.Recency += score.Recency
+		res.Total += score.Total
+	}
+	res.Cost /= ls
+	res.Effort /= ls
+	res.Healthiness /= ls
+	res.Taste /= ls
+	res.Recency /= ls
+	res.Total /= ls
+	return res
+}

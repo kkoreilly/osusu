@@ -69,13 +69,13 @@ func configDiscover(rf *gi.Frame, mf *gi.Frame) {
 		gi.ErrorDialog(rf, err).Run()
 	}
 	mealVectors := make([]mat.Matrix, len(meals))
-	for _, meal := range meals {
+	for i, meal := range meals {
 		res, err := otextencoding.Model.Encode(context.TODO(), meal.Text(), int(bert.MeanPooling))
 		if err != nil {
 			gi.ErrorDialog(rf, err, "Error text encoding meal")
 			continue
 		}
-		mealVectors = append(mealVectors, res.Vector)
+		mealVectors[i] = res.Vector
 	}
 
 	for _, recipe := range recipes {
@@ -108,6 +108,7 @@ func configDiscover(rf *gi.Frame, mf *gi.Frame) {
 			osusu.MulScore(score, textEncodingScore)
 			weightedScores[i] = score
 		}
+		recipe.EncodingScore = *osusu.AverageScore(weightedScores)
 	}
 
 	slices.SortFunc(recipes, func(a, b *osusu.Recipe) int {
