@@ -19,6 +19,11 @@ var recipesFS embed.FS
 
 var recipes []*osusu.Recipe
 
+//go:embed textencodingvectors.json
+var textEncodingVectorsFS embed.FS
+
+var textEncodingVectors map[string][]float32
+
 func configDiscover(rf *gi.Frame, mf *gi.Frame) {
 	if rf.HasChildren() {
 		rf.DeleteChildren(true)
@@ -32,11 +37,17 @@ func configDiscover(rf *gi.Frame, mf *gi.Frame) {
 	if recipes == nil {
 		err := jsons.OpenFS(&recipes, recipesFS, "recipes.json")
 		if err != nil {
-			gi.ErrorDialog(rf, err)
+			gi.ErrorDialog(rf, err, "Error opening recipes")
 			return
 		}
 		for _, recipe := range recipes {
 			grr.Log(recipe.Init())
+		}
+
+		err = jsons.OpenFS(&textEncodingVectors, textEncodingVectorsFS, "textencodingvectors.json")
+		if err != nil {
+			gi.ErrorDialog(rf, err, "Error opening recipe text encoding vectors")
+			return
 		}
 	}
 
