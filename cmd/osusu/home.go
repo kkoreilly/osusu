@@ -60,7 +60,7 @@ func home() {
 			d.OnClose(func(e events.Event) {
 				configSearch(mf)
 				configHistory(ef)
-				configDiscover(mf, rf)
+				configDiscover(rf, mf)
 			})
 			d.NewFullDialog(tb).Run()
 		})
