@@ -1,14 +1,16 @@
 package main
 
 import (
+	"cmp"
 	"context"
 	"embed"
-	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/kkoreilly/osusu/osusu"
 	"github.com/kkoreilly/osusu/otextencoding"
 	"github.com/nlpodyssey/cybertron/pkg/models/bert"
+	"github.com/nlpodyssey/spago/mat"
 	"goki.dev/colors"
 	"goki.dev/gi/v2/gi"
 	"goki.dev/gi/v2/giv"
@@ -66,16 +68,30 @@ func configDiscover(rf *gi.Frame, mf *gi.Frame) {
 	if err != nil {
 		gi.ErrorDialog(rf, err).Run()
 	}
+	var mealVector mat.Matrix
 	for _, meal := range meals {
-		meal := meal
-
 		res, err := otextencoding.Model.Encode(context.TODO(), meal.Text(), int(bert.MeanPooling))
 		if err != nil {
 			gi.ErrorDialog(rf, err, "Error text encoding meal")
 			continue
 		}
-		fmt.Println(meal.Name, res.Vector.Data().Len())
+		if mealVector == nil {
+			mealVector = res.Vector
+		} else {
+			mealVector.AddInPlace(res.Vector)
+		}
 	}
+
+	for _, recipe := range recipes {
+		recipeVector := textEncodingVectors[recipe.URL]
+		recipeMat := mat.NewDense[float32](mat.WithBacking(recipeVector))
+		score := mealVector.DotUnitary(recipeMat)
+		recipe.TextEncodingScore = score.Item().F32()
+	}
+
+	slices.SortFunc(recipes, func(a, b *osusu.Recipe) int {
+		return cmp.Compare(b.TextEncodingScore, a.TextEncodingScore)
+	})
 
 	for i, recipe := range recipes {
 		recipe := recipe
