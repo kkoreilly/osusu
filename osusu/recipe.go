@@ -110,19 +110,19 @@ func (r *Recipe) Text() string {
 func (r *Recipe) ComputeBaseScoreIndex() {
 	r.BaseScoreIndex = Score{}
 	// just length of ingredients, obviously can be improved to actually look at ingredients, but in general cost will increase with number of ingredients, higher = more expensive = worse
-	r.BaseScoreIndex.Cost = len(r.Ingredients)
+	r.BaseScoreIndex.Cost = -len(r.Ingredients)
 	// use generic total time duration of one hour if it isn't defined
 	if r.TotalTimeDuration == 0 {
 		r.TotalTimeDuration = time.Hour
 	}
 	// use combination of number of ingredients and total time, higher = more effort = worse
-	r.BaseScoreIndex.Effort = len(r.Ingredients) + int(r.TotalTimeDuration.Minutes())
+	r.BaseScoreIndex.Effort = -len(r.Ingredients) - int(r.TotalTimeDuration.Minutes())
 	// avoid div by 0
 	if r.Nutrition.Protein == 0 {
-		r.BaseScoreIndex.Healthiness = r.Nutrition.Sugar * 10
+		r.BaseScoreIndex.Healthiness = -r.Nutrition.Sugar * 10
 	} else {
 		// ratio of sugar to protein, higher = more sugar = worse
-		r.BaseScoreIndex.Healthiness = 100 * r.Nutrition.Sugar / r.Nutrition.Protein
+		r.BaseScoreIndex.Healthiness = -100 * r.Nutrition.Sugar / r.Nutrition.Protein
 	}
 	// rating value combined with rating count, higher = better rated = better
 	r.BaseScoreIndex.Taste = int(100*r.RatingValue) + min(r.RatingCount, 500)
@@ -137,7 +137,7 @@ func ComputeBaseScores(recipes []*Recipe) {
 	// we sort recipes by the base score indices on each metric and then loop over to find the percentile for each recipe on each metric and use that for the base score
 	compute := func(getScore func(s *Score) *int) {
 		slices.SortFunc(recipes, func(a, b *Recipe) int {
-			return cmp.Compare(*getScore(&b.BaseScoreIndex), *getScore(&a.BaseScoreIndex))
+			return cmp.Compare(*getScore(&a.BaseScoreIndex), *getScore(&b.BaseScoreIndex))
 		})
 		for i, recipe := range recipes {
 			*getScore(&recipe.BaseScore) = Percentile(i, len)
