@@ -125,7 +125,7 @@ func configDiscover(rf *gi.Frame, mf *gi.Frame) {
 	// and then the total scores
 	for _, recipe := range recipes {
 		recipe.BaseScore.ComputeTotal(curOptions)
-		recipe.Score = *osusu.AverageScore([]*osusu.Score{&recipe.BaseScore}) // , &recipe.EncodingScore})
+		recipe.Score = *osusu.AverageScore([]*osusu.Score{&recipe.BaseScore, &recipe.EncodingScore})
 	}
 
 	slices.SortFunc(recipes, func(a, b *osusu.Recipe) int {
