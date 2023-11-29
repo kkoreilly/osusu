@@ -42,5 +42,5 @@ func main() {
 		}
 	}
 
-	grr.Must(jsons.Save(vectors, "textencodingvectors.json"))
+	grr.Must(jsons.Save(vectors, filepath.Join("..", "osusu", "textEncodingVectors.json")))
 }

@@ -19,7 +19,7 @@ var recipesFS embed.FS
 
 var recipes []*osusu.Recipe
 
-//go:embed textencodingvectors.json
+//go:embed textEncodingVectors.json
 var textEncodingVectorsFS embed.FS
 
 var textEncodingVectors map[string][]float32
@@ -44,7 +44,7 @@ func configDiscover(rf *gi.Frame, mf *gi.Frame) {
 			grr.Log(recipe.Init())
 		}
 
-		err = jsons.OpenFS(&textEncodingVectors, textEncodingVectorsFS, "textencodingvectors.json")
+		err = jsons.OpenFS(&textEncodingVectors, textEncodingVectorsFS, "textEncodingVectors.json")
 		if err != nil {
 			gi.ErrorDialog(rf, err, "Error opening recipe text encoding vectors")
 			return
@@ -69,9 +69,11 @@ func configDiscover(rf *gi.Frame, mf *gi.Frame) {
 		rc := gi.NewFrame(rf)
 		cardStyles(rc)
 
-		img := getImageFromURL(recipe.Image)
-		if img != nil {
-			gi.NewImage(rc).SetImage(img)
+		if recipe.Image != "" {
+			img := gi.NewImage(rc)
+			go func() {
+				img.SetImage(getImageFromURL(recipe.Image))
+			}()
 		}
 
 		gi.NewLabel(rc).SetType(gi.LabelHeadlineSmall).SetText(recipe.Name)
