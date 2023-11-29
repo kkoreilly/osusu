@@ -88,7 +88,7 @@ func configDiscover(rf *gi.Frame, mf *gi.Frame) {
 	}
 
 	for _, recipe := range recipes {
-		// first we get the base score
+		// first we get the base score index
 		// TODO(kai/osusu): cache this step
 		recipe.ComputeBaseScoreIndex()
 
@@ -118,6 +118,9 @@ func configDiscover(rf *gi.Frame, mf *gi.Frame) {
 		}
 		recipe.EncodingScore = *osusu.AverageScore(weightedScores)
 	}
+
+	// now we can compute the base scores
+	osusu.ComputeBaseScores(recipes)
 
 	slices.SortFunc(recipes, func(a, b *osusu.Recipe) int {
 		return cmp.Compare(b.EncodingScore.Total, a.EncodingScore.Total)

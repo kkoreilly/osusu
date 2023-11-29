@@ -1,8 +1,10 @@
 package osusu
 
 import (
+	"cmp"
 	"fmt"
 	"html"
+	"slices"
 	"strings"
 	"time"
 )
@@ -126,4 +128,29 @@ func (r *Recipe) ComputeBaseScoreIndex() {
 	r.BaseScoreIndex.Taste = int(100*r.RatingValue) + min(r.RatingCount, 500)
 	// hours since 1970 for date published and modified, higher = more recent = better
 	r.BaseScoreIndex.Recency = int(r.DatePublished.Unix()/3600 + r.DateModified.Unix()/3600)
+}
+
+// ComputeBaseScores computes the base score for each recipe.
+// The base score indices already need to be computed.
+func ComputeBaseScores(recipes []*Recipe) {
+	len := len(recipes)
+	// we sort recipes by the base score indices on each metric and then loop over to find the percentile for each recipe on each metric and use that for the base score
+	compute := func(getScore func(s *Score) *int) {
+		slices.SortFunc(recipes, func(a, b *Recipe) int {
+			return cmp.Compare(*getScore(&b.BaseScoreIndex), *getScore(&a.BaseScoreIndex))
+		})
+		for i, recipe := range recipes {
+			*getScore(&recipe.BaseScore) = Percentile(i, len)
+		}
+	}
+	compute(func(s *Score) *int { return &s.Taste })
+	compute(func(s *Score) *int { return &s.Recency })
+	compute(func(s *Score) *int { return &s.Cost })
+	compute(func(s *Score) *int { return &s.Effort })
+	compute(func(s *Score) *int { return &s.Healthiness })
+}
+
+// Percentile returns the percentile of the element at the given index position in a sorted slice of the given length, normalized to range between 0 and 100
+func Percentile(index, length int) int {
+	return (100*index + length/2) / length
 }
