@@ -39,7 +39,9 @@ func home() {
 
 	discover := tabs.NewTab("Discover")
 	rf := gi.NewFrame(discover)
-	configDiscover(rf, mf)
+	tabs.Tabs().ChildByName("discover").(gi.Widget).OnClick(func(e events.Event) {
+		configDiscover(rf, mf)
+	})
 
 	history := tabs.NewTab("History")
 	ef := gi.NewFrame(history)

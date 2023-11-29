@@ -43,6 +43,7 @@ func configSearch(mf *gi.Frame) {
 			img := gi.NewImage(mc)
 			go func() {
 				img.SetImage(getImageFromURL(meal.Image))
+				img.Update()
 			}()
 		}
 

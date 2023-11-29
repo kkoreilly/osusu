@@ -73,6 +73,7 @@ func configDiscover(rf *gi.Frame, mf *gi.Frame) {
 			img := gi.NewImage(rc)
 			go func() {
 				img.SetImage(getImageFromURL(recipe.Image))
+				img.Update()
 			}()
 		}
 

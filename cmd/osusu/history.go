@@ -36,6 +36,7 @@ func configHistory(ef *gi.Frame) {
 			img := gi.NewImage(ec)
 			go func() {
 				img.SetImage(getImageFromURL(entry.Meal.Image))
+				img.Update()
 			}()
 		}
 
