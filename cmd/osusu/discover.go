@@ -17,7 +17,7 @@ import (
 //go:embed recipes.json
 var recipesFS embed.FS
 
-var recipes []osusu.Recipe
+var recipes []*osusu.Recipe
 
 func configDiscover(rf *gi.Frame, mf *gi.Frame) {
 	if rf.HasChildren() {
@@ -34,6 +34,9 @@ func configDiscover(rf *gi.Frame, mf *gi.Frame) {
 		if err != nil {
 			gi.ErrorDialog(rf, err)
 			return
+		}
+		for _, recipe := range recipes {
+			grr.Log(recipe.Init())
 		}
 	}
 
@@ -77,7 +80,7 @@ func configDiscover(rf *gi.Frame, mf *gi.Frame) {
 		scoreGrid(rc, &recipe.Score, true)
 
 		rc.OnClick(func(e events.Event) {
-			addRecipe(rf, &recipe, rc, mf)
+			addRecipe(rf, recipe, rc, mf)
 		})
 	}
 
