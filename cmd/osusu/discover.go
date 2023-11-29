@@ -116,11 +116,11 @@ func configDiscover(rf *gi.Frame, mf *gi.Frame) {
 			osusu.MulScore(score, textEncodingScore)
 			weightedScores[i] = score
 		}
-		recipe.EncodingScore = *osusu.AverageScore(weightedScores)
+		recipe.EncodingScoreIndex = *osusu.AverageScore(weightedScores)
 	}
 
-	// now we can compute the base scores
-	osusu.ComputeBaseScores(recipes)
+	// now we can compute the percentile scores
+	osusu.ComputePercentileScores(recipes)
 
 	// and then the total scores
 	for _, recipe := range recipes {

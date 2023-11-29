@@ -11,36 +11,42 @@ import (
 
 // A Recipe is an external recipe that can be used for new meal recommendations
 type Recipe struct {
-	Name               string
-	URL                string
-	Description        string
-	Image              string
-	Author             string
-	DatePublished      time.Time
-	DateModified       time.Time
-	Category           []string   `view:"-"`
-	CategoryFlag       Categories `json:"-" label:"Category"`
-	Cuisine            []string   `view:"-"`
-	CuisineFlag        Cuisines   `json:"-" label:"Cuisine"`
-	Ingredients        []string
-	TotalTime          string        `view:"-"`
-	PrepTime           string        `view:"-"`
-	CookTime           string        `view:"-"`
-	TotalTimeDuration  time.Duration `json:"-" label:"Total time" viewif:"TotalTime!=\"\""`
-	PrepTimeDuration   time.Duration `json:"-" label:"Prep time" viewif:"PrepTime!=\"\""`
-	CookTimeDuration   time.Duration `json:"-" label:"Cook time" viewif:"CookTime!=\"\""`
-	Yield              int
-	RatingValue        float64 `view:"slider" min:"0" max:"5"`
-	RatingCount        int
-	RatingScore        int `view:"-" json:"-"`
-	RatingWeight       int `view:"-" json:"-"`
-	Nutrition          Nutrition
-	Source             string           `json:"-"`
-	BaseScoreIndex     Score            `json:"-"` // index score values for base information about a recipe (using info like calories, time, ingredients, etc)
-	BaseScore          Score            // percentile values of BaseScoreIndex
-	TextEncodingScores map[uint]float32 `json:"-"` // keyed by meal ID
-	EncodingScore      Score            `json:"-"`
-	Score              Score            `json:"-"`
+	Name              string
+	URL               string
+	Description       string
+	Image             string
+	Author            string
+	DatePublished     time.Time
+	DateModified      time.Time
+	Category          []string   `view:"-"`
+	CategoryFlag      Categories `json:"-" label:"Category"`
+	Cuisine           []string   `view:"-"`
+	CuisineFlag       Cuisines   `json:"-" label:"Cuisine"`
+	Ingredients       []string
+	TotalTime         string        `view:"-"`
+	PrepTime          string        `view:"-"`
+	CookTime          string        `view:"-"`
+	TotalTimeDuration time.Duration `json:"-" label:"Total time" viewif:"TotalTime!=\"\""`
+	PrepTimeDuration  time.Duration `json:"-" label:"Prep time" viewif:"PrepTime!=\"\""`
+	CookTimeDuration  time.Duration `json:"-" label:"Cook time" viewif:"CookTime!=\"\""`
+	Yield             int
+	RatingValue       float64 `view:"slider" min:"0" max:"5"`
+	RatingCount       int
+	RatingScore       int `view:"-" json:"-"`
+	RatingWeight      int `view:"-" json:"-"`
+	Nutrition         Nutrition
+	Source            string `json:"-"`
+	// index score values for base information about a recipe (using info like calories, time, ingredients, etc)
+	BaseScoreIndex Score `json:"-"`
+	// percentile values of BaseScoreIndex
+	BaseScore Score
+	// keyed by meal ID
+	TextEncodingScores map[uint]float32 `json:"-"`
+	// index score values for text encoding based scores
+	EncodingScoreIndex Score `json:"-"`
+	// percentile values of EncodingScoreIndex
+	EncodingScore Score `json:"-"`
+	Score         Score `json:"-"`
 }
 
 // Nutrition represents the nutritional information of a recipe
@@ -130,18 +136,29 @@ func (r *Recipe) ComputeBaseScoreIndex() {
 	r.BaseScoreIndex.Recency = int(r.DatePublished.Unix()/3600 + r.DateModified.Unix()/3600)
 }
 
-// ComputeBaseScores computes the base score for each recipe.
-// The base score indices already need to be computed.
-func ComputeBaseScores(recipes []*Recipe) {
+// ComputePercentileScores computes the percentile base and
+// text encoding scores for each recipe. The base and text
+// encoding score indices already need to be computed.
+func ComputePercentileScores(recipes []*Recipe) {
 	len := len(recipes)
 	// we sort recipes by the base score indices on each metric and then loop over to find the percentile for each recipe on each metric and use that for the base score
-	compute := func(getScore func(s *Score) *int) {
+	doCompute := func(scoreValue func(s *Score) *int, indexScoreObject, percentileScoreObject func(r *Recipe) *Score) {
 		slices.SortFunc(recipes, func(a, b *Recipe) int {
-			return cmp.Compare(*getScore(&a.BaseScoreIndex), *getScore(&b.BaseScoreIndex))
+			return cmp.Compare(*scoreValue(indexScoreObject(a)), *scoreValue(indexScoreObject(b)))
 		})
 		for i, recipe := range recipes {
-			*getScore(&recipe.BaseScore) = Percentile(i, len)
+			*scoreValue(percentileScoreObject(recipe)) = Percentile(i, len)
 		}
+	}
+	compute := func(scoreValue func(s *Score) *int) {
+		doCompute(scoreValue,
+			func(r *Recipe) *Score { return &r.BaseScoreIndex },
+			func(r *Recipe) *Score { return &r.BaseScore },
+		)
+		doCompute(scoreValue,
+			func(r *Recipe) *Score { return &r.EncodingScoreIndex },
+			func(r *Recipe) *Score { return &r.EncodingScore },
+		)
 	}
 	compute(func(s *Score) *int { return &s.Taste })
 	compute(func(s *Score) *int { return &s.Recency })
