@@ -34,9 +34,9 @@ type Recipe struct {
 	RatingWeight       int `view:"-" json:"-"`
 	Nutrition          Nutrition
 	Source             string           `json:"-"`
-	BaseScoreIndex     Score            `view:"-" json:"-"` // index score values for base information about a recipe (using info like calories, time, ingredients, etc)
-	BaseScore          Score            `view:"-"`          // percentile values of BaseScoreIndex
-	TextEncodingScores map[uint]float32 `json:"-"`          // keyed by meal ID
+	BaseScoreIndex     Score            `json:"-"` // index score values for base information about a recipe (using info like calories, time, ingredients, etc)
+	BaseScore          Score            // percentile values of BaseScoreIndex
+	TextEncodingScores map[uint]float32 `json:"-"` // keyed by meal ID
 	EncodingScore      Score            `view:"-" json:"-"`
 	Score              Score            `view:"-" json:"-"`
 }
@@ -102,4 +102,28 @@ func (r *Recipe) Init() error {
 // not be presented to end-users.
 func (r *Recipe) Text() string {
 	return strings.Join([]string{r.Name, r.Description, strings.Join(r.Ingredients, "\n")}, "\n")
+}
+
+// ComputeBaseScoreIndex computes and sets the base score index for the given recipe
+func (r *Recipe) ComputeBaseScoreIndex() {
+	r.BaseScoreIndex = Score{}
+	// just length of ingredients, obviously can be improved to actually look at ingredients, but in general cost will increase with number of ingredients, higher = more expensive = worse
+	r.BaseScoreIndex.Cost = len(r.Ingredients)
+	// use generic total time duration of one hour if it isn't defined
+	if r.TotalTimeDuration == 0 {
+		r.TotalTimeDuration = time.Hour
+	}
+	// use combination of number of ingredients and total time, higher = more effort = worse
+	r.BaseScoreIndex.Effort = len(r.Ingredients) + int(r.TotalTimeDuration.Minutes())
+	// avoid div by 0
+	if r.Nutrition.Protein == 0 {
+		r.BaseScoreIndex.Healthiness = r.Nutrition.Sugar * 10
+	} else {
+		// ratio of sugar to protein, higher = more sugar = worse
+		r.BaseScoreIndex.Healthiness = 100 * r.Nutrition.Sugar / r.Nutrition.Protein
+	}
+	// rating value combined with rating count, higher = better rated = better
+	r.BaseScoreIndex.Taste = int(100*r.RatingValue) + min(r.RatingCount, 500)
+	// hours since 1970 for date published and modified, higher = more recent = better
+	r.BaseScoreIndex.Recency = int(r.DatePublished.Unix()/3600 + r.DateModified.Unix()/3600)
 }

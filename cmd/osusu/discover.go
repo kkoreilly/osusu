@@ -88,7 +88,11 @@ func configDiscover(rf *gi.Frame, mf *gi.Frame) {
 	}
 
 	for _, recipe := range recipes {
-		// first we get the raw text encoding score
+		// first we get the base score
+		// TODO(kai/osusu): cache this step
+		recipe.ComputeBaseScoreIndex()
+
+		// then we get the raw text encoding score
 		// TODO(kai/osusu): cache this step
 		recipeVector := textEncodingVectors[recipe.URL]
 		recipeMat := mat.NewDense[float32](mat.WithBacking(recipeVector))
