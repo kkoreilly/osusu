@@ -134,10 +134,10 @@ func configDiscover(rf *gi.Frame, mf *gi.Frame) {
 		return cmp.Compare(b.Score.Total, a.Score.Total)
 	})
 
-	for i, recipe := range recipes {
+	for _, recipe := range recipes {
 		recipe := recipe
 
-		if i > 100 {
+		if rf.NumChildren() > 100 {
 			break
 		}
 
