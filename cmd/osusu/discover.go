@@ -68,8 +68,17 @@ func configDiscover(rf *gi.Frame, mf *gi.Frame) {
 	if err != nil {
 		gi.ErrorDialog(rf, err).Run()
 	}
+	mealEntries := map[uint][]osusu.Entry{}
 	mealVectors := make([]mat.Matrix, len(meals))
 	for i, meal := range meals {
+
+		entries := []osusu.Entry{}
+		err := osusu.DB.Find(&entries, "meal_id = ? AND user_id = ?", meal.ID, curUser.ID).Error
+		if err != nil {
+			gi.ErrorDialog(rf, err).Run()
+		}
+		mealEntries[meal.ID] = entries
+
 		res, err := otextencoding.Model.Encode(context.TODO(), meal.Text(), int(bert.MeanPooling))
 		if err != nil {
 			gi.ErrorDialog(rf, err, "Error text encoding meal")
@@ -95,12 +104,7 @@ func configDiscover(rf *gi.Frame, mf *gi.Frame) {
 		weightedScores := make([]*osusu.Score, len(meals))
 		for i, meal := range meals {
 			textEncodingScore := recipe.TextEncodingScores[meal.ID]
-
-			entries := []osusu.Entry{}
-			err := osusu.DB.Find(&entries, "meal_id = ? AND user_id = ?", meal.ID, curUser.ID).Error
-			if err != nil {
-				gi.ErrorDialog(rf, err).Run()
-			}
+			entries := mealEntries[meal.ID]
 
 			score := meal.Score(entries)
 			score.ComputeTotal(curOptions)
@@ -154,8 +158,7 @@ func configDiscover(rf *gi.Frame, mf *gi.Frame) {
 			s.Color = colors.Scheme.OnSurfaceVariant
 		})
 
-		recipe.Score.ComputeTotal(curOptions)
-		scoreGrid(rc, &recipe.Score, true)
+		scoreGrid(rc, &recipe.EncodingScore, true)
 
 		rc.OnClick(func(e events.Event) {
 			addRecipe(rf, recipe, rc, mf)
