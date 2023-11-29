@@ -76,9 +76,9 @@ const (
 	Japanese
 	Jewish
 	Korean
-	LatinAmerican
+	LatinAmerican // Latin American
 	Mexican
-	MiddleEastern
+	MiddleEastern // Middle Eastern
 	Thai
 )
 

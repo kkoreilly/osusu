@@ -5,6 +5,7 @@ package osusu
 import (
 	"database/sql/driver"
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
 	"sync/atomic"
@@ -181,7 +182,10 @@ func (i Sources) MarshalText() ([]byte, error) {
 
 // UnmarshalText implements the [encoding.TextUnmarshaler] interface.
 func (i *Sources) UnmarshalText(text []byte) error {
-	return i.SetString(string(text))
+	if err := i.SetString(string(text)); err != nil {
+		log.Println(err)
+	}
+	return nil
 }
 
 // Scan implements the [driver.Valuer] interface.
@@ -409,7 +413,10 @@ func (i Categories) MarshalText() ([]byte, error) {
 
 // UnmarshalText implements the [encoding.TextUnmarshaler] interface.
 func (i *Categories) UnmarshalText(text []byte) error {
-	return i.SetString(string(text))
+	if err := i.SetString(string(text)); err != nil {
+		log.Println(err)
+	}
+	return nil
 }
 
 // Scan implements the [driver.Valuer] interface.
@@ -468,40 +475,40 @@ func _CuisinesNoOp() {
 }
 
 var _CuisinesNameToValueMap = map[string]Cuisines{
-	`African`:       0,
-	`african`:       0,
-	`American`:      1,
-	`american`:      1,
-	`Asian`:         2,
-	`asian`:         2,
-	`British`:       3,
-	`british`:       3,
-	`Chinese`:       4,
-	`chinese`:       4,
-	`European`:      5,
-	`european`:      5,
-	`French`:        6,
-	`french`:        6,
-	`Greek`:         7,
-	`greek`:         7,
-	`Indian`:        8,
-	`indian`:        8,
-	`Italian`:       9,
-	`italian`:       9,
-	`Japanese`:      10,
-	`japanese`:      10,
-	`Jewish`:        11,
-	`jewish`:        11,
-	`Korean`:        12,
-	`korean`:        12,
-	`LatinAmerican`: 13,
-	`latinamerican`: 13,
-	`Mexican`:       14,
-	`mexican`:       14,
-	`MiddleEastern`: 15,
-	`middleeastern`: 15,
-	`Thai`:          16,
-	`thai`:          16,
+	`African`:        0,
+	`african`:        0,
+	`American`:       1,
+	`american`:       1,
+	`Asian`:          2,
+	`asian`:          2,
+	`British`:        3,
+	`british`:        3,
+	`Chinese`:        4,
+	`chinese`:        4,
+	`European`:       5,
+	`european`:       5,
+	`French`:         6,
+	`french`:         6,
+	`Greek`:          7,
+	`greek`:          7,
+	`Indian`:         8,
+	`indian`:         8,
+	`Italian`:        9,
+	`italian`:        9,
+	`Japanese`:       10,
+	`japanese`:       10,
+	`Jewish`:         11,
+	`jewish`:         11,
+	`Korean`:         12,
+	`korean`:         12,
+	`Latin American`: 13,
+	`latin american`: 13,
+	`Mexican`:        14,
+	`mexican`:        14,
+	`Middle Eastern`: 15,
+	`middle eastern`: 15,
+	`Thai`:           16,
+	`thai`:           16,
 }
 
 var _CuisinesDescMap = map[Cuisines]string{
@@ -538,9 +545,9 @@ var _CuisinesMap = map[Cuisines]string{
 	10: `Japanese`,
 	11: `Jewish`,
 	12: `Korean`,
-	13: `LatinAmerican`,
+	13: `Latin American`,
 	14: `Mexican`,
-	15: `MiddleEastern`,
+	15: `Middle Eastern`,
 	16: `Thai`,
 }
 
@@ -672,7 +679,10 @@ func (i Cuisines) MarshalText() ([]byte, error) {
 
 // UnmarshalText implements the [encoding.TextUnmarshaler] interface.
 func (i *Cuisines) UnmarshalText(text []byte) error {
-	return i.SetString(string(text))
+	if err := i.SetString(string(text)); err != nil {
+		log.Println(err)
+	}
+	return nil
 }
 
 // Scan implements the [driver.Valuer] interface.
