@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/kkoreilly/osusu/osusu"
+	"github.com/kkoreilly/osusu/otextencoding"
 	"goki.dev/colors"
 	"goki.dev/gi/v2/gi"
 	"goki.dev/gi/v2/giv"
@@ -49,7 +50,21 @@ func configDiscover(rf *gi.Frame, mf *gi.Frame) {
 			gi.ErrorDialog(rf, err, "Error opening recipe text encoding vectors")
 			return
 		}
+
+		err = otextencoding.LoadModel()
+		if err != nil {
+			gi.ErrorDialog(rf, err, "Error loading text encoding model")
+			return
+		}
 	}
+
+	// for i, recipe := range recipes {
+	// 	res, err := otextencoding.Encode(recipe)
+	// 	if err != nil {
+	// 		gi.ErrorDialog(rf, err, "Error encoding recipe")
+	// 		return
+	// 	}
+	// }
 
 	for i, recipe := range recipes {
 		recipe := recipe

@@ -2,16 +2,12 @@
 package main
 
 import (
-	"context"
 	"log/slog"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/kkoreilly/osusu/osusu"
-	"github.com/nlpodyssey/cybertron/pkg/models/bert"
-	"github.com/nlpodyssey/cybertron/pkg/tasks"
-	"github.com/nlpodyssey/cybertron/pkg/tasks/textencoding"
+	"github.com/kkoreilly/osusu/otextencoding"
 	"github.com/rs/zerolog"
 	"goki.dev/grows/jsons"
 	"goki.dev/grr"
@@ -20,9 +16,9 @@ import (
 func main() {
 	zerolog.SetGlobalLevel(zerolog.DebugLevel)
 
-	m := grr.Must1(tasks.Load[textencoding.Interface](&tasks.Config{ModelsDir: "models", ModelName: textencoding.DefaultModel}))
+	grr.Must(otextencoding.LoadModel())
 
-	var recipes []osusu.Recipe
+	var recipes []*osusu.Recipe
 	grr.Must(jsons.Open(&recipes, filepath.Join("..", "osusu", "recipes.json")))
 
 	// keyed by recipe URL
@@ -34,8 +30,7 @@ func main() {
 	slog.Info("starting", "numRecipes", nrecipes)
 
 	for i, recipe := range recipes {
-		rstr := strings.Join([]string{recipe.Name, recipe.Description, strings.Join(recipe.Ingredients, " ")}, " ")
-		res := grr.Must1(m.Encode(context.TODO(), rstr, int(bert.MeanPooling)))
+		res := grr.Must1(otextencoding.Encode(recipe))
 		vectors[recipe.URL] = res.Vector.Data().F32()
 		if i%10 == 0 && i != 0 {
 			slog.Info("on", "recipe", i, "estimatedTimeRemaining", time.Since(st)*time.Duration((nrecipes-i)/i))

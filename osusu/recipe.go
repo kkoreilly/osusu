@@ -94,3 +94,10 @@ func (r *Recipe) Init() error {
 	}
 	return nil
 }
+
+// Text returns all of the text associated with the recipe as one string.
+// It is intended to be used as text encoding model data, so it should
+// not be presented to end-users.
+func (r *Recipe) Text() string {
+	return strings.Join([]string{r.Name, r.Description, strings.Join(r.Ingredients, "\n")}, "\n")
+}
