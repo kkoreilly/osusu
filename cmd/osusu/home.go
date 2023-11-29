@@ -66,7 +66,7 @@ func home() {
 		})
 	})
 
-	b.NewWindow().Run()
+	b.NewWindow().SetNewWindow(false).Run()
 
 	curGroup = &osusu.Group{}
 	err := osusu.DB.First(curGroup, curUser.GroupID).Error
