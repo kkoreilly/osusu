@@ -122,7 +122,7 @@ func configDiscover(rf *gi.Frame, mf *gi.Frame) {
 	for i, recipe := range recipes {
 		recipe := recipe
 
-		if i > 20 {
+		if i > 100 {
 			break
 		}
 
@@ -137,13 +137,13 @@ func configDiscover(rf *gi.Frame, mf *gi.Frame) {
 		rc := gi.NewFrame(rf)
 		cardStyles(rc)
 
-		if recipe.Image != "" {
-			img := gi.NewImage(rc)
-			go func() {
-				img.SetImage(getImageFromURL(recipe.Image))
+		img := gi.NewImage(rc)
+		go func() {
+			if i := getImageFromURL(recipe.Image); i != nil {
+				img.SetImage(i)
 				img.Update()
-			}()
-		}
+			}
+		}()
 
 		gi.NewLabel(rc).SetType(gi.LabelHeadlineSmall).SetText(recipe.Name)
 
