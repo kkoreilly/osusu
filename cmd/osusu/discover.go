@@ -120,7 +120,7 @@ func configDiscover(rf *gi.Frame, mf *gi.Frame) {
 	}
 
 	// now we can compute the percentile scores
-	osusu.ComputePercentileScores(recipes)
+	osusu.ComputeNormScores(recipes)
 
 	// and then the total scores
 	for _, recipe := range recipes {

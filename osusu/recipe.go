@@ -1,12 +1,12 @@
 package osusu
 
 import (
-	"cmp"
 	"fmt"
 	"html"
-	"slices"
 	"strings"
 	"time"
+
+	"gonum.org/v1/gonum/stat"
 )
 
 // A Recipe is an external recipe that can be used for new meal recommendations
@@ -136,18 +136,27 @@ func (r *Recipe) ComputeBaseScoreIndex() {
 	r.BaseScoreIndex.Recency = int(r.DatePublished.Unix()/3600 + r.DateModified.Unix()/3600)
 }
 
-// ComputePercentileScores computes the percentile base and
+// ComputeNormScores computes the normalized base and
 // text encoding scores for each recipe. The base and text
 // encoding score indices already need to be computed.
-func ComputePercentileScores(recipes []*Recipe) {
+// The normalized scores are the z-scores centered at 50
+// and bounded at roughly 0 and 100.
+func ComputeNormScores(recipes []*Recipe) {
 	len := len(recipes)
 	// we sort recipes by the base score indices on each metric and then loop over to find the percentile for each recipe on each metric and use that for the base score
 	doCompute := func(scoreValue func(s *Score) *int, indexScoreObject, percentileScoreObject func(r *Recipe) *Score) {
-		slices.SortFunc(recipes, func(a, b *Recipe) int {
-			return cmp.Compare(*scoreValue(indexScoreObject(a)), *scoreValue(indexScoreObject(b)))
-		})
+		scores := make([]float64, len)
 		for i, recipe := range recipes {
-			*scoreValue(percentileScoreObject(recipe)) = Percentile(i, len)
+			scores[i] = float64(*scoreValue(indexScoreObject(recipe)))
+		}
+		mean, std := stat.MeanStdDev(scores, nil)
+		for i, recipe := range recipes {
+			z := (scores[i] - mean) / std
+			if std == 0 {
+				z = 0
+			}
+			sc := (50 * z / 3) + 50
+			*scoreValue(percentileScoreObject(recipe)) = int(sc)
 		}
 	}
 	compute := func(scoreValue func(s *Score) *int) {
@@ -165,9 +174,4 @@ func ComputePercentileScores(recipes []*Recipe) {
 	compute(func(s *Score) *int { return &s.Cost })
 	compute(func(s *Score) *int { return &s.Effort })
 	compute(func(s *Score) *int { return &s.Healthiness })
-}
-
-// Percentile returns the percentile of the element at the given index position in a sorted slice of the given length, normalized to range between 0 and 100
-func Percentile(index, length int) int {
-	return (100*index + length/2) / length
 }

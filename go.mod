@@ -5,11 +5,14 @@ go 1.21.0
 require (
 	github.com/coreos/go-oidc/v3 v3.7.0
 	github.com/nlpodyssey/cybertron v0.2.1
+	github.com/nlpodyssey/spago v1.1.0
+	github.com/rs/zerolog v1.31.0
 	goki.dev/colors v0.8.29
 	goki.dev/cursors v0.0.17
 	goki.dev/enums v0.9.38
 	goki.dev/gi/v2 v2.0.0-dev0.0.13
 	goki.dev/girl v0.0.21
+	goki.dev/glop v0.1.4
 	goki.dev/goosi v0.0.11
 	goki.dev/grows v0.3.15
 	goki.dev/grr v0.0.6
@@ -17,6 +20,7 @@ require (
 	goki.dev/kid v0.0.0-20231117011147-b91cf97890ac
 	goki.dev/rqlite v0.0.0-20231114052146-c10124932c4d
 	golang.org/x/oauth2 v0.14.0
+	gonum.org/v1/gonum v0.14.0
 	gorm.io/gorm v1.25.5
 )
 
@@ -57,15 +61,12 @@ require (
 	github.com/muesli/termenv v0.15.2 // indirect
 	github.com/nlpodyssey/gopickle v0.2.0 // indirect
 	github.com/nlpodyssey/gotokenizers v0.2.0 // indirect
-	github.com/nlpodyssey/spago v1.1.0 // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
 	github.com/rqlite/gorqlite v0.0.0-20230708021416-2acd02b70b79 // indirect
-	github.com/rs/zerolog v1.31.0 // indirect
 	github.com/srwiley/rasterx v0.0.0-20220730225603-2ab79fcdd4ef // indirect
 	github.com/srwiley/scanx v0.0.0-20190309010443-e94503791388 // indirect
 	github.com/yalue/merged_fs v1.2.3 // indirect
 	goki.dev/cam v0.9.35 // indirect
-	goki.dev/glop v0.1.4 // indirect
 	goki.dev/grog v0.0.13 // indirect
 	goki.dev/gti v0.1.16 // indirect
 	goki.dev/ki/v2 v2.0.0-dev0.0.19 // indirect
