@@ -4,6 +4,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"path/filepath"
 	"strings"
 
 	"github.com/kkoreilly/osusu/osusu"
@@ -21,10 +22,22 @@ func main() {
 	m := grr.Must1(tasks.Load[textencoding.Interface](&tasks.Config{ModelsDir: "models", ModelName: textencoding.DefaultModel}))
 
 	var recipes []osusu.Recipe
-	grr.Must(jsons.Open(&recipes, "../recipes.json"))
+	grr.Must(jsons.Open(&recipes, filepath.Join("..", "osusu", "recipes.json")))
 
-	for _, recipe := range recipes {
-		res := grr.Must1(m.Encode(context.TODO(), strings.Join([]string{recipe.Name, recipe.Description}, " "), int(bert.MeanPooling)))
-		fmt.Println(res.Vector)
+	// keyed by recipe URL
+	vectors := map[string][]float32{}
+
+	for i, recipe := range recipes {
+		rstr := strings.Join([]string{recipe.Name, recipe.Description, strings.Join(recipe.Ingredients, " ")}, " ")
+		res := grr.Must1(m.Encode(context.TODO(), rstr, int(bert.MeanPooling)))
+		vectors[recipe.URL] = res.Vector.Data().F32()
+		if i%10 == 0 {
+			fmt.Println("On recipe", i)
+		}
+		if i == 100 {
+			break
+		}
 	}
+
+	grr.Must(jsons.Save(vectors, "textencodingvectors.json"))
 }
