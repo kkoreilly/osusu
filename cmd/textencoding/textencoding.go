@@ -40,9 +40,6 @@ func main() {
 		if i%10 == 0 && i != 0 {
 			slog.Info("on", "recipe", i, "estimated-time-remaining", time.Since(st)*time.Duration((nrecipes-i)/i))
 		}
-		if i == 100 {
-			break
-		}
 	}
 
 	grr.Must(jsons.Save(vectors, "textencodingvectors.json"))
