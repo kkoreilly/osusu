@@ -2,6 +2,8 @@ package osusu
 
 import (
 	"time"
+
+	"goki.dev/glop/num"
 )
 
 type Score struct {
@@ -60,4 +62,13 @@ func (m *Meal) Score(entries []Entry) *Score {
 	recency := 2 * days
 	s.Recency = min(int(recency), 100)
 	return s
+}
+
+func MulScore[T num.Number](s *Score, scalar T) {
+	s.Taste = int(T(s.Taste) * scalar)
+	s.Recency = int(T(s.Recency) * scalar)
+	s.Cost = int(T(s.Cost) * scalar)
+	s.Effort = int(T(s.Effort) * scalar)
+	s.Healthiness = int(T(s.Healthiness) * scalar)
+	s.Total = int(T(s.Total) * scalar)
 }

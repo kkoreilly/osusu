@@ -9,35 +9,36 @@ import (
 
 // A Recipe is an external recipe that can be used for new meal recommendations
 type Recipe struct {
-	Name              string
-	URL               string
-	Description       string
-	Image             string
-	Author            string
-	DatePublished     time.Time
-	DateModified      time.Time
-	Category          []string   `view:"-"`
-	CategoryFlag      Categories `json:"-" label:"Category"`
-	Cuisine           []string   `view:"-"`
-	CuisineFlag       Cuisines   `json:"-" label:"Cuisine"`
-	Ingredients       []string
-	TotalTime         string        `view:"-"`
-	PrepTime          string        `view:"-"`
-	CookTime          string        `view:"-"`
-	TotalTimeDuration time.Duration `json:"-" label:"Total time" viewif:"TotalTime!=\"\""`
-	PrepTimeDuration  time.Duration `json:"-" label:"Prep time" viewif:"PrepTime!=\"\""`
-	CookTimeDuration  time.Duration `json:"-" label:"Cook time" viewif:"CookTime!=\"\""`
-	Yield             int
-	RatingValue       float64 `view:"slider" min:"0" max:"5"`
-	RatingCount       int
-	RatingScore       int `view:"-" json:"-"`
-	RatingWeight      int `view:"-" json:"-"`
-	Nutrition         Nutrition
-	Source            string `json:"-"`
-	BaseScoreIndex    Score  `view:"-" json:"-"` // index score values for base information about a recipe (using info like calories, time, ingredients, etc)
-	BaseScore         Score  `view:"-"`          // percentile values of BaseScoreIndex
-	Score             Score  `view:"-"`
-	TextEncodingScore float32
+	Name               string
+	URL                string
+	Description        string
+	Image              string
+	Author             string
+	DatePublished      time.Time
+	DateModified       time.Time
+	Category           []string   `view:"-"`
+	CategoryFlag       Categories `json:"-" label:"Category"`
+	Cuisine            []string   `view:"-"`
+	CuisineFlag        Cuisines   `json:"-" label:"Cuisine"`
+	Ingredients        []string
+	TotalTime          string        `view:"-"`
+	PrepTime           string        `view:"-"`
+	CookTime           string        `view:"-"`
+	TotalTimeDuration  time.Duration `json:"-" label:"Total time" viewif:"TotalTime!=\"\""`
+	PrepTimeDuration   time.Duration `json:"-" label:"Prep time" viewif:"PrepTime!=\"\""`
+	CookTimeDuration   time.Duration `json:"-" label:"Cook time" viewif:"CookTime!=\"\""`
+	Yield              int
+	RatingValue        float64 `view:"slider" min:"0" max:"5"`
+	RatingCount        int
+	RatingScore        int `view:"-" json:"-"`
+	RatingWeight       int `view:"-" json:"-"`
+	Nutrition          Nutrition
+	Source             string           `json:"-"`
+	BaseScoreIndex     Score            `view:"-" json:"-"` // index score values for base information about a recipe (using info like calories, time, ingredients, etc)
+	BaseScore          Score            `view:"-"`          // percentile values of BaseScoreIndex
+	TextEncodingScores map[uint]float32 `json:"-"`          // keyed by meal ID
+	EncodingScore      Score            `view:"-" json:"-"`
+	Score              Score            `view:"-" json:"-"`
 }
 
 // Nutrition represents the nutritional information of a recipe

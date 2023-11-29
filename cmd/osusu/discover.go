@@ -68,29 +68,50 @@ func configDiscover(rf *gi.Frame, mf *gi.Frame) {
 	if err != nil {
 		gi.ErrorDialog(rf, err).Run()
 	}
-	var mealVector mat.Matrix
+	mealVectors := make([]mat.Matrix, len(meals))
 	for _, meal := range meals {
 		res, err := otextencoding.Model.Encode(context.TODO(), meal.Text(), int(bert.MeanPooling))
 		if err != nil {
 			gi.ErrorDialog(rf, err, "Error text encoding meal")
 			continue
 		}
-		if mealVector == nil {
-			mealVector = res.Vector
-		} else {
-			mealVector.AddInPlace(res.Vector)
-		}
+		mealVectors = append(mealVectors, res.Vector)
 	}
 
 	for _, recipe := range recipes {
+		// first we get the raw text encoding score
+		// TODO(kai/osusu): cache this step
 		recipeVector := textEncodingVectors[recipe.URL]
 		recipeMat := mat.NewDense[float32](mat.WithBacking(recipeVector))
-		score := mealVector.DotUnitary(recipeMat)
-		recipe.TextEncodingScore = score.Item().F32()
+		recipe.TextEncodingScores = map[uint]float32{}
+		for i, meal := range meals {
+			mealVector := mealVectors[i]
+			score := mealVector.DotUnitary(recipeMat)
+			recipe.TextEncodingScores[meal.ID] = score.Item().F32()
+		}
+
+		// then we get the weighted score
+		// this step can not be cached
+		weightedScores := make([]*osusu.Score, len(meals))
+		for i, meal := range meals {
+			textEncodingScore := recipe.TextEncodingScores[meal.ID]
+
+			entries := []osusu.Entry{}
+			err := osusu.DB.Find(&entries, "meal_id = ? AND user_id = ?", meal.ID, curUser.ID).Error
+			if err != nil {
+				gi.ErrorDialog(rf, err).Run()
+			}
+
+			score := meal.Score(entries)
+			score.ComputeTotal(curOptions)
+
+			osusu.MulScore(score, textEncodingScore)
+			weightedScores[i] = score
+		}
 	}
 
 	slices.SortFunc(recipes, func(a, b *osusu.Recipe) int {
-		return cmp.Compare(b.TextEncodingScore, a.TextEncodingScore)
+		return cmp.Compare(b.EncodingScore.Total, a.EncodingScore.Total)
 	})
 
 	for i, recipe := range recipes {
