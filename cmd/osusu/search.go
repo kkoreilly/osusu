@@ -25,7 +25,7 @@ func configSearch(mf *gi.Frame) {
 	var meals []*osusu.Meal
 	err := osusu.DB.Find(&meals).Error
 	if err != nil {
-		gi.ErrorDialog(mf, err).Run()
+		gi.ErrorDialog(mf, err)
 	}
 	for _, meal := range meals {
 		meal := meal
@@ -63,7 +63,7 @@ func configSearch(mf *gi.Frame) {
 		entries := []osusu.Entry{}
 		err := osusu.DB.Find(&entries, "meal_id = ? AND user_id = ?", meal.ID, curUser.ID).Error
 		if err != nil {
-			gi.ErrorDialog(mc, err).Run()
+			gi.ErrorDialog(mc, err)
 		}
 
 		score := meal.Score(entries)
@@ -105,7 +105,7 @@ func newEntry(meal *osusu.Meal, mc *gi.Frame) {
 		d.AddOk(pw).SetText("Create").OnClick(func(e events.Event) {
 			err := osusu.DB.Create(entry).Error
 			if err != nil {
-				gi.ErrorDialog(d, err).Run()
+				gi.ErrorDialog(d, err)
 			}
 		})
 	})
@@ -148,7 +148,7 @@ func viewEntries(meal *osusu.Meal, entries []osusu.Entry, mc *gi.Frame) {
 				d.AddOk(pw).SetText("Save").OnClick(func(e events.Event) {
 					err := osusu.DB.Save(entry).Error
 					if err != nil {
-						gi.ErrorDialog(d, err).Run()
+						gi.ErrorDialog(d, err)
 					}
 				})
 			})
@@ -166,7 +166,7 @@ func editMeal(mf *gi.Frame, meal *osusu.Meal, mc *gi.Frame) {
 		d.AddOk(pw).SetText("Save").OnClick(func(e events.Event) {
 			err := osusu.DB.Save(meal).Error
 			if err != nil {
-				gi.ErrorDialog(d, err).Run()
+				gi.ErrorDialog(d, err)
 			}
 			configSearch(mf)
 		})

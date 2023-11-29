@@ -74,7 +74,7 @@ func home() {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			groups(b)
 		} else {
-			gi.ErrorDialog(b, err).Run()
+			gi.ErrorDialog(b, err)
 		}
 	}
 }
@@ -87,7 +87,7 @@ func newMeal(ctx gi.Widget, mf *gi.Frame, meal *osusu.Meal) {
 		d.AddOk(pw).SetText("Create").OnClick(func(e events.Event) {
 			err := osusu.DB.Create(meal).Error
 			if err != nil {
-				gi.ErrorDialog(d, err).Run()
+				gi.ErrorDialog(d, err)
 				return
 			}
 			configSearch(mf)

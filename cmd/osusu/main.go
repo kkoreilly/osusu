@@ -15,7 +15,7 @@ func app() {
 	w := b.NewWindow().Run()
 	err := osusu.OpenDB()
 	if err != nil {
-		gi.ErrorDialog(b, err).Run()
+		gi.ErrorDialog(b, err)
 	}
 	// loadSession(b)
 	w.Wait()

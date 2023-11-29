@@ -18,7 +18,7 @@ func configHistory(ef *gi.Frame) {
 	entries := []osusu.Entry{}
 	err := osusu.DB.Preload("Meal").Find(&entries, "user_id = ?", curUser.ID).Error
 	if err != nil {
-		gi.ErrorDialog(ef, err).Run()
+		gi.ErrorDialog(ef, err)
 	}
 	for _, entry := range entries {
 		entry := entry
@@ -78,7 +78,7 @@ func editEntry(ef *gi.Frame, entry *osusu.Entry, ec *gi.Frame) {
 		d.AddOk(pw).SetText("Save").OnClick(func(e events.Event) {
 			err := osusu.DB.Save(entry).Error
 			if err != nil {
-				gi.ErrorDialog(d, err).Run()
+				gi.ErrorDialog(d, err)
 			}
 			configHistory(ef)
 		})

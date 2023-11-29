@@ -66,7 +66,7 @@ func configDiscover(rf *gi.Frame, mf *gi.Frame) {
 	var meals []*osusu.Meal
 	err := osusu.DB.Find(&meals).Error
 	if err != nil {
-		gi.ErrorDialog(rf, err).Run()
+		gi.ErrorDialog(rf, err)
 	}
 	mealEntries := map[uint][]osusu.Entry{}
 	mealVectors := make([]mat.Matrix, len(meals))
@@ -75,7 +75,7 @@ func configDiscover(rf *gi.Frame, mf *gi.Frame) {
 		entries := []osusu.Entry{}
 		err := osusu.DB.Find(&entries, "meal_id = ? AND user_id = ?", meal.ID, curUser.ID).Error
 		if err != nil {
-			gi.ErrorDialog(rf, err).Run()
+			gi.ErrorDialog(rf, err)
 		}
 		mealEntries[meal.ID] = entries
 

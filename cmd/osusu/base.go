@@ -21,7 +21,7 @@ func base(b *gi.Body) {
 		user := &osusu.User{}
 		err := userInfo.Claims(&user)
 		if err != nil {
-			gi.ErrorDialog(brow, err).Run()
+			gi.ErrorDialog(brow, err)
 			return
 		}
 		var oldUser osusu.User
@@ -33,12 +33,12 @@ func base(b *gi.Body) {
 			return
 		}
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
-			gi.ErrorDialog(brow, err).Run()
+			gi.ErrorDialog(brow, err)
 			return
 		}
 		err = osusu.DB.Create(user).Error
 		if err != nil {
-			gi.ErrorDialog(brow, err).Run()
+			gi.ErrorDialog(brow, err)
 		}
 		curUser = user
 		home()
