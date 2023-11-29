@@ -28,17 +28,17 @@ func main() {
 	// keyed by recipe URL
 	vectors := map[string][]float32{}
 
-	slog.Info("starting")
-
 	st := time.Now()
 	nrecipes := len(recipes)
+
+	slog.Info("starting", "numRecipes", nrecipes)
 
 	for i, recipe := range recipes {
 		rstr := strings.Join([]string{recipe.Name, recipe.Description, strings.Join(recipe.Ingredients, " ")}, " ")
 		res := grr.Must1(m.Encode(context.TODO(), rstr, int(bert.MeanPooling)))
 		vectors[recipe.URL] = res.Vector.Data().F32()
 		if i%10 == 0 && i != 0 {
-			slog.Info("on", "recipe", i, "estimated-time-remaining", time.Since(st)*time.Duration((nrecipes-i)/i))
+			slog.Info("on", "recipe", i, "estimatedTimeRemaining", time.Since(st)*time.Duration((nrecipes-i)/i))
 		}
 	}
 
