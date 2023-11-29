@@ -32,9 +32,11 @@ func configHistory(ef *gi.Frame) {
 		ec := gi.NewFrame(ef)
 		cardStyles(ec)
 
-		img := getImageFromURL(entry.Meal.Image)
-		if img != nil {
-			gi.NewImage(ec).SetImage(img)
+		if entry.Meal.Image != "" {
+			img := gi.NewImage(ec)
+			go func() {
+				img.SetImage(getImageFromURL(entry.Meal.Image))
+			}()
 		}
 
 		gi.NewLabel(ec).SetType(gi.LabelHeadlineSmall).SetText(entry.Time.Format("Monday, January 2, 2006"))

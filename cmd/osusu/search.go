@@ -39,9 +39,11 @@ func configSearch(mf *gi.Frame) {
 		mc := gi.NewFrame(mf)
 		cardStyles(mc)
 
-		img := getImageFromURL(meal.Image)
-		if img != nil {
-			gi.NewImage(mc).SetImage(img)
+		if meal.Image != "" {
+			img := gi.NewImage(mc)
+			go func() {
+				img.SetImage(getImageFromURL(meal.Image))
+			}()
 		}
 
 		gi.NewLabel(mc).SetType(gi.LabelHeadlineSmall).SetText(meal.Name)
