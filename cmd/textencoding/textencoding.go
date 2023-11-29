@@ -3,9 +3,10 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"log/slog"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/kkoreilly/osusu/osusu"
 	"github.com/nlpodyssey/cybertron/pkg/models/bert"
@@ -27,12 +28,17 @@ func main() {
 	// keyed by recipe URL
 	vectors := map[string][]float32{}
 
+	slog.Info("starting")
+
+	st := time.Now()
+	nrecipes := len(recipes)
+
 	for i, recipe := range recipes {
 		rstr := strings.Join([]string{recipe.Name, recipe.Description, strings.Join(recipe.Ingredients, " ")}, " ")
 		res := grr.Must1(m.Encode(context.TODO(), rstr, int(bert.MeanPooling)))
 		vectors[recipe.URL] = res.Vector.Data().F32()
-		if i%10 == 0 {
-			fmt.Println("On recipe", i)
+		if i%10 == 0 && i != 0 {
+			slog.Info("on", "recipe", i, "estimated-time-remaining", time.Since(st)*time.Duration((nrecipes-i)/i))
 		}
 		if i == 100 {
 			break
