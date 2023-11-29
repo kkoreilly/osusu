@@ -1,6 +1,7 @@
 package osusu
 
 import (
+	"strings"
 	"time"
 
 	"gorm.io/gorm"
@@ -80,3 +81,10 @@ const (
 	MiddleEastern
 	Thai
 )
+
+// Text returns all of the text associated with the meal as one string.
+// It is intended to be used as text encoding model data, so it should
+// not be presented to end-users.
+func (m *Meal) Text() string {
+	return strings.Join([]string{m.Name, m.Description}, "\n")
+}

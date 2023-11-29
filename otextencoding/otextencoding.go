@@ -2,10 +2,6 @@
 package otextencoding
 
 import (
-	"context"
-
-	"github.com/kkoreilly/osusu/osusu"
-	"github.com/nlpodyssey/cybertron/pkg/models/bert"
 	"github.com/nlpodyssey/cybertron/pkg/tasks"
 	"github.com/nlpodyssey/cybertron/pkg/tasks/textencoding"
 )
@@ -21,9 +17,4 @@ func LoadModel() error {
 	}
 	Model = m
 	return nil
-}
-
-// Encode computes the text encoding of the given recipe.
-func Encode(recipe *osusu.Recipe) (textencoding.Response, error) {
-	return Model.Encode(context.TODO(), recipe.Text(), int(bert.MeanPooling))
 }

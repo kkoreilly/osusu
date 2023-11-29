@@ -1,11 +1,14 @@
 package main
 
 import (
+	"context"
 	"embed"
+	"fmt"
 	"strings"
 
 	"github.com/kkoreilly/osusu/osusu"
 	"github.com/kkoreilly/osusu/otextencoding"
+	"github.com/nlpodyssey/cybertron/pkg/models/bert"
 	"goki.dev/colors"
 	"goki.dev/gi/v2/gi"
 	"goki.dev/gi/v2/giv"
@@ -58,13 +61,21 @@ func configDiscover(rf *gi.Frame, mf *gi.Frame) {
 		}
 	}
 
-	// for i, recipe := range recipes {
-	// 	res, err := otextencoding.Encode(recipe)
-	// 	if err != nil {
-	// 		gi.ErrorDialog(rf, err, "Error encoding recipe")
-	// 		return
-	// 	}
-	// }
+	var meals []*osusu.Meal
+	err := osusu.DB.Find(&meals).Error
+	if err != nil {
+		gi.ErrorDialog(rf, err).Run()
+	}
+	for _, meal := range meals {
+		meal := meal
+
+		res, err := otextencoding.Model.Encode(context.TODO(), meal.Text(), int(bert.MeanPooling))
+		if err != nil {
+			gi.ErrorDialog(rf, err, "Error text encoding meal")
+			continue
+		}
+		fmt.Println(meal.Name, res.Vector.Data().Len())
+	}
 
 	for i, recipe := range recipes {
 		recipe := recipe
