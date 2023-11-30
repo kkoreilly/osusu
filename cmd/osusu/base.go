@@ -7,21 +7,28 @@ import (
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/kkoreilly/osusu/osusu"
 	"goki.dev/gi/v2/gi"
+	"goki.dev/girl/styles"
 	"goki.dev/kid"
 	"golang.org/x/oauth2"
 	"gorm.io/gorm"
 )
 
 func base(b *gi.Body) {
-	gi.NewLabel(b).SetType(gi.LabelHeadlineLarge).SetText("Osusu")
-	gi.NewLabel(b).SetText("An app for getting recommendations on what meals to eat in a group based on the ratings of each member of the group, and the cost, effort, healthiness, and recency of the meal.")
+	b.Style(func(s *styles.Style) {
+		s.Justify.Content = styles.Center
+		s.Align.Content = styles.Center
+		s.Align.Items = styles.Center
+		s.Text.Align = styles.Center
+	})
 
-	brow := gi.NewLayout(b)
+	gi.NewLabel(b).SetType(gi.LabelDisplayLarge).SetText("Osusu")
+	gi.NewLabel(b).SetType(gi.LabelTitleLarge).SetText("An app for getting recommendations on what meals to eat in a group based on the ratings of each member of the group, and the cost, effort, healthiness, and recency of the meal.")
+
 	fun := func(token *oauth2.Token, userInfo *oidc.UserInfo) {
 		user := &osusu.User{}
 		err := userInfo.Claims(&user)
 		if err != nil {
-			gi.ErrorDialog(brow, err)
+			gi.ErrorDialog(b, err)
 			return
 		}
 		var oldUser osusu.User
@@ -33,21 +40,23 @@ func base(b *gi.Body) {
 			return
 		}
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
-			gi.ErrorDialog(brow, err)
+			gi.ErrorDialog(b, err)
 			return
 		}
 		err = osusu.DB.Create(user).Error
 		if err != nil {
-			gi.ErrorDialog(brow, err)
+			gi.ErrorDialog(b, err)
 		}
 		curUser = user
 		home()
 	}
-	kid.Buttons(brow, &kid.ButtonsConfig{
+	kid.Buttons(b, &kid.ButtonsConfig{
 		SuccessFunc: fun,
 		TokenFile: func(provider, email string) string {
 			return filepath.Join(gi.AppPrefsDir(), provider+"-token.json")
 		},
+	}).Style(func(s *styles.Style) {
+		s.Grow.Set(0, 0)
 	})
 }
 
