@@ -9,6 +9,7 @@ import (
 
 	"github.com/kkoreilly/osusu/osusu"
 	"github.com/kkoreilly/osusu/otextencoding"
+	"github.com/nlpodyssey/cybertron/pkg/client"
 	"github.com/nlpodyssey/cybertron/pkg/models/bert"
 	"github.com/nlpodyssey/spago/mat"
 	"goki.dev/colors"
@@ -56,11 +57,7 @@ func configDiscover(rf *gi.Frame, mf *gi.Frame) {
 			return
 		}
 
-		err = otextencoding.LoadModel()
-		if err != nil {
-			gi.ErrorDialog(rf, err, "Error loading text encoding model")
-			return
-		}
+		otextencoding.Model = client.NewClientForTextEncoding("localhost:8081", client.Options{})
 	}
 
 	var meals []*osusu.Meal
