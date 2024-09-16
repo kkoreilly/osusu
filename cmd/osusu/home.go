@@ -16,6 +16,7 @@ import (
 	"cogentcore.org/core/styles"
 	"cogentcore.org/core/styles/abilities"
 	"cogentcore.org/core/styles/units"
+	"cogentcore.org/core/tree"
 	"github.com/kkoreilly/osusu/osusu"
 	"gorm.io/gorm"
 )
@@ -27,44 +28,52 @@ var (
 )
 
 func home() {
-	b := core.NewBody("home")
+	b := core.NewBody("Home")
 
-	tabs := core.NewTabs(b).SetDeleteTabButtons(false)
+	tabs := core.NewTabs(b).SetType(core.NavigationAuto)
 
-	search := tabs.NewTab("Search")
+	search, _ := tabs.NewTab("Search")
 	mf := core.NewFrame(search)
 	configSearch(mf)
 
-	discover := tabs.NewTab("Discover")
+	discover, discoverButton := tabs.NewTab("Discover")
 	rf := core.NewFrame(discover)
-	tabs.Tabs().ChildByName("discover").(core.Widget).OnClick(func(e events.Event) {
+	discoverButton.OnClick(func(e events.Event) {
 		if !rf.HasChildren() {
 			configDiscover(rf, mf)
 		}
 	})
 
-	history := tabs.NewTab("History")
+	history, _ := tabs.NewTab("History")
 	ef := core.NewFrame(history)
 	configHistory(ef)
 
-	b.AddTopBar(func(pw core.Widget) {
-		tb := b.DefaultTopAppBar(pw)
-		core.NewButton(tb).SetIcon(icons.Add).SetText("New meal").OnClick(func(e events.Event) {
-			newMeal(tb, mf, &osusu.Meal{})
-		})
-		core.NewButton(tb).SetIcon(icons.Sort).SetText("Sort").OnClick(func(e events.Event) {
-			d := core.NewBody().AddTitle("Sort and filter")
-			core.NewForm(d).SetStruct(curOptions)
-			d.OnClose(func(e events.Event) {
-				configSearch(mf)
-				configHistory(ef)
-				configDiscover(rf, mf)
+	b.AddTopBar(func(bar *core.Frame) {
+		tb := core.NewToolbar(bar)
+		tb.Maker(func(p *tree.Plan) {
+			tree.Add(p, func(w *core.Button) {
+				w.SetIcon(icons.Add).SetText("New meal")
+				w.OnClick(func(e events.Event) {
+					newMeal(tb, mf, &osusu.Meal{})
+				})
 			})
-			d.NewFullDialog(tb).Run()
+			tree.Add(p, func(w *core.Button) {
+				w.SetIcon(icons.Sort).SetText("Sort")
+				w.OnClick(func(e events.Event) {
+					d := core.NewBody("Sort and filter")
+					core.NewForm(d).SetStruct(curOptions)
+					d.OnClose(func(e events.Event) {
+						configSearch(mf)
+						configHistory(ef)
+						configDiscover(rf, mf)
+					})
+					d.RunFullDialog(tb)
+				})
+			})
 		})
 	})
 
-	b.NewWindow().SetNewWindow(false).Run()
+	b.RunWindow()
 
 	curGroup = &osusu.Group{}
 	err := osusu.DB.First(curGroup, curUser.GroupID).Error
@@ -78,11 +87,11 @@ func home() {
 }
 
 func newMeal(ctx core.Widget, mf *core.Frame, meal *osusu.Meal) {
-	d := core.NewBody().AddTitle("Create meal")
+	d := core.NewBody("Create meal")
 	core.NewForm(d).SetStruct(meal)
-	d.AddBottomBar(func(pw core.Widget) {
-		d.AddCancel(pw)
-		d.AddOk(pw).SetText("Create").OnClick(func(e events.Event) {
+	d.AddBottomBar(func(bar *core.Frame) {
+		d.AddCancel(bar)
+		d.AddOK(bar).SetText("Create").OnClick(func(e events.Event) {
 			err := osusu.DB.Create(meal).Error
 			if err != nil {
 				core.ErrorDialog(d, err)
@@ -91,21 +100,19 @@ func newMeal(ctx core.Widget, mf *core.Frame, meal *osusu.Meal) {
 			configSearch(mf)
 		})
 	})
-	d.NewFullDialog(ctx).Run()
+	d.RunFullDialog(ctx)
 }
 
 func cardStyles(card *core.Frame) {
 	card.Styler(func(s *styles.Style) {
-		s.SetAbilities(true, abilities.Hoverable, abilities.Pressable)
+		s.SetAbilities(true, abilities.Hoverable, abilities.Activatable)
 		s.Cursor = cursors.Pointer
 		s.Border.Radius = styles.BorderRadiusLarge
-		s.BackgroundColor.SetSolid(colors.Scheme.SurfaceContainerLow)
+		s.Background = colors.Scheme.SurfaceContainerLow
 		s.Padding.Set(units.Dp(8))
 		s.Min.Set(units.Em(20))
-		s.Grow.Set(0, 0)
 		s.Direction = styles.Column
-		s.Align.Content = styles.Center
-		s.Align.Items = styles.Center
+		s.CenterAll()
 	})
 	card.OnWidgetAdded(func(w core.Widget) {
 		switch w := w.(type) {
@@ -182,7 +189,7 @@ func getImageFromURL(url string) image.Image {
 
 // bitFlagsOverlap returns whether there is any overlap between the two bit flags.
 // They should be of the same type.
-func bitFlagsOverlap(a, b enums.BitFlag) bool {
+func bitFlagsOverlap(a, b enums.BitFlagSetter) bool {
 	vals := a.Values()
 	for _, v := range vals {
 		vb := v.(enums.BitFlag)
@@ -193,7 +200,7 @@ func bitFlagsOverlap(a, b enums.BitFlag) bool {
 	return false
 }
 
-func friendlyBitFlagString(bf enums.BitFlag) string {
+func friendlyBitFlagString(bf enums.BitFlagSetter) string {
 	matches := []string{}
 	vals := bf.Values()
 	for _, v := range vals {
