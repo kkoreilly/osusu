@@ -10,7 +10,7 @@ func groups(b *core.Body) {
 	d := core.NewBody("groups")
 	core.NewText(d).SetType(core.TextHeadlineMedium).SetText("Join group")
 	groupCode := ""
-	core.NewValue(d, &groupCode)
+	core.Bind(&groupCode, core.NewTextField(d))
 	core.NewButton(d).SetText("Join group")
 	core.NewText(d).SetType(core.TextHeadlineMedium).SetText("Create group")
 	newGroup := &osusu.Group{OwnerID: curUser.ID, Owner: *curUser, Members: []osusu.User{*curUser}}

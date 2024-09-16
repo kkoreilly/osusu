@@ -114,20 +114,21 @@ func cardStyles(card *core.Frame) {
 		s.Direction = styles.Column
 		s.CenterAll()
 	})
-	card.OnWidgetAdded(func(w core.Widget) {
-		switch w := w.(type) {
-		case *core.Text:
-			w.Styler(func(s *styles.Style) {
-				s.SetNonSelectable()
-				s.Text.Align = styles.Center
-			})
-		case *core.Image:
-			w.Styler(func(s *styles.Style) {
-				s.Min.Set(units.Em(20))
-				s.ObjectFit = styles.FitCover
-			})
-		}
-	})
+	// TODO: use Makers and Plans
+	// card.OnWidgetAdded(func(w core.Widget) {
+	// 	switch w := w.(type) {
+	// 	case *core.Text:
+	// 		w.Styler(func(s *styles.Style) {
+	// 			s.SetNonSelectable()
+	// 			s.Text.Align = styles.Center
+	// 		})
+	// 	case *core.Image:
+	// 		w.Styler(func(s *styles.Style) {
+	// 			s.Min.Set(units.Em(20))
+	// 			s.ObjectFit = styles.FitCover
+	// 		})
+	// 	}
+	// })
 }
 
 func scoreGrid(card *core.Frame, score *osusu.Score, showRecency bool) *core.Frame {
