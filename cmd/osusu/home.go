@@ -6,16 +6,16 @@ import (
 	"net/http"
 	"strconv"
 
+	"cogentcore.org/core/colors"
+	"cogentcore.org/core/core"
+	"cogentcore.org/core/events"
+	"cogentcore.org/core/styles"
+	"cogentcore.org/core/views"
 	"github.com/kkoreilly/osusu/osusu"
-	"goki.dev/colors"
 	"goki.dev/cursors"
 	"goki.dev/enums"
-	"goki.dev/gi/v2/gi"
-	"goki.dev/gi/v2/giv"
 	"goki.dev/girl/abilities"
-	"goki.dev/girl/styles"
 	"goki.dev/girl/units"
-	"goki.dev/goosi/events"
 	"goki.dev/grows/images"
 	"goki.dev/grr"
 	"goki.dev/icons"
@@ -29,34 +29,34 @@ var (
 )
 
 func home() {
-	b := gi.NewBody("home")
+	b := core.NewBody("home")
 
-	tabs := gi.NewTabs(b).SetDeleteTabButtons(false)
+	tabs := core.NewTabs(b).SetDeleteTabButtons(false)
 
 	search := tabs.NewTab("Search")
-	mf := gi.NewFrame(search)
+	mf := core.NewFrame(search)
 	configSearch(mf)
 
 	discover := tabs.NewTab("Discover")
-	rf := gi.NewFrame(discover)
-	tabs.Tabs().ChildByName("discover").(gi.Widget).OnClick(func(e events.Event) {
+	rf := core.NewFrame(discover)
+	tabs.Tabs().ChildByName("discover").(core.Widget).OnClick(func(e events.Event) {
 		if !rf.HasChildren() {
 			configDiscover(rf, mf)
 		}
 	})
 
 	history := tabs.NewTab("History")
-	ef := gi.NewFrame(history)
+	ef := core.NewFrame(history)
 	configHistory(ef)
 
-	b.AddTopBar(func(pw gi.Widget) {
+	b.AddTopBar(func(pw core.Widget) {
 		tb := b.DefaultTopAppBar(pw)
-		gi.NewButton(tb).SetIcon(icons.Add).SetText("New meal").OnClick(func(e events.Event) {
+		core.NewButton(tb).SetIcon(icons.Add).SetText("New meal").OnClick(func(e events.Event) {
 			newMeal(tb, mf, &osusu.Meal{})
 		})
-		gi.NewButton(tb).SetIcon(icons.Sort).SetText("Sort").OnClick(func(e events.Event) {
-			d := gi.NewBody().AddTitle("Sort and filter")
-			giv.NewStructView(d).SetStruct(curOptions)
+		core.NewButton(tb).SetIcon(icons.Sort).SetText("Sort").OnClick(func(e events.Event) {
+			d := core.NewBody().AddTitle("Sort and filter")
+			views.NewStructView(d).SetStruct(curOptions)
 			d.OnClose(func(e events.Event) {
 				configSearch(mf)
 				configHistory(ef)
@@ -74,20 +74,20 @@ func home() {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			groups(b)
 		} else {
-			gi.ErrorDialog(b, err)
+			core.ErrorDialog(b, err)
 		}
 	}
 }
 
-func newMeal(ctx gi.Widget, mf *gi.Frame, meal *osusu.Meal) {
-	d := gi.NewBody().AddTitle("Create meal")
-	giv.NewStructView(d).SetStruct(meal)
-	d.AddBottomBar(func(pw gi.Widget) {
+func newMeal(ctx core.Widget, mf *core.Frame, meal *osusu.Meal) {
+	d := core.NewBody().AddTitle("Create meal")
+	views.NewStructView(d).SetStruct(meal)
+	d.AddBottomBar(func(pw core.Widget) {
 		d.AddCancel(pw)
 		d.AddOk(pw).SetText("Create").OnClick(func(e events.Event) {
 			err := osusu.DB.Create(meal).Error
 			if err != nil {
-				gi.ErrorDialog(d, err)
+				core.ErrorDialog(d, err)
 				return
 			}
 			configSearch(mf)
@@ -96,8 +96,8 @@ func newMeal(ctx gi.Widget, mf *gi.Frame, meal *osusu.Meal) {
 	d.NewFullDialog(ctx).Run()
 }
 
-func cardStyles(card *gi.Frame) {
-	card.Style(func(s *styles.Style) {
+func cardStyles(card *core.Frame) {
+	card.Styler(func(s *styles.Style) {
 		s.SetAbilities(true, abilities.Hoverable, abilities.Pressable)
 		s.Cursor = cursors.Pointer
 		s.Border.Radius = styles.BorderRadiusLarge
@@ -109,15 +109,15 @@ func cardStyles(card *gi.Frame) {
 		s.Align.Content = styles.Center
 		s.Align.Items = styles.Center
 	})
-	card.OnWidgetAdded(func(w gi.Widget) {
+	card.OnWidgetAdded(func(w core.Widget) {
 		switch w := w.(type) {
-		case *gi.Label:
-			w.Style(func(s *styles.Style) {
+		case *core.Text:
+			w.Styler(func(s *styles.Style) {
 				s.SetNonSelectable()
 				s.Text.Align = styles.Center
 			})
-		case *gi.Image:
-			w.Style(func(s *styles.Style) {
+		case *core.Image:
+			w.Styler(func(s *styles.Style) {
 				s.Min.Set(units.Em(20))
 				s.ObjectFit = styles.FitCover
 			})
@@ -125,9 +125,9 @@ func cardStyles(card *gi.Frame) {
 	})
 }
 
-func scoreGrid(card *gi.Frame, score *osusu.Score, showRecency bool) *gi.Layout {
-	grid := gi.NewLayout(card)
-	grid.Style(func(s *styles.Style) {
+func scoreGrid(card *core.Frame, score *osusu.Score, showRecency bool) *core.Frame {
+	grid := core.NewFrame(card)
+	grid.Styler(func(s *styles.Style) {
 		s.Display = styles.Grid
 		if showRecency {
 			s.Columns = 6
@@ -139,7 +139,7 @@ func scoreGrid(card *gi.Frame, score *osusu.Score, showRecency bool) *gi.Layout 
 	})
 
 	label := func(text string) {
-		gi.NewLabel(grid).SetType(gi.LabelLabelLarge).SetText(text)
+		core.NewText(grid).SetType(core.TextLabelLarge).SetText(text)
 	}
 
 	label("Total")
@@ -152,7 +152,7 @@ func scoreGrid(card *gi.Frame, score *osusu.Score, showRecency bool) *gi.Layout 
 	label("Health")
 
 	value := func(value int) {
-		gi.NewLabel(grid).SetText(strconv.Itoa(value))
+		core.NewText(grid).SetText(strconv.Itoa(value))
 	}
 
 	value(score.Total)

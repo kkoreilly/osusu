@@ -7,16 +7,16 @@ import (
 	"slices"
 	"strings"
 
+	"cogentcore.org/core/colors"
+	"cogentcore.org/core/core"
+	"cogentcore.org/core/events"
+	"cogentcore.org/core/styles"
+	"cogentcore.org/core/views"
 	"github.com/kkoreilly/osusu/osusu"
 	"github.com/kkoreilly/osusu/otextencoding"
 	"github.com/nlpodyssey/cybertron/pkg/client"
 	"github.com/nlpodyssey/cybertron/pkg/models/bert"
 	"github.com/nlpodyssey/spago/mat"
-	"goki.dev/colors"
-	"goki.dev/gi/v2/gi"
-	"goki.dev/gi/v2/giv"
-	"goki.dev/girl/styles"
-	"goki.dev/goosi/events"
 	"goki.dev/grows/jsons"
 	"goki.dev/grr"
 )
@@ -31,20 +31,20 @@ var textEncodingVectorsFS embed.FS
 
 var textEncodingVectors map[string][]float32
 
-func configDiscover(rf *gi.Frame, mf *gi.Frame) {
+func configDiscover(rf *core.Frame, mf *core.Frame) {
 	if rf.HasChildren() {
 		rf.DeleteChildren(true)
 	}
 	updt := rf.UpdateStart()
 
-	rf.Style(func(s *styles.Style) {
+	rf.Styler(func(s *styles.Style) {
 		s.Wrap = true
 	})
 
 	if recipes == nil {
 		err := jsons.OpenFS(&recipes, recipesFS, "recipes.json")
 		if err != nil {
-			gi.ErrorDialog(rf, err, "Error opening recipes")
+			core.ErrorDialog(rf, err, "Error opening recipes")
 			return
 		}
 		for _, recipe := range recipes {
@@ -53,7 +53,7 @@ func configDiscover(rf *gi.Frame, mf *gi.Frame) {
 
 		err = jsons.OpenFS(&textEncodingVectors, textEncodingVectorsFS, "textEncodingVectors.json")
 		if err != nil {
-			gi.ErrorDialog(rf, err, "Error opening recipe text encoding vectors")
+			core.ErrorDialog(rf, err, "Error opening recipe text encoding vectors")
 			return
 		}
 
@@ -63,7 +63,7 @@ func configDiscover(rf *gi.Frame, mf *gi.Frame) {
 	var meals []*osusu.Meal
 	err := osusu.DB.Find(&meals).Error
 	if err != nil {
-		gi.ErrorDialog(rf, err)
+		core.ErrorDialog(rf, err)
 	}
 	mealEntries := map[uint][]osusu.Entry{}
 	mealVectors := make([]mat.Matrix, len(meals))
@@ -72,13 +72,13 @@ func configDiscover(rf *gi.Frame, mf *gi.Frame) {
 		entries := []osusu.Entry{}
 		err := osusu.DB.Find(&entries, "meal_id = ? AND user_id = ?", meal.ID, curUser.ID).Error
 		if err != nil {
-			gi.ErrorDialog(rf, err)
+			core.ErrorDialog(rf, err)
 		}
 		mealEntries[meal.ID] = entries
 
 		res, err := otextencoding.Model.Encode(context.TODO(), meal.Text(), int(bert.MeanPooling))
 		if err != nil {
-			gi.ErrorDialog(rf, err, "Error text encoding meal")
+			core.ErrorDialog(rf, err, "Error text encoding meal")
 			continue
 		}
 		mealVectors[i] = res.Vector
@@ -146,10 +146,10 @@ func configDiscover(rf *gi.Frame, mf *gi.Frame) {
 			continue
 		}
 
-		rc := gi.NewFrame(rf)
+		rc := core.NewFrame(rf)
 		cardStyles(rc)
 
-		img := gi.NewImage(rc)
+		img := core.NewImage(rc)
 		go func() {
 			if i := getImageFromURL(recipe.Image); i != nil {
 				img.SetImage(i)
@@ -157,7 +157,7 @@ func configDiscover(rf *gi.Frame, mf *gi.Frame) {
 			}
 		}()
 
-		gi.NewLabel(rc).SetType(gi.LabelHeadlineSmall).SetText(recipe.Name)
+		core.NewText(rc).SetType(core.TextHeadlineSmall).SetText(recipe.Name)
 
 		castr := friendlyBitFlagString(recipe.CategoryFlag)
 		custr := friendlyBitFlagString(recipe.CuisineFlag)
@@ -166,7 +166,7 @@ func configDiscover(rf *gi.Frame, mf *gi.Frame) {
 			text += " • "
 		}
 		text += custr
-		gi.NewLabel(rc).SetText(text).Style(func(s *styles.Style) {
+		core.NewText(rc).SetText(text).Styler(func(s *styles.Style) {
 			s.Color = colors.Scheme.OnSurfaceVariant
 		})
 
@@ -181,10 +181,10 @@ func configDiscover(rf *gi.Frame, mf *gi.Frame) {
 	rf.UpdateEndLayout(updt)
 }
 
-func addRecipe(rf *gi.Frame, recipe *osusu.Recipe, rc *gi.Frame, mf *gi.Frame) {
-	d := gi.NewBody().AddTitle("Add recipe")
-	giv.NewStructView(d).SetStruct(recipe).SetReadOnly(true)
-	d.AddBottomBar(func(pw gi.Widget) {
+func addRecipe(rf *core.Frame, recipe *osusu.Recipe, rc *core.Frame, mf *core.Frame) {
+	d := core.NewBody().AddTitle("Add recipe")
+	views.NewStructView(d).SetStruct(recipe).SetReadOnly(true)
+	d.AddBottomBar(func(pw core.Widget) {
 		d.AddCancel(pw)
 		d.AddOk(pw).SetText("Add").OnClick(func(e events.Event) {
 			meal := &osusu.Meal{

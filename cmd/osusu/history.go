@@ -1,15 +1,15 @@
 package main
 
 import (
+	"cogentcore.org/core/colors"
+	"cogentcore.org/core/core"
+	"cogentcore.org/core/events"
+	"cogentcore.org/core/styles"
+	"cogentcore.org/core/views"
 	"github.com/kkoreilly/osusu/osusu"
-	"goki.dev/colors"
-	"goki.dev/gi/v2/gi"
-	"goki.dev/gi/v2/giv"
-	"goki.dev/girl/styles"
-	"goki.dev/goosi/events"
 )
 
-func configHistory(ef *gi.Frame) {
+func configHistory(ef *core.Frame) {
 	if ef.HasChildren() {
 		ef.DeleteChildren(true)
 	}
@@ -18,7 +18,7 @@ func configHistory(ef *gi.Frame) {
 	entries := []osusu.Entry{}
 	err := osusu.DB.Preload("Meal").Find(&entries, "user_id = ?", curUser.ID).Error
 	if err != nil {
-		gi.ErrorDialog(ef, err)
+		core.ErrorDialog(ef, err)
 	}
 	for _, entry := range entries {
 		entry := entry
@@ -29,10 +29,10 @@ func configHistory(ef *gi.Frame) {
 			continue
 		}
 
-		ec := gi.NewFrame(ef)
+		ec := core.NewFrame(ef)
 		cardStyles(ec)
 
-		img := gi.NewImage(ec)
+		img := core.NewImage(ec)
 		go func() {
 			if i := getImageFromURL(entry.Meal.Image); i != nil {
 				img.SetImage(i)
@@ -40,7 +40,7 @@ func configHistory(ef *gi.Frame) {
 			}
 		}()
 
-		gi.NewLabel(ec).SetType(gi.LabelHeadlineSmall).SetText(entry.Time.Format("Monday, January 2, 2006"))
+		core.NewText(ec).SetType(core.TextHeadlineSmall).SetText(entry.Time.Format("Monday, January 2, 2006"))
 
 		castr := friendlyBitFlagString(entry.Category)
 		sostr := friendlyBitFlagString(entry.Source)
@@ -53,7 +53,7 @@ func configHistory(ef *gi.Frame) {
 			text += " • "
 		}
 		text += sostr
-		gi.NewLabel(ec).SetText(text).Style(func(s *styles.Style) {
+		core.NewText(ec).SetText(text).Styler(func(s *styles.Style) {
 			s.Color = colors.Scheme.OnSurfaceVariant
 		})
 
@@ -70,15 +70,15 @@ func configHistory(ef *gi.Frame) {
 	ef.UpdateEndLayout(updt)
 }
 
-func editEntry(ef *gi.Frame, entry *osusu.Entry, ec *gi.Frame) {
-	d := gi.NewBody().AddTitle("Edit entry")
-	giv.NewStructView(d).SetStruct(entry)
-	d.AddBottomBar(func(pw gi.Widget) {
+func editEntry(ef *core.Frame, entry *osusu.Entry, ec *core.Frame) {
+	d := core.NewBody().AddTitle("Edit entry")
+	views.NewStructView(d).SetStruct(entry)
+	d.AddBottomBar(func(pw core.Widget) {
 		d.AddCancel(pw)
 		d.AddOk(pw).SetText("Save").OnClick(func(e events.Event) {
 			err := osusu.DB.Save(entry).Error
 			if err != nil {
-				gi.ErrorDialog(d, err)
+				core.ErrorDialog(d, err)
 			}
 			configHistory(ef)
 		})

@@ -3,29 +3,29 @@ package main
 import (
 	"time"
 
+	"cogentcore.org/core/colors"
+	"cogentcore.org/core/core"
+	"cogentcore.org/core/events"
+	"cogentcore.org/core/styles"
+	"cogentcore.org/core/views"
 	"github.com/kkoreilly/osusu/osusu"
-	"goki.dev/colors"
-	"goki.dev/gi/v2/gi"
-	"goki.dev/gi/v2/giv"
-	"goki.dev/girl/styles"
-	"goki.dev/goosi/events"
 	"goki.dev/icons"
 )
 
-func configSearch(mf *gi.Frame) {
+func configSearch(mf *core.Frame) {
 	if mf.HasChildren() {
 		mf.DeleteChildren(true)
 	}
 	updt := mf.UpdateStart()
 
-	mf.Style(func(s *styles.Style) {
+	mf.Styler(func(s *styles.Style) {
 		s.Wrap = true
 	})
 
 	var meals []*osusu.Meal
 	err := osusu.DB.Find(&meals).Error
 	if err != nil {
-		gi.ErrorDialog(mf, err)
+		core.ErrorDialog(mf, err)
 	}
 	for _, meal := range meals {
 		meal := meal
@@ -36,10 +36,10 @@ func configSearch(mf *gi.Frame) {
 			continue
 		}
 
-		mc := gi.NewFrame(mf)
+		mc := core.NewFrame(mf)
 		cardStyles(mc)
 
-		img := gi.NewImage(mc)
+		img := core.NewImage(mc)
 		go func() {
 			if i := getImageFromURL(meal.Image); i != nil {
 				img.SetImage(i)
@@ -47,7 +47,7 @@ func configSearch(mf *gi.Frame) {
 			}
 		}()
 
-		gi.NewLabel(mc).SetType(gi.LabelHeadlineSmall).SetText(meal.Name)
+		core.NewText(mc).SetType(core.TextHeadlineSmall).SetText(meal.Name)
 
 		castr := friendlyBitFlagString(meal.Category)
 		custr := friendlyBitFlagString(meal.Cuisine)
@@ -56,14 +56,14 @@ func configSearch(mf *gi.Frame) {
 			text += " • "
 		}
 		text += custr
-		gi.NewLabel(mc).SetText(text).Style(func(s *styles.Style) {
+		core.NewText(mc).SetText(text).Styler(func(s *styles.Style) {
 			s.Color = colors.Scheme.OnSurfaceVariant
 		})
 
 		entries := []osusu.Entry{}
 		err := osusu.DB.Find(&entries, "meal_id = ? AND user_id = ?", meal.ID, curUser.ID).Error
 		if err != nil {
-			gi.ErrorDialog(mc, err)
+			core.ErrorDialog(mc, err)
 		}
 
 		score := meal.Score(entries)
@@ -71,14 +71,14 @@ func configSearch(mf *gi.Frame) {
 		scoreGrid(mc, score, true)
 
 		mc.OnClick(func(e events.Event) {
-			gi.NewMenu(func(m *gi.Scene) {
-				gi.NewButton(m).SetIcon(icons.Add).SetText("New entry").OnClick(func(e events.Event) {
+			core.NewMenu(func(m *core.Scene) {
+				core.NewButton(m).SetIcon(icons.Add).SetText("New entry").OnClick(func(e events.Event) {
 					newEntry(meal, mc)
 				})
-				gi.NewButton(m).SetIcon(icons.Visibility).SetText("View entries").OnClick(func(e events.Event) {
+				core.NewButton(m).SetIcon(icons.Visibility).SetText("View entries").OnClick(func(e events.Event) {
 					viewEntries(meal, entries, mc)
 				})
-				gi.NewButton(m).SetIcon(icons.Edit).SetText("Edit meal").OnClick(func(e events.Event) {
+				core.NewButton(m).SetIcon(icons.Edit).SetText("Edit meal").OnClick(func(e events.Event) {
 					editMeal(mf, meal, mc)
 				})
 			}, mc, mc.ContextMenuPos(e)).Run()
@@ -88,8 +88,8 @@ func configSearch(mf *gi.Frame) {
 	mf.UpdateEndLayout(updt)
 }
 
-func newEntry(meal *osusu.Meal, mc *gi.Frame) {
-	d := gi.NewBody().AddTitle("Create entry")
+func newEntry(meal *osusu.Meal, mc *core.Frame) {
+	d := core.NewBody().AddTitle("Create entry")
 	entry := &osusu.Entry{
 		MealID:      meal.ID,
 		UserID:      curUser.ID,
@@ -99,32 +99,32 @@ func newEntry(meal *osusu.Meal, mc *gi.Frame) {
 		Healthiness: 50,
 		Taste:       50,
 	}
-	giv.NewStructView(d).SetStruct(entry)
-	d.AddBottomBar(func(pw gi.Widget) {
+	views.NewStructView(d).SetStruct(entry)
+	d.AddBottomBar(func(pw core.Widget) {
 		d.AddCancel(pw)
 		d.AddOk(pw).SetText("Create").OnClick(func(e events.Event) {
 			err := osusu.DB.Create(entry).Error
 			if err != nil {
-				gi.ErrorDialog(d, err)
+				core.ErrorDialog(d, err)
 			}
 		})
 	})
 	d.NewFullDialog(mc).Run()
 }
 
-func viewEntries(meal *osusu.Meal, entries []osusu.Entry, mc *gi.Frame) {
-	d := gi.NewBody().AddTitle("Entries for " + meal.Name)
-	d.AddTopBar(func(pw gi.Widget) {
+func viewEntries(meal *osusu.Meal, entries []osusu.Entry, mc *core.Frame) {
+	d := core.NewBody().AddTitle("Entries for " + meal.Name)
+	d.AddTopBar(func(pw core.Widget) {
 		tb := d.DefaultTopAppBar(pw)
-		gi.NewButton(tb).SetIcon(icons.Add).SetText("New entry").OnClick(func(e events.Event) {
+		core.NewButton(tb).SetIcon(icons.Add).SetText("New entry").OnClick(func(e events.Event) {
 			newEntry(meal, mc)
 		})
 	})
 	for _, entry := range entries {
 		entry := &entry
-		ec := gi.NewFrame(d)
+		ec := core.NewFrame(d)
 		cardStyles(ec)
-		gi.NewLabel(ec).SetType(gi.LabelHeadlineSmall).SetText(entry.Time.Format("Monday, January 2, 2006"))
+		core.NewText(ec).SetType(core.TextHeadlineSmall).SetText(entry.Time.Format("Monday, January 2, 2006"))
 
 		castr := friendlyBitFlagString(entry.Category)
 		sostr := friendlyBitFlagString(entry.Source)
@@ -133,7 +133,7 @@ func viewEntries(meal *osusu.Meal, entries []osusu.Entry, mc *gi.Frame) {
 			text += " • "
 		}
 		text += sostr
-		gi.NewLabel(ec).SetText(text).Style(func(s *styles.Style) {
+		core.NewText(ec).SetText(text).Styler(func(s *styles.Style) {
 			s.Color = colors.Scheme.OnSurfaceVariant
 		})
 
@@ -142,14 +142,14 @@ func viewEntries(meal *osusu.Meal, entries []osusu.Entry, mc *gi.Frame) {
 		scoreGrid(ec, score, false)
 
 		ec.OnClick(func(e events.Event) {
-			d := gi.NewBody().AddTitle("Edit entry")
-			giv.NewStructView(d).SetStruct(entry)
-			d.AddBottomBar(func(pw gi.Widget) {
+			d := core.NewBody().AddTitle("Edit entry")
+			views.NewStructView(d).SetStruct(entry)
+			d.AddBottomBar(func(pw core.Widget) {
 				d.AddCancel(pw)
 				d.AddOk(pw).SetText("Save").OnClick(func(e events.Event) {
 					err := osusu.DB.Save(entry).Error
 					if err != nil {
-						gi.ErrorDialog(d, err)
+						core.ErrorDialog(d, err)
 					}
 				})
 			})
@@ -159,15 +159,15 @@ func viewEntries(meal *osusu.Meal, entries []osusu.Entry, mc *gi.Frame) {
 	d.NewFullDialog(mc).Run()
 }
 
-func editMeal(mf *gi.Frame, meal *osusu.Meal, mc *gi.Frame) {
-	d := gi.NewBody().AddTitle("Edit meal")
-	giv.NewStructView(d).SetStruct(meal)
-	d.AddBottomBar(func(pw gi.Widget) {
+func editMeal(mf *core.Frame, meal *osusu.Meal, mc *core.Frame) {
+	d := core.NewBody().AddTitle("Edit meal")
+	views.NewStructView(d).SetStruct(meal)
+	d.AddBottomBar(func(pw core.Widget) {
 		d.AddCancel(pw)
 		d.AddOk(pw).SetText("Save").OnClick(func(e events.Event) {
 			err := osusu.DB.Save(meal).Error
 			if err != nil {
-				gi.ErrorDialog(d, err)
+				core.ErrorDialog(d, err)
 			}
 			configSearch(mf)
 		})
