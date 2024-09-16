@@ -9,10 +9,10 @@ import (
 )
 
 func configHistory(ef *core.Frame) {
+	// TODO: use Makers and Plans
 	if ef.HasChildren() {
-		ef.DeleteChildren(true)
+		ef.DeleteChildren()
 	}
-	updt := ef.UpdateStart()
 
 	entries := []osusu.Entry{}
 	err := osusu.DB.Preload("Meal").Find(&entries, "user_id = ?", curUser.ID).Error
@@ -22,9 +22,9 @@ func configHistory(ef *core.Frame) {
 	for _, entry := range entries {
 		entry := entry
 
-		if !bitFlagsOverlap(entry.Category, curOptions.Categories) ||
-			!bitFlagsOverlap(entry.Source, curOptions.Sources) ||
-			!bitFlagsOverlap(entry.Meal.Cuisine, curOptions.Cuisines) {
+		if !bitFlagsOverlap(&entry.Category, &curOptions.Categories) ||
+			!bitFlagsOverlap(&entry.Source, &curOptions.Sources) ||
+			!bitFlagsOverlap(&entry.Meal.Cuisine, &curOptions.Cuisines) {
 			continue
 		}
 
@@ -41,8 +41,8 @@ func configHistory(ef *core.Frame) {
 
 		core.NewText(ec).SetType(core.TextHeadlineSmall).SetText(entry.Time.Format("Monday, January 2, 2006"))
 
-		castr := friendlyBitFlagString(entry.Category)
-		sostr := friendlyBitFlagString(entry.Source)
+		castr := friendlyBitFlagString(&entry.Category)
+		sostr := friendlyBitFlagString(&entry.Source)
 		text := entry.Meal.Name
 		if entry.Meal.Name != "" && castr != "" {
 			text += " • "
@@ -66,15 +66,14 @@ func configHistory(ef *core.Frame) {
 	}
 
 	ef.Update()
-	ef.UpdateEndLayout(updt)
 }
 
 func editEntry(ef *core.Frame, entry *osusu.Entry, ec *core.Frame) {
-	d := core.NewBody().AddTitle("Edit entry")
+	d := core.NewBody("Edit entry")
 	core.NewForm(d).SetStruct(entry)
-	d.AddBottomBar(func(pw core.Widget) {
-		d.AddCancel(pw)
-		d.AddOk(pw).SetText("Save").OnClick(func(e events.Event) {
+	d.AddBottomBar(func(bar *core.Frame) {
+		d.AddCancel(bar)
+		d.AddOK(bar).SetText("Save").OnClick(func(e events.Event) {
 			err := osusu.DB.Save(entry).Error
 			if err != nil {
 				core.ErrorDialog(d, err)
