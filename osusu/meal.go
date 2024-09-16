@@ -7,7 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
-//go:generate enumgen -sql
+//go:generate core generate -sql
 
 type Meal struct {
 	gorm.Model  `view:"-"`
