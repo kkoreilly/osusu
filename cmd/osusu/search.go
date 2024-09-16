@@ -8,14 +8,15 @@ import (
 	"cogentcore.org/core/events"
 	"cogentcore.org/core/icons"
 	"cogentcore.org/core/styles"
+	"cogentcore.org/core/tree"
 	"github.com/kkoreilly/osusu/osusu"
 )
 
 func configSearch(mf *core.Frame) {
+	// TODO: use Makers and Plans
 	if mf.HasChildren() {
-		mf.DeleteChildren(true)
+		mf.DeleteChildren()
 	}
-	updt := mf.UpdateStart()
 
 	mf.Styler(func(s *styles.Style) {
 		s.Wrap = true
@@ -29,9 +30,9 @@ func configSearch(mf *core.Frame) {
 	for _, meal := range meals {
 		meal := meal
 
-		if !bitFlagsOverlap(meal.Category, curOptions.Categories) ||
-			!bitFlagsOverlap(meal.Source, curOptions.Sources) ||
-			!bitFlagsOverlap(meal.Cuisine, curOptions.Cuisines) {
+		if !bitFlagsOverlap(&meal.Category, &curOptions.Categories) ||
+			!bitFlagsOverlap(&meal.Source, &curOptions.Sources) ||
+			!bitFlagsOverlap(&meal.Cuisine, &curOptions.Cuisines) {
 			continue
 		}
 
@@ -48,8 +49,8 @@ func configSearch(mf *core.Frame) {
 
 		core.NewText(mc).SetType(core.TextHeadlineSmall).SetText(meal.Name)
 
-		castr := friendlyBitFlagString(meal.Category)
-		custr := friendlyBitFlagString(meal.Cuisine)
+		castr := friendlyBitFlagString(&meal.Category)
+		custr := friendlyBitFlagString(&meal.Cuisine)
 		text := castr
 		if castr != "" && custr != "" {
 			text += " • "
@@ -84,11 +85,10 @@ func configSearch(mf *core.Frame) {
 		})
 	}
 	mf.Update()
-	mf.UpdateEndLayout(updt)
 }
 
 func newEntry(meal *osusu.Meal, mc *core.Frame) {
-	d := core.NewBody().AddTitle("Create entry")
+	d := core.NewBody("Create entry")
 	entry := &osusu.Entry{
 		MealID:      meal.ID,
 		UserID:      curUser.ID,
@@ -99,24 +99,28 @@ func newEntry(meal *osusu.Meal, mc *core.Frame) {
 		Taste:       50,
 	}
 	core.NewForm(d).SetStruct(entry)
-	d.AddBottomBar(func(pw core.Widget) {
-		d.AddCancel(pw)
-		d.AddOk(pw).SetText("Create").OnClick(func(e events.Event) {
+	d.AddBottomBar(func(bar *core.Frame) {
+		d.AddCancel(bar)
+		d.AddOK(bar).SetText("Create").OnClick(func(e events.Event) {
 			err := osusu.DB.Create(entry).Error
 			if err != nil {
 				core.ErrorDialog(d, err)
 			}
 		})
 	})
-	d.NewFullDialog(mc).Run()
+	d.RunFullDialog(mc)
 }
 
 func viewEntries(meal *osusu.Meal, entries []osusu.Entry, mc *core.Frame) {
-	d := core.NewBody().AddTitle("Entries for " + meal.Name)
-	d.AddTopBar(func(pw core.Widget) {
-		tb := d.DefaultTopAppBar(pw)
-		core.NewButton(tb).SetIcon(icons.Add).SetText("New entry").OnClick(func(e events.Event) {
-			newEntry(meal, mc)
+	d := core.NewBody("Entries for " + meal.Name)
+	d.AddTopBar(func(bar *core.Frame) {
+		core.NewToolbar(bar).Maker(func(p *tree.Plan) {
+			tree.Add(p, func(w *core.Button) {
+				w.SetIcon(icons.Add).SetText("New entry")
+				w.OnClick(func(e events.Event) {
+					newEntry(meal, mc)
+				})
+			})
 		})
 	})
 	for _, entry := range entries {
@@ -125,8 +129,8 @@ func viewEntries(meal *osusu.Meal, entries []osusu.Entry, mc *core.Frame) {
 		cardStyles(ec)
 		core.NewText(ec).SetType(core.TextHeadlineSmall).SetText(entry.Time.Format("Monday, January 2, 2006"))
 
-		castr := friendlyBitFlagString(entry.Category)
-		sostr := friendlyBitFlagString(entry.Source)
+		castr := friendlyBitFlagString(&entry.Category)
+		sostr := friendlyBitFlagString(&entry.Source)
 		text := castr
 		if castr != "" && sostr != "" {
 			text += " • "
@@ -141,29 +145,29 @@ func viewEntries(meal *osusu.Meal, entries []osusu.Entry, mc *core.Frame) {
 		scoreGrid(ec, score, false)
 
 		ec.OnClick(func(e events.Event) {
-			d := core.NewBody().AddTitle("Edit entry")
+			d := core.NewBody("Edit entry")
 			core.NewForm(d).SetStruct(entry)
-			d.AddBottomBar(func(pw core.Widget) {
-				d.AddCancel(pw)
-				d.AddOk(pw).SetText("Save").OnClick(func(e events.Event) {
+			d.AddBottomBar(func(bar *core.Frame) {
+				d.AddCancel(bar)
+				d.AddOK(bar).SetText("Save").OnClick(func(e events.Event) {
 					err := osusu.DB.Save(entry).Error
 					if err != nil {
 						core.ErrorDialog(d, err)
 					}
 				})
 			})
-			d.NewFullDialog(ec).Run()
+			d.RunFullDialog(ec)
 		})
 	}
-	d.NewFullDialog(mc).Run()
+	d.RunFullDialog(mc)
 }
 
 func editMeal(mf *core.Frame, meal *osusu.Meal, mc *core.Frame) {
-	d := core.NewBody().AddTitle("Edit meal")
+	d := core.NewBody("Edit meal")
 	core.NewForm(d).SetStruct(meal)
-	d.AddBottomBar(func(pw core.Widget) {
-		d.AddCancel(pw)
-		d.AddOk(pw).SetText("Save").OnClick(func(e events.Event) {
+	d.AddBottomBar(func(bar *core.Frame) {
+		d.AddCancel(bar)
+		d.AddOK(bar).SetText("Save").OnClick(func(e events.Event) {
 			err := osusu.DB.Save(meal).Error
 			if err != nil {
 				core.ErrorDialog(d, err)
@@ -171,5 +175,5 @@ func editMeal(mf *core.Frame, meal *osusu.Meal, mc *core.Frame) {
 			configSearch(mf)
 		})
 	})
-	d.NewFullDialog(mc).Run()
+	d.RunFullDialog(mc)
 }

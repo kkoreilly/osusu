@@ -29,5 +29,5 @@ func groups(b *core.Body) {
 		}
 		d.Close()
 	})
-	d.NewFullDialog(b).Run()
+	d.RunFullDialog(b)
 }

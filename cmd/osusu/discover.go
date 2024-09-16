@@ -197,5 +197,5 @@ func addRecipe(rf *core.Frame, recipe *osusu.Recipe, rc *core.Frame, mf *core.Fr
 			newMeal(rf, mf, meal)
 		})
 	})
-	d.NewFullDialog(rc).Run()
+	d.RunFullDialog(rc)
 }

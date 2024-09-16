@@ -82,5 +82,5 @@ func editEntry(ef *core.Frame, entry *osusu.Entry, ec *core.Frame) {
 			configHistory(ef)
 		})
 	})
-	d.NewFullDialog(ec).Run()
+	d.RunFullDialog(ec)
 }
