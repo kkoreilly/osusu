@@ -8,9 +8,9 @@ import (
 func main() {
 	b := core.NewBody("Osusu")
 	base(b)
-	w := b.NewWindow().Run()
+	b.RunWindow()
 	err := osusu.OpenDB()
 	core.ErrorDialog(b, err)
 	// loadSession(b)
-	w.Wait()
+	core.Wait()
 }

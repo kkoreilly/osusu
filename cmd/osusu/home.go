@@ -1,24 +1,22 @@
 package main
 
 import (
-	"errors"
 	"image"
 	"net/http"
 	"strconv"
 
+	"cogentcore.org/core/base/errors"
+	"cogentcore.org/core/base/iox/imagex"
 	"cogentcore.org/core/colors"
 	"cogentcore.org/core/core"
+	"cogentcore.org/core/cursors"
+	"cogentcore.org/core/enums"
 	"cogentcore.org/core/events"
+	"cogentcore.org/core/icons"
 	"cogentcore.org/core/styles"
-	"cogentcore.org/core/views"
+	"cogentcore.org/core/styles/abilities"
+	"cogentcore.org/core/styles/units"
 	"github.com/kkoreilly/osusu/osusu"
-	"goki.dev/cursors"
-	"goki.dev/enums"
-	"goki.dev/girl/abilities"
-	"goki.dev/girl/units"
-	"goki.dev/grows/images"
-	"goki.dev/grr"
-	"goki.dev/icons"
 	"gorm.io/gorm"
 )
 
@@ -56,7 +54,7 @@ func home() {
 		})
 		core.NewButton(tb).SetIcon(icons.Sort).SetText("Sort").OnClick(func(e events.Event) {
 			d := core.NewBody().AddTitle("Sort and filter")
-			views.NewStructView(d).SetStruct(curOptions)
+			core.NewForm(d).SetStruct(curOptions)
 			d.OnClose(func(e events.Event) {
 				configSearch(mf)
 				configHistory(ef)
@@ -81,7 +79,7 @@ func home() {
 
 func newMeal(ctx core.Widget, mf *core.Frame, meal *osusu.Meal) {
 	d := core.NewBody().AddTitle("Create meal")
-	views.NewStructView(d).SetStruct(meal)
+	core.NewForm(d).SetStruct(meal)
 	d.AddBottomBar(func(pw core.Widget) {
 		d.AddCancel(pw)
 		d.AddOk(pw).SetText("Create").OnClick(func(e events.Event) {
@@ -171,12 +169,12 @@ func getImageFromURL(url string) image.Image {
 		return nil
 	}
 	resp, err := http.Get(url)
-	if grr.Log(err) != nil {
+	if errors.Log(err) != nil {
 		return nil
 	}
 	defer resp.Body.Close()
-	img, _, err := images.Read(resp.Body)
-	if grr.Log(err) != nil {
+	img, _, err := imagex.Read(resp.Body)
+	if errors.Log(err) != nil {
 		return nil
 	}
 	return img

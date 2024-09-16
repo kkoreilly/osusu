@@ -1,6 +1,6 @@
 package osusu
 
-import "goki.dev/enums"
+import "cogentcore.org/core/enums"
 
 type Options struct {
 	Categories            Categories

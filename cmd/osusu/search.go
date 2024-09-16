@@ -6,10 +6,9 @@ import (
 	"cogentcore.org/core/colors"
 	"cogentcore.org/core/core"
 	"cogentcore.org/core/events"
+	"cogentcore.org/core/icons"
 	"cogentcore.org/core/styles"
-	"cogentcore.org/core/views"
 	"github.com/kkoreilly/osusu/osusu"
-	"goki.dev/icons"
 )
 
 func configSearch(mf *core.Frame) {
@@ -99,7 +98,7 @@ func newEntry(meal *osusu.Meal, mc *core.Frame) {
 		Healthiness: 50,
 		Taste:       50,
 	}
-	views.NewStructView(d).SetStruct(entry)
+	core.NewForm(d).SetStruct(entry)
 	d.AddBottomBar(func(pw core.Widget) {
 		d.AddCancel(pw)
 		d.AddOk(pw).SetText("Create").OnClick(func(e events.Event) {
@@ -143,7 +142,7 @@ func viewEntries(meal *osusu.Meal, entries []osusu.Entry, mc *core.Frame) {
 
 		ec.OnClick(func(e events.Event) {
 			d := core.NewBody().AddTitle("Edit entry")
-			views.NewStructView(d).SetStruct(entry)
+			core.NewForm(d).SetStruct(entry)
 			d.AddBottomBar(func(pw core.Widget) {
 				d.AddCancel(pw)
 				d.AddOk(pw).SetText("Save").OnClick(func(e events.Event) {
@@ -161,7 +160,7 @@ func viewEntries(meal *osusu.Meal, entries []osusu.Entry, mc *core.Frame) {
 
 func editMeal(mf *core.Frame, meal *osusu.Meal, mc *core.Frame) {
 	d := core.NewBody().AddTitle("Edit meal")
-	views.NewStructView(d).SetStruct(meal)
+	core.NewForm(d).SetStruct(meal)
 	d.AddBottomBar(func(pw core.Widget) {
 		d.AddCancel(pw)
 		d.AddOk(pw).SetText("Save").OnClick(func(e events.Event) {

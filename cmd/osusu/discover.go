@@ -7,18 +7,17 @@ import (
 	"slices"
 	"strings"
 
+	"cogentcore.org/core/base/errors"
 	"cogentcore.org/core/colors"
 	"cogentcore.org/core/core"
 	"cogentcore.org/core/events"
 	"cogentcore.org/core/styles"
-	"cogentcore.org/core/views"
 	"github.com/kkoreilly/osusu/osusu"
 	"github.com/kkoreilly/osusu/otextencoding"
 	"github.com/nlpodyssey/cybertron/pkg/client"
 	"github.com/nlpodyssey/cybertron/pkg/models/bert"
 	"github.com/nlpodyssey/spago/mat"
 	"goki.dev/grows/jsons"
-	"goki.dev/grr"
 )
 
 //go:embed recipes.json
@@ -48,7 +47,7 @@ func configDiscover(rf *core.Frame, mf *core.Frame) {
 			return
 		}
 		for _, recipe := range recipes {
-			grr.Log(recipe.Init())
+			errors.Log(recipe.Init())
 		}
 
 		err = jsons.OpenFS(&textEncodingVectors, textEncodingVectorsFS, "textEncodingVectors.json")
@@ -138,8 +137,8 @@ func configDiscover(rf *core.Frame, mf *core.Frame) {
 			break
 		}
 
-		grr.Log(recipe.CategoryFlag.SetString(strings.Join(recipe.Category, "|")))
-		grr.Log(recipe.CuisineFlag.SetString(strings.Join(recipe.Cuisine, "|")))
+		errors.Log(recipe.CategoryFlag.SetString(strings.Join(recipe.Category, "|")))
+		errors.Log(recipe.CuisineFlag.SetString(strings.Join(recipe.Cuisine, "|")))
 
 		if !bitFlagsOverlap(recipe.CategoryFlag, curOptions.Categories) ||
 			!bitFlagsOverlap(recipe.CuisineFlag, curOptions.Cuisines) {
@@ -183,7 +182,7 @@ func configDiscover(rf *core.Frame, mf *core.Frame) {
 
 func addRecipe(rf *core.Frame, recipe *osusu.Recipe, rc *core.Frame, mf *core.Frame) {
 	d := core.NewBody().AddTitle("Add recipe")
-	views.NewStructView(d).SetStruct(recipe).SetReadOnly(true)
+	core.NewForm(d).SetStruct(recipe).SetReadOnly(true)
 	d.AddBottomBar(func(pw core.Widget) {
 		d.AddCancel(pw)
 		d.AddOk(pw).SetText("Add").OnClick(func(e events.Event) {

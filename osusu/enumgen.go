@@ -10,7 +10,7 @@ import (
 	"strings"
 	"sync/atomic"
 
-	"goki.dev/enums"
+	"cogentcore.org/core/enums"
 )
 
 var _SourcesValues = []Sources{0, 1, 2, 3}

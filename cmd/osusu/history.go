@@ -5,7 +5,6 @@ import (
 	"cogentcore.org/core/core"
 	"cogentcore.org/core/events"
 	"cogentcore.org/core/styles"
-	"cogentcore.org/core/views"
 	"github.com/kkoreilly/osusu/osusu"
 )
 
@@ -72,7 +71,7 @@ func configHistory(ef *core.Frame) {
 
 func editEntry(ef *core.Frame, entry *osusu.Entry, ec *core.Frame) {
 	d := core.NewBody().AddTitle("Edit entry")
-	views.NewStructView(d).SetStruct(entry)
+	core.NewForm(d).SetStruct(entry)
 	d.AddBottomBar(func(pw core.Widget) {
 		d.AddCancel(pw)
 		d.AddOk(pw).SetText("Save").OnClick(func(e events.Event) {
