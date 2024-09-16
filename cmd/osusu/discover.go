@@ -31,10 +31,10 @@ var textEncodingVectorsFS embed.FS
 var textEncodingVectors map[string][]float32
 
 func configDiscover(rf *core.Frame, mf *core.Frame) {
+	// TODO: use Makers and Plans
 	if rf.HasChildren() {
-		rf.DeleteChildren(true)
+		rf.DeleteChildren()
 	}
-	updt := rf.UpdateStart()
 
 	rf.Styler(func(s *styles.Style) {
 		s.Wrap = true
@@ -140,8 +140,8 @@ func configDiscover(rf *core.Frame, mf *core.Frame) {
 		errors.Log(recipe.CategoryFlag.SetString(strings.Join(recipe.Category, "|")))
 		errors.Log(recipe.CuisineFlag.SetString(strings.Join(recipe.Cuisine, "|")))
 
-		if !bitFlagsOverlap(recipe.CategoryFlag, curOptions.Categories) ||
-			!bitFlagsOverlap(recipe.CuisineFlag, curOptions.Cuisines) {
+		if !bitFlagsOverlap(&recipe.CategoryFlag, &curOptions.Categories) ||
+			!bitFlagsOverlap(&recipe.CuisineFlag, &curOptions.Cuisines) {
 			continue
 		}
 
@@ -158,8 +158,8 @@ func configDiscover(rf *core.Frame, mf *core.Frame) {
 
 		core.NewText(rc).SetType(core.TextHeadlineSmall).SetText(recipe.Name)
 
-		castr := friendlyBitFlagString(recipe.CategoryFlag)
-		custr := friendlyBitFlagString(recipe.CuisineFlag)
+		castr := friendlyBitFlagString(&recipe.CategoryFlag)
+		custr := friendlyBitFlagString(&recipe.CuisineFlag)
 		text := castr
 		if castr != "" && custr != "" {
 			text += " • "
@@ -177,15 +177,14 @@ func configDiscover(rf *core.Frame, mf *core.Frame) {
 	}
 
 	rf.Update()
-	rf.UpdateEndLayout(updt)
 }
 
 func addRecipe(rf *core.Frame, recipe *osusu.Recipe, rc *core.Frame, mf *core.Frame) {
-	d := core.NewBody().AddTitle("Add recipe")
+	d := core.NewBody("Add recipe")
 	core.NewForm(d).SetStruct(recipe).SetReadOnly(true)
-	d.AddBottomBar(func(pw core.Widget) {
-		d.AddCancel(pw)
-		d.AddOk(pw).SetText("Add").OnClick(func(e events.Event) {
+	d.AddBottomBar(func(bar *core.Frame) {
+		d.AddCancel(bar)
+		d.AddOK(bar).SetText("Add").OnClick(func(e events.Event) {
 			meal := &osusu.Meal{
 				Name:        recipe.Name,
 				Description: recipe.Description,
