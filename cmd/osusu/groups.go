@@ -7,7 +7,7 @@ import (
 )
 
 func groups(b *core.Body) {
-	d := core.NewBody("groups")
+	d := core.NewBody("Groups")
 	core.NewText(d).SetType(core.TextHeadlineMedium).SetText("Join group")
 	groupCode := ""
 	core.Bind(&groupCode, core.NewTextField(d))

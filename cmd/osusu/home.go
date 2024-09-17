@@ -32,21 +32,21 @@ func home() {
 
 	tabs := core.NewTabs(b).SetType(core.NavigationAuto)
 
-	search, _ := tabs.NewTab("Search")
-	mf := core.NewFrame(search)
-	configSearch(mf)
+	search, stab := tabs.NewTab("Search")
+	configSearch(search)
+	stab.SetIcon(icons.Search)
 
-	discover, discoverButton := tabs.NewTab("Discover")
-	rf := core.NewFrame(discover)
-	discoverButton.OnClick(func(e events.Event) {
-		if !rf.HasChildren() {
-			configDiscover(rf, mf)
+	discover, dtab := tabs.NewTab("Discover")
+	dtab.SetIcon(icons.Explore)
+	dtab.OnClick(func(e events.Event) {
+		if !discover.HasChildren() {
+			configDiscover(discover, search)
 		}
 	})
 
-	history, _ := tabs.NewTab("History")
-	ef := core.NewFrame(history)
-	configHistory(ef)
+	history, htab := tabs.NewTab("History")
+	configHistory(history)
+	htab.SetIcon(icons.History)
 
 	b.AddTopBar(func(bar *core.Frame) {
 		tb := core.NewToolbar(bar)
@@ -54,7 +54,7 @@ func home() {
 			tree.Add(p, func(w *core.Button) {
 				w.SetIcon(icons.Add).SetText("New meal")
 				w.OnClick(func(e events.Event) {
-					newMeal(tb, mf, &osusu.Meal{})
+					newMeal(tb, search, &osusu.Meal{})
 				})
 			})
 			tree.Add(p, func(w *core.Button) {
@@ -63,9 +63,9 @@ func home() {
 					d := core.NewBody("Sort and filter")
 					core.NewForm(d).SetStruct(curOptions)
 					d.OnClose(func(e events.Event) {
-						configSearch(mf)
-						configHistory(ef)
-						configDiscover(rf, mf)
+						configSearch(search)
+						configHistory(history)
+						configDiscover(discover, search)
 					})
 					d.RunFullDialog(tb)
 				})
@@ -145,7 +145,10 @@ func scoreGrid(card *core.Frame, score *osusu.Score, showRecency bool) *core.Fra
 	})
 
 	label := func(text string) {
-		core.NewText(grid).SetType(core.TextLabelLarge).SetText(text)
+		tx := core.NewText(grid).SetType(core.TextLabelLarge).SetText(text)
+		tx.Styler(func(s *styles.Style) {
+			s.SetTextWrap(false)
+		})
 	}
 
 	label("Total")
