@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"cogentcore.org/core/base/errors"
+	"cogentcore.org/core/base/iox/jsonx"
 	"cogentcore.org/core/colors"
 	"cogentcore.org/core/core"
 	"cogentcore.org/core/events"
@@ -17,7 +18,6 @@ import (
 	"github.com/nlpodyssey/cybertron/pkg/client"
 	"github.com/nlpodyssey/cybertron/pkg/models/bert"
 	"github.com/nlpodyssey/spago/mat"
-	"goki.dev/grows/jsons"
 )
 
 //go:embed recipes.json
@@ -41,7 +41,7 @@ func configDiscover(rf *core.Frame, mf *core.Frame) {
 	})
 
 	if recipes == nil {
-		err := jsons.OpenFS(&recipes, recipesFS, "recipes.json")
+		err := jsonx.OpenFS(&recipes, recipesFS, "recipes.json")
 		if err != nil {
 			core.ErrorDialog(rf, err, "Error opening recipes")
 			return
@@ -50,7 +50,7 @@ func configDiscover(rf *core.Frame, mf *core.Frame) {
 			errors.Log(recipe.Init())
 		}
 
-		err = jsons.OpenFS(&textEncodingVectors, textEncodingVectorsFS, "textEncodingVectors.json")
+		err = jsonx.OpenFS(&textEncodingVectors, textEncodingVectorsFS, "textEncodingVectors.json")
 		if err != nil {
 			core.ErrorDialog(rf, err, "Error opening recipe text encoding vectors")
 			return

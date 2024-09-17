@@ -8,11 +8,11 @@ import (
 	"time"
 
 	"cogentcore.org/core/base/errors"
+	"cogentcore.org/core/base/iox/jsonx"
 	"github.com/kkoreilly/osusu/osusu"
 	"github.com/kkoreilly/osusu/otextencoding"
 	"github.com/nlpodyssey/cybertron/pkg/models/bert"
 	"github.com/rs/zerolog"
-	"goki.dev/grows/jsons"
 )
 
 func main() {
@@ -21,7 +21,7 @@ func main() {
 	errors.Must(otextencoding.LoadModel())
 
 	var recipes []*osusu.Recipe
-	errors.Must(jsons.Open(&recipes, filepath.Join("..", "osusu", "recipes.json")))
+	errors.Must(jsonx.Open(&recipes, filepath.Join("..", "osusu", "recipes.json")))
 
 	// keyed by recipe URL
 	vectors := map[string][]float32{}
@@ -39,5 +39,5 @@ func main() {
 		}
 	}
 
-	errors.Must(jsons.Save(vectors, filepath.Join("..", "osusu", "textEncodingVectors.json")))
+	errors.Must(jsonx.Save(vectors, filepath.Join("..", "osusu", "textEncodingVectors.json")))
 }
