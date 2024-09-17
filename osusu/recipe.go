@@ -18,22 +18,22 @@ type Recipe struct {
 	Author            string
 	DatePublished     time.Time
 	DateModified      time.Time
-	Category          []string   `view:"-"`
+	Category          []string   `display:"-"`
 	CategoryFlag      Categories `json:"-" label:"Category"`
-	Cuisine           []string   `view:"-"`
+	Cuisine           []string   `display:"-"`
 	CuisineFlag       Cuisines   `json:"-" label:"Cuisine"`
 	Ingredients       []string
-	TotalTime         string        `view:"-"`
-	PrepTime          string        `view:"-"`
-	CookTime          string        `view:"-"`
+	TotalTime         string        `display:"-"`
+	PrepTime          string        `display:"-"`
+	CookTime          string        `display:"-"`
 	TotalTimeDuration time.Duration `json:"-" label:"Total time" viewif:"TotalTime!=\"\""`
 	PrepTimeDuration  time.Duration `json:"-" label:"Prep time" viewif:"PrepTime!=\"\""`
 	CookTimeDuration  time.Duration `json:"-" label:"Cook time" viewif:"CookTime!=\"\""`
 	Yield             int
-	RatingValue       float64 `view:"slider" min:"0" max:"5"`
+	RatingValue       float64 `display:"slider" min:"0" max:"5"`
 	RatingCount       int
-	RatingScore       int `view:"-" json:"-"`
-	RatingWeight      int `view:"-" json:"-"`
+	RatingScore       int `display:"-" json:"-"`
+	RatingWeight      int `display:"-" json:"-"`
 	Nutrition         Nutrition
 	Source            string `json:"-"`
 	// index score values for base information about a recipe (using info like calories, time, ingredients, etc)
