@@ -1,22 +1,16 @@
 package main
 
 import (
+	"cogentcore.org/core/core"
 	"github.com/kkoreilly/osusu/osusu"
-	"goki.dev/gi/v2/gi"
-	"goki.dev/gi/v2/gimain"
 )
 
-func main() { gimain.Run(app) }
-
-func app() {
-	gi.SetAppName("osusu")
-	b := gi.NewBody().SetTitle("Osusu")
+func main() {
+	b := core.NewBody("Osusu")
 	base(b)
-	w := b.NewWindow().Run()
+	b.RunWindow()
 	err := osusu.OpenDB()
-	if err != nil {
-		gi.ErrorDialog(b, err)
-	}
+	core.ErrorDialog(b, err)
 	// loadSession(b)
-	w.Wait()
+	core.Wait()
 }

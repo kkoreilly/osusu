@@ -7,12 +7,12 @@ import (
 	"gorm.io/gorm"
 )
 
-//go:generate enumgen -sql
+//go:generate core generate -sql
 
 type Meal struct {
-	gorm.Model  `view:"-"`
-	GroupID     uint  `view:"-"`
-	Group       Group `view:"-"`
+	gorm.Model  `display:"-"`
+	GroupID     uint  `display:"-"`
+	Group       Group `display:"-"`
 	Name        string
 	Description string
 	Image       string
@@ -22,18 +22,18 @@ type Meal struct {
 }
 
 type Entry struct {
-	gorm.Model  `view:"-"`
-	MealID      uint `view:"-"`
-	Meal        Meal `view:"-"`
-	UserID      uint `view:"-"`
-	User        User `view:"-"`
+	gorm.Model  `display:"-"`
+	MealID      uint `display:"-"`
+	Meal        Meal `display:"-"`
+	UserID      uint `display:"-"`
+	User        User `display:"-"`
 	Time        time.Time
 	Category    Categories
 	Source      Sources
-	Taste       int `view:"slider" min:"0" def:"50" max:"100"`
-	Cost        int `view:"slider" min:"0" def:"50" max:"100"`
-	Effort      int `view:"slider" min:"0" def:"50" max:"100"`
-	Healthiness int `view:"slider" min:"0" def:"50" max:"100"`
+	Taste       int `display:"slider" min:"0" def:"50" max:"100"`
+	Cost        int `display:"slider" min:"0" def:"50" max:"100"`
+	Effort      int `display:"slider" min:"0" def:"50" max:"100"`
+	Healthiness int `display:"slider" min:"0" def:"50" max:"100"`
 }
 
 type Sources int64 //enums:bitflag

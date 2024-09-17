@@ -3,7 +3,7 @@ package osusu
 import (
 	"time"
 
-	"goki.dev/glop/num"
+	"cogentcore.org/core/base/num"
 )
 
 type Score struct {

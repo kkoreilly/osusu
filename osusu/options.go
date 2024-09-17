@@ -1,16 +1,16 @@
 package osusu
 
-import "goki.dev/enums"
+import "cogentcore.org/core/enums"
 
 type Options struct {
 	Categories            Categories
 	Sources               Sources
 	Cuisines              Cuisines
-	TasteImportance       int `view:"slider" min:"0" def:"50" max:"100"`
-	RecencyImportance     int `view:"slider" min:"0" def:"50" max:"100"`
-	CostImportance        int `view:"slider" min:"0" def:"50" max:"100"`
-	EffortImportance      int `view:"slider" min:"0" def:"50" max:"100"`
-	HealthinessImportance int `view:"slider" min:"0" def:"50" max:"100"`
+	TasteImportance       int `display:"slider" min:"0" def:"50" max:"100"`
+	RecencyImportance     int `display:"slider" min:"0" def:"50" max:"100"`
+	CostImportance        int `display:"slider" min:"0" def:"50" max:"100"`
+	EffortImportance      int `display:"slider" min:"0" def:"50" max:"100"`
+	HealthinessImportance int `display:"slider" min:"0" def:"50" max:"100"`
 }
 
 func DefaultOptions() *Options {

@@ -3,7 +3,7 @@ package osusu
 import "gorm.io/gorm"
 
 type User struct {
-	gorm.Model `view:"-"`
+	gorm.Model `display:"-"`
 	GroupID    uint
 	Email      string
 	Name       string
@@ -21,10 +21,10 @@ type Session struct {
 */
 
 type Group struct {
-	gorm.Model `view:"-"`
+	gorm.Model `display:"-"`
 	Name       string
-	Code       string `view:"-"`
-	OwnerID    uint   `view:"-"`
-	Owner      User   `view:"-"`
+	Code       string `display:"-"`
+	OwnerID    uint   `display:"-"`
+	Owner      User   `display:"-"`
 	Members    []User
 }

@@ -1,24 +1,23 @@
 package main
 
 import (
-	"errors"
 	"image"
 	"net/http"
 	"strconv"
 
+	"cogentcore.org/core/base/errors"
+	"cogentcore.org/core/base/iox/imagex"
+	"cogentcore.org/core/colors"
+	"cogentcore.org/core/core"
+	"cogentcore.org/core/cursors"
+	"cogentcore.org/core/enums"
+	"cogentcore.org/core/events"
+	"cogentcore.org/core/icons"
+	"cogentcore.org/core/styles"
+	"cogentcore.org/core/styles/abilities"
+	"cogentcore.org/core/styles/units"
+	"cogentcore.org/core/tree"
 	"github.com/kkoreilly/osusu/osusu"
-	"goki.dev/colors"
-	"goki.dev/cursors"
-	"goki.dev/enums"
-	"goki.dev/gi/v2/gi"
-	"goki.dev/gi/v2/giv"
-	"goki.dev/girl/abilities"
-	"goki.dev/girl/styles"
-	"goki.dev/girl/units"
-	"goki.dev/goosi/events"
-	"goki.dev/grows/images"
-	"goki.dev/grr"
-	"goki.dev/icons"
 	"gorm.io/gorm"
 )
 
@@ -29,44 +28,52 @@ var (
 )
 
 func home() {
-	b := gi.NewBody("home")
+	b := core.NewBody("Home")
 
-	tabs := gi.NewTabs(b).SetDeleteTabButtons(false)
+	tabs := core.NewTabs(b).SetType(core.NavigationAuto)
 
-	search := tabs.NewTab("Search")
-	mf := gi.NewFrame(search)
-	configSearch(mf)
+	search, stab := tabs.NewTab("Search")
+	configSearch(search)
+	stab.SetIcon(icons.Search)
 
-	discover := tabs.NewTab("Discover")
-	rf := gi.NewFrame(discover)
-	tabs.Tabs().ChildByName("discover").(gi.Widget).OnClick(func(e events.Event) {
-		if !rf.HasChildren() {
-			configDiscover(rf, mf)
+	discover, dtab := tabs.NewTab("Discover")
+	dtab.SetIcon(icons.Explore)
+	dtab.OnClick(func(e events.Event) {
+		if !discover.HasChildren() {
+			configDiscover(discover, search)
 		}
 	})
 
-	history := tabs.NewTab("History")
-	ef := gi.NewFrame(history)
-	configHistory(ef)
+	history, htab := tabs.NewTab("History")
+	configHistory(history)
+	htab.SetIcon(icons.History)
 
-	b.AddTopBar(func(pw gi.Widget) {
-		tb := b.DefaultTopAppBar(pw)
-		gi.NewButton(tb).SetIcon(icons.Add).SetText("New meal").OnClick(func(e events.Event) {
-			newMeal(tb, mf, &osusu.Meal{})
-		})
-		gi.NewButton(tb).SetIcon(icons.Sort).SetText("Sort").OnClick(func(e events.Event) {
-			d := gi.NewBody().AddTitle("Sort and filter")
-			giv.NewStructView(d).SetStruct(curOptions)
-			d.OnClose(func(e events.Event) {
-				configSearch(mf)
-				configHistory(ef)
-				configDiscover(rf, mf)
+	b.AddTopBar(func(bar *core.Frame) {
+		tb := core.NewToolbar(bar)
+		tb.Maker(func(p *tree.Plan) {
+			tree.Add(p, func(w *core.Button) {
+				w.SetIcon(icons.Add).SetText("New meal")
+				w.OnClick(func(e events.Event) {
+					newMeal(tb, search, &osusu.Meal{})
+				})
 			})
-			d.NewFullDialog(tb).Run()
+			tree.Add(p, func(w *core.Button) {
+				w.SetIcon(icons.Sort).SetText("Sort")
+				w.OnClick(func(e events.Event) {
+					d := core.NewBody("Sort and filter")
+					core.NewForm(d).SetStruct(curOptions)
+					d.OnClose(func(e events.Event) {
+						configSearch(search)
+						configHistory(history)
+						configDiscover(discover, search)
+					})
+					d.RunFullDialog(tb)
+				})
+			})
 		})
 	})
 
-	b.NewWindow().SetNewWindow(false).Run()
+	b.RunWindow()
 
 	curGroup = &osusu.Group{}
 	err := osusu.DB.First(curGroup, curUser.GroupID).Error
@@ -74,60 +81,59 @@ func home() {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			groups(b)
 		} else {
-			gi.ErrorDialog(b, err)
+			core.ErrorDialog(b, err)
 		}
 	}
 }
 
-func newMeal(ctx gi.Widget, mf *gi.Frame, meal *osusu.Meal) {
-	d := gi.NewBody().AddTitle("Create meal")
-	giv.NewStructView(d).SetStruct(meal)
-	d.AddBottomBar(func(pw gi.Widget) {
-		d.AddCancel(pw)
-		d.AddOk(pw).SetText("Create").OnClick(func(e events.Event) {
+func newMeal(ctx core.Widget, mf *core.Frame, meal *osusu.Meal) {
+	d := core.NewBody("Create meal")
+	core.NewForm(d).SetStruct(meal)
+	d.AddBottomBar(func(bar *core.Frame) {
+		d.AddCancel(bar)
+		d.AddOK(bar).SetText("Create").OnClick(func(e events.Event) {
 			err := osusu.DB.Create(meal).Error
 			if err != nil {
-				gi.ErrorDialog(d, err)
+				core.ErrorDialog(d, err)
 				return
 			}
 			configSearch(mf)
 		})
 	})
-	d.NewFullDialog(ctx).Run()
+	d.RunFullDialog(ctx)
 }
 
-func cardStyles(card *gi.Frame) {
-	card.Style(func(s *styles.Style) {
-		s.SetAbilities(true, abilities.Hoverable, abilities.Pressable)
+func cardStyles(card *core.Frame) {
+	card.Styler(func(s *styles.Style) {
+		s.SetAbilities(true, abilities.Hoverable, abilities.Activatable)
 		s.Cursor = cursors.Pointer
 		s.Border.Radius = styles.BorderRadiusLarge
-		s.BackgroundColor.SetSolid(colors.Scheme.SurfaceContainerLow)
+		s.Background = colors.Scheme.SurfaceContainerLow
 		s.Padding.Set(units.Dp(8))
 		s.Min.Set(units.Em(20))
-		s.Grow.Set(0, 0)
 		s.Direction = styles.Column
-		s.Align.Content = styles.Center
-		s.Align.Items = styles.Center
+		s.CenterAll()
 	})
-	card.OnWidgetAdded(func(w gi.Widget) {
-		switch w := w.(type) {
-		case *gi.Label:
-			w.Style(func(s *styles.Style) {
-				s.SetNonSelectable()
-				s.Text.Align = styles.Center
-			})
-		case *gi.Image:
-			w.Style(func(s *styles.Style) {
-				s.Min.Set(units.Em(20))
-				s.ObjectFit = styles.FitCover
-			})
-		}
-	})
+	// TODO: use Makers and Plans
+	// card.OnWidgetAdded(func(w core.Widget) {
+	// 	switch w := w.(type) {
+	// 	case *core.Text:
+	// 		w.Styler(func(s *styles.Style) {
+	// 			s.SetNonSelectable()
+	// 			s.Text.Align = styles.Center
+	// 		})
+	// 	case *core.Image:
+	// 		w.Styler(func(s *styles.Style) {
+	// 			s.Min.Set(units.Em(20))
+	// 			s.ObjectFit = styles.FitCover
+	// 		})
+	// 	}
+	// })
 }
 
-func scoreGrid(card *gi.Frame, score *osusu.Score, showRecency bool) *gi.Layout {
-	grid := gi.NewLayout(card)
-	grid.Style(func(s *styles.Style) {
+func scoreGrid(card *core.Frame, score *osusu.Score, showRecency bool) *core.Frame {
+	grid := core.NewFrame(card)
+	grid.Styler(func(s *styles.Style) {
 		s.Display = styles.Grid
 		if showRecency {
 			s.Columns = 6
@@ -139,7 +145,10 @@ func scoreGrid(card *gi.Frame, score *osusu.Score, showRecency bool) *gi.Layout 
 	})
 
 	label := func(text string) {
-		gi.NewLabel(grid).SetType(gi.LabelLabelLarge).SetText(text)
+		tx := core.NewText(grid).SetType(core.TextLabelLarge).SetText(text)
+		tx.Styler(func(s *styles.Style) {
+			s.SetTextWrap(false)
+		})
 	}
 
 	label("Total")
@@ -152,7 +161,7 @@ func scoreGrid(card *gi.Frame, score *osusu.Score, showRecency bool) *gi.Layout 
 	label("Health")
 
 	value := func(value int) {
-		gi.NewLabel(grid).SetText(strconv.Itoa(value))
+		core.NewText(grid).SetText(strconv.Itoa(value))
 	}
 
 	value(score.Total)
@@ -171,12 +180,12 @@ func getImageFromURL(url string) image.Image {
 		return nil
 	}
 	resp, err := http.Get(url)
-	if grr.Log(err) != nil {
+	if errors.Log(err) != nil {
 		return nil
 	}
 	defer resp.Body.Close()
-	img, _, err := images.Read(resp.Body)
-	if grr.Log(err) != nil {
+	img, _, err := imagex.Read(resp.Body)
+	if errors.Log(err) != nil {
 		return nil
 	}
 	return img
@@ -184,7 +193,7 @@ func getImageFromURL(url string) image.Image {
 
 // bitFlagsOverlap returns whether there is any overlap between the two bit flags.
 // They should be of the same type.
-func bitFlagsOverlap(a, b enums.BitFlag) bool {
+func bitFlagsOverlap(a, b enums.BitFlagSetter) bool {
 	vals := a.Values()
 	for _, v := range vals {
 		vb := v.(enums.BitFlag)
@@ -195,7 +204,7 @@ func bitFlagsOverlap(a, b enums.BitFlag) bool {
 	return false
 }
 
-func friendlyBitFlagString(bf enums.BitFlag) string {
+func friendlyBitFlagString(bf enums.BitFlagSetter) string {
 	matches := []string{}
 	vals := bf.Values()
 	for _, v := range vals {
